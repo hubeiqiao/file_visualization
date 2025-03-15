@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamicland: Computing Beyond Screens</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            light: '#5e5ce6',
+                            DEFAULT: '#4945FF',
+                            dark: '#3d3ad4',
+                        },
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/css">
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        .staggered > * {
+            opacity: 0;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-200 min-h-screen flex flex-col">
+    <!-- Dark mode script -->
+    <script>
+        // Check for system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    // Function to toggle dark/light mode
+    function toggleDarkMode() {
+        if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark')
+            localStorage.theme = 'light'
+        } else {
+            document.documentElement.classList.add('dark')
+            localStorage.theme = 'dark'
+        }
+    }
+    
+    // Function to animate elements when they enter the viewport
+    document.addEventListener('DOMContentLoaded', function() {
+        const animateOnScroll = function() {
+            const staggeredSections = document.querySelectorAll('.staggered');
+            
+            staggeredSections.forEach(section => {
+                const elements = section.querySelectorAll('*');
+                const sectionTop = section.getBoundingClientRect().top;
+                
+                if (sectionTop < window.innerHeight * 0.8) {
+                    elements.forEach((el, index) => {
+                        setTimeout(() => {
+                            el.classList.add('fade-in');
+                        }, index * 100);
+                    });
+                }
+            });
+        };
+        
+        // Initial check
+        animateOnScroll();
+        
+        // Check on scroll
+        window.addEventListener('scroll', animateOnScroll);
+    });
+</script>
+
+<!-- Navigation -->
+<nav class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <span class="font-semibold text-xl">Dynamicland</span>
+            </div>
+            <div class="flex items-center">
+                <button id="darkModeToggle" aria-label="Toggle Dark Mode" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200" onclick="toggleDarkMode()">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:block"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<header class="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 py-20 md:py-28">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:flex items-center justify-between">
+            <div class="lg:w-1/2 mb-10 lg:mb-0 staggered">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">Computation Beyond Screens</h1>
+                <p class="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-8">A humane dynamic medium where real people explore ideas together in the physical world.</p>
+                <div class="flex space-x-4">
+                    <a href="https://dynamicland.org/" target="_blank" rel="noopener" class="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors duration-200">
+                        Learn More
+                    </a>
+                    <a href="https://dynamicland.org/2024/Intro/" target="_blank" rel="noopener" class="px-6 py-3 border border-gray-300 dark:border-gray-600 hover:border-primary dark:hover:border-primary text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium rounded-lg transition-colors duration-200">
+                        View Projects
+                    </a>
+                </div>
+            </div>
+            <div class="lg:w-5/12">
+                <div class="rounded-xl overflow-hidden shadow-xl bg-white dark:bg-gray-800">
+                    <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="People collaborating around a table" class="w-full h-64 object-cover" loading="lazy">
+                    <div class="p-6">
+                        <p class="text-gray-600 dark:text-gray-400 italic">
+                            "We're going to solve these things out here. Where we can gather around, as real people, and use computation to explore ideas together."
+                        </p>
+                        <p class="text-right mt-2 text-gray-700 dark:text-gray-300 font-medium">— Bret Victor</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- What is Dynamicland Section -->
+<section class="py-16 md:py-24 bg-white dark:bg-gray-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">What is Dynamicland?</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                A nonprofit research lab creating a humane dynamic medium for real-world computation.
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8 staggered">
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 shadow-sm card-hover">
+                <div class="text-primary mb-6">
+                    <i class="fas fa-cube text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Physical Computing</h3>
+                <p class="text-gray-600 dark:text-gray-400">
+                    Working out in the real world with physical materials, putting computational programs onto ordinary objects.
+                </p>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 shadow-sm card-hover">
+                <div class="text-primary mb-6">
+                    <i class="fas fa-users text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Communal Experience</h3>
+                <p class="text-gray-600 dark:text-gray-400">
+                    People coming together in the same space, getting their hands on the same thing, collaborating spontaneously.
+                </p>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 shadow-sm card-hover">
+                <div class="text-primary mb-6">
+                    <i class="fas fa-edit text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Editable Programs</h3>
+                <p class="text-gray-600 dark:text-gray-400">
+                    Programs are visible things on the table or wall that anyone can change at any time and see the changes immediately.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-16 md:py-24 bg-gray-50 dark:bg-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:flex items-center gap-16">
+            <div class="lg:w-1/2 mb-12 lg:mb-0 staggered">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">How It Works: Realtalk</h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-8">
+                    Realtalk is not a codebase, but a physical system - a poster gallery or bulletin board that everyone can see and change at any time.
+                </p>
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                        <span>Built entirely in Realtalk itself, out in the open with real materials</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                        <span>No laptops needed - a complete self-hosted computing system</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                        <span>Programs can be in language, arrangements of components, or hand-drawn diagrams</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-primary mt-1 mr-3"></i>
+                        <span>Simplicity is key - the real world simulates itself, so programs can be small and simple</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="lg:w-1/2">
+                <div class="rounded-xl overflow-hidden shadow-xl">
+                    <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="People working with physical computing objects" class="w-full h-96 object-cover" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Community and Topics Section -->
+<section class="py-16 md:py-24 bg-white dark:bg-gray-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">A Community of Learning</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                Dynamicland has explored a diverse range of topics through its community of artists, scientists, teachers, and students.
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 staggered">
+            <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-map text-blue-500 dark:text-blue-400 mb-2"></i>
+                <p>Maps & Demographics</p>
+            </div>
+            <div class="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-leaf text-green-500 dark:text-green-400 mb-2"></i>
+                <p>Ecologies</p>
+            </div>
+            <div class="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-music text-purple-500 dark:text-purple-400 mb-2"></i>
+                <p>Rhythm & Harmony</p>
+            </div>
+            <div class="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-palette text-yellow-600 dark:text-yellow-400 mb-2"></i>
+                <p>Color & Painting</p>
+            </div>
+            <div class="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-film text-red-500 dark:text-red-400 mb-2"></i>
+                <p>Animation</p>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
+                <i class="fas fa-landmark text-gray-500 dark:text-gray-400 mb-2"></i>
+                <p>History & Politics</p>
+            </div>
+            <div class="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-book text-indigo-500 dark:text-indigo-400 mb-2"></i>
+                <p>Poetry</p>
+            </div>
+            <div class="bg-pink-50 dark:bg-pink-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-dna text-pink-500 dark:text-pink-400 mb-2"></i>
+                <p>Molecular Cloning</p>
+            </div>
+            <div class="bg-teal-50 dark:bg-teal-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-atom text-teal-500 dark:text-teal-400 mb-2"></i>
+                <p>Quantum Computing</p>
+            </div>
+            <div class="bg-orange-50 dark:bg-orange-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-chart-bar text-orange-500 dark:text-orange-400 mb-2"></i>
+                <p>Statistics</p>
+            </div>
+            <div class="bg-cyan-50 dark:bg-cyan-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-globe text-cyan-500 dark:text-cyan-400 mb-2"></i>
+                <p>Planets</p>
+            </div>
+            <div class="bg-amber-50 dark:bg-amber-900/30 rounded-lg p-4 text-center">
+                <i class="fas fa-temperature-high text-amber-500 dark:text-amber-400 mb-2"></i>
+                <p>Thermodynamics</p>
+            </div>
+        </div>
+        
+        <div class="bg-primary-light/10 dark:bg-primary-dark/20 rounded-xl p-8 border border-primary/20 shadow-sm">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-2/3 mb-6 md:mb-0 md:pr-6">
+                    <h3 class="text-2xl font-semibold mb-3">Current Focus: Biosciences</h3>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        After COVID, Dynamicland moved into integrating communal computing into an existing community of bioscientists, building a vision of communal science where:
+                    </p>
+                    <ul class="mt-4 space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-circle text-xs text-primary mt-1.5 mr-3"></i>
+                            <span>People from different fields work together in the same space</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-circle text-xs text-primary mt-1.5 mr-3"></i>
+                            <span>Building models together and learning each other's expertise</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-circle text-xs text-primary mt-1.5 mr-3"></i>
+                            <span>Computation integrated with physical experiments</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="md:w-1/3">
+                    <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Bioscience research" class="rounded-lg shadow-md" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Vision Section -->
+<section class="py-16 md:py-24 bg-gradient-to-br from-gray-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12 staggered">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">The Bigger Picture</h2>
+            <p class="text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto mb-8">
+                "Not a product, but a practice."
+            </p>
+            <div class="w-24 h-1 bg-primary mx-auto"></div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-8 md:p-12 shadow-md mb-12 staggered">
+            <div class="text-2xl md:text-3xl text-gray-800 dark:text-gray-200 font-light italic leading-relaxed">
+                "Democracy requires universal literacy. And democracy in the 21st century is going to require a new kind of literacy, for understanding and discussing systems that can't be captured in words and pictures."
+            </div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-8 staggered">
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm">
+                <h3 class="text-2xl font-semibold mb-4">Community-Built Computing</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">
+                    Dynamicland is nonprofit, and Realtalk is not a product. The goal is to invent a form of computation which local communities of non-specialists can make for themselves.
+                </p>
+                <p class="text-gray-600 dark:text-gray-400">
+                    Built from the ground up, for their own needs, which they fully understand and control.
+                </p>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm">
+                <h3 class="text-2xl font-semibold mb-4">21st-Century Literacy</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">
+                    We need new tools for understanding and discussing complex systems like the environment, equity, health, and global economies.
+                </p>
+                <p class="text-gray-600 dark:text-gray-400">
+                    These problems will be solved by real people gathering together, using computation to explore ideas in the physical world.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quote/Video Section -->
+<section class="py-16 md:py-20 bg-white dark:bg-gray-900 text-center">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-10 staggered">
+            <h2 class="text-2xl md:text-3xl font-semibold mb-6">See Dynamicland in Action</h2>
+            <p class="text-gray-600 dark:text-gray-400">
+                Watch the full introduction video to learn more about this revolutionary approach to computing.
+            </p>
+        </div>
+        <div class="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden shadow-lg">
+            <iframe class="w-full h-96" src="https://www.youtube.com/embed/5Q9r-AEzRMA" title="Dynamicland intro, Aug 2024" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+                <p>Your browser does not support iframes. You can <a href="https://www.youtube.com/watch?v=5Q9r-AEzRMA" target="_blank" rel="noopener">watch the video on YouTube</a>.</p>
+            </iframe>
+        </div>
+    </div>
+</section>
+
+<!-- Footer Section -->
+<footer class="bg-gray-100 dark:bg-gray-800 py-12 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0">
+                <h3 class="text-xl font-bold mb-2">Dynamicland</h3>
+                <p class="text-gray-600 dark:text-gray-400">A nonprofit lab creating a humane dynamic medium</p>
+            </div>
+            <div class="flex flex-col items-center md:items-end">
+                <div class="flex space-x-4 mb-4">
+                    <a href="https://dynamicland.org/" target="_blank" rel="noopener" aria-label="Visit Dynamicland website" class="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors duration-200">
+                        <i class="fas fa-globe text-lg"></i>
+                    </a>
+                    <a href="https://dynamicland.org/2024/Intro/" target="_blank" rel="noopener" aria-label="View Dynamicland projects" class="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors duration-200">
+                        <i class="fas fa-project-diagram text-lg"></i>
+                    </a>
+                </div>
+                <p class="text-gray-500 dark:text-gray-500 text-sm">
+                    Based on "Dynamicland intro, Aug 2024"
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Initialize animations -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            document.querySelectorAll('.staggered').forEach(section => {
+                const elements = section.querySelectorAll(':scope > *');
+                elements.forEach((el, index) => {
+                    setTimeout(() => {
+                        el.style.opacity = '1';
+                        el.classList.add('fade-in');
+                    }, index * 100);
+                });
+            });
+        }, 300);
+    });
+</script>
+</body>
+</html>

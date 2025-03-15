@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Up Our Game, Canada! | Module 8</title>
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        // Tailwind configuration
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        /* Custom animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        /* Staggered animations for content sections */
+        .content-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .content-section:nth-child(1) { animation-delay: 0.1s; }
+        .content-section:nth-child(2) { animation-delay: 0.2s; }
+        .content-section:nth-child(3) { animation-delay: 0.3s; }
+        .content-section:nth-child(4) { animation-delay: 0.4s; }
+        .content-section:nth-child(5) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body class="antialiased bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-200">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 backdrop-blur-sm bg-opacity-80 dark:bg-opacity-80">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-6">
+                    <a href="https://sprott.carleton.ca/up-our-game-canada/" class="flex items-center">
+                        <img src="https://sprott.carleton.ca/up-our-game-canada/wp-content/uploads/sites/8/2025/02/Up-Our-Game-Canada-identifier-512x160.png" alt="Up Our Game Canada Logo" class="h-8 md:h-10">
+                    </a>
+                    <div class="border-l border-gray-300 dark:border-gray-700 h-6"></div>
+                    <a href="https://carleton.ca/tim/" class="hidden md:block">
+                        <img src="https://carleton.ca/tim/wp-content/uploads/sites/52/2024/07/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-copy-1536x330.jpg" alt="TIM Program Logo" class="h-8 md:h-10 dark:hidden">
+                        <img src="https://carleton.ca/tim/wp-content/uploads/sites/52/2024/07/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-copy-1536x330.jpg" alt="TIM Program Logo" class="h-8 md:h-10 hidden dark:block invert">
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <nav class="hidden md:flex space-x-6">
+                        <a href="#introduction" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Introduction</a>
+                        <a href="#frameworks" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Frameworks</a>
+                        <a href="#trade-blocks" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Trade Blocks</a>
+                        <a href="#ai-stack" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">AI Stack</a>
+                        <a href="#summary" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Summary</a>
+                    </nav>
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+                        <i class="fas fa-moon text-blue-300 hidden dark:block"></i>
+                    </button>
+                    <button id="mobile-menu-button" class="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="md:hidden hidden pb-4">
+                <nav class="flex flex-col space-y-3">
+                    <a href="#introduction" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Introduction</a>
+                    <a href="#frameworks" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Frameworks</a>
+                    <a href="#trade-blocks" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Trade Blocks</a>
+                    <a href="#ai-stack" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">AI Stack</a>
+                    <a href="#summary" class="text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Summary</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative py-16 md:py-24 bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto text-center">
+                <span class="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider text-primary-700 dark:text-primary-300 uppercase bg-primary-100 dark:bg-primary-900 rounded-full">Module 8</span>
+                <h1 class="text-3xl md:text-5xl font-bold mb-4 leading-tight">Up Our Game, Canada!</h1>
+                <h2 class="text-xl md:text-2xl font-medium text-gray-600 dark:text-gray-400 mb-8">Effectively Learn From New Knowledge & Apply It</h2>
+                <p class="text-lg text-gray-700 dark:text-gray-300">
+                    A journey where learning transforms into action, where every piece of new knowledge becomes a stepping stone to our future.
+                </p>
+                <div class="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="#introduction" class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-all shadow-md hover:shadow-lg">
+                        Start Learning
+                    </a>
+                    <a href="https://sprott.carleton.ca/up-our-game-canada/" class="px-6 py-3 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium rounded-md border border-gray-300 dark:border-gray-700 transition-all shadow-md hover:shadow-lg">
+                        Visit Official Website
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white dark:from-gray-900 to-transparent"></div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="py-12 md:py-16">
+        <!-- Introduction Section -->
+        <section id="introduction" class="content-section py-12 md:py-16">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-3xl mx-auto">
+                    <span class="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider text-primary-700 dark:text-primary-300 uppercase bg-primary-100 dark:bg-primary-900 rounded-full">Introduction</span>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">The Urgency of Action</h2>
+                    
+                    <div class="prose prose-lg dark:prose-invert max-w-none">
+                        <p>
+                            Canadian SMEs, it's time to seize trade opportunities beyond the U.S. and take decisive action against the challenges of U.S. tariffs and the threat of annexation. We stand at a crossroads where market diversification isn't just an option—it's essential.
+                        </p>
+                        
+                        <blockquote class="border-l-4 border-primary-500 pl-4 my-6 italic">
+                            Every moment we hesitate, opportunities slip away. Canadian SMEs, your future is on the line—delay is not an option.
+                        </blockquote>
+                        
+                        <p>
+                            U.S. tariffs and annexation threats are real challenges, yet the growth potential for your businesses is far greater. Each minute you wait, risks mount: rising tariffs, supply chain disruptions, and intensified competition will only make your expansion efforts more arduous.
+                        </p>
+                        
+                        <h3 class="text-xl font-semibold mt-8 mb-4">Why These Modules Matter</h3>
+                        
+                        <p>
+                            These modules offer more than just information—they provide transformation for Canadian SMEs:
+                        </p>
+                        
+                        <ul class="space-y-2">
+                            <li class="flex items-start">
+                                <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-check-circle"></i></span>
+                                <span><strong>Accelerate time to market</strong> with AI-powered tools that deliver real, tangible business results</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-check-circle"></i></span>
+                                <span><strong>Clear roadmap</strong> distinguishing between the big-picture strategy and hands-on, step-by-step execution</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-check-circle"></i></span>
+                                <span><strong>Unlock the power of AI and digital trade</strong> to scale operations effectively</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-check-circle"></i></span>
+                                <span><strong>Break down complex strategies</strong> into manageable decisions and practical steps</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-10 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4">Our Unique Advantage</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400">
+                                    <i class="fas fa-map"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-base font-medium">Strategy Meets Execution</h4>
+                                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">A clear roadmap that unites big-picture strategy with a step-by-step playbook</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-base font-medium">AI-Driven Growth</h4>
+                                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Automation and e-commerce tools to cut costs and simplify expansion</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-base font-medium">Trade Agreement Leverage</h4>
+                                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Harness CPTPP, CETA, and USMCA advantages and export program funding</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400">
+                                    <i class="fas fa-sliders-h"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-base font-medium">Tailored & Adaptive</h4>
+                                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Structured strategies that flex and evolve with your business needs</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Frameworks vs. Playbooks Section -->
+        <section id="frameworks" class="content-section py-12 md:py-16 bg-gray-50 dark:bg-gray-800">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-3xl mx-auto">
+                    <span class="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider text-primary-700 dark:text-primary-300 uppercase bg-primary-100 dark:bg-primary-900 rounded-full">Frameworks & Playbooks</span>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">Strategic Framework vs. SME Playbook</h2>
+                    
+                    <div class="prose prose-lg dark:prose-invert max-w-none">
+                        <p>
+                            Understanding the vital difference between a strategic framework and your SME playbook is crucial for successful international expansion.
+                        </p>
+                        
+                        <div class="my-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="h-12 w-12 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mb-4">
+                                    <i class="fas fa-sitemap"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold mb-2">The Framework</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    A high-level, structured approach for strategic planning with key concepts and proven processes refined through research.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="h-12 w-12 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mb-4">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold mb-2">Playbook Template</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Detailed, step-by-step guidance and best practices, ensuring consistency across your planning process.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="h-12 w-12 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mb-4">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold mb-2">SME Playbook</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Your company-specific, highly detailed guide tailored to your international expansion needs and goals.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-xl font-semibold mt-10 mb-4">When to Use Each Tool</h3>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full border border-gray-300 dark:border-gray-700">
+                                <thead>
+                                    <tr class="bg-gray-100 dark:bg-gray-800">
+                                        <th class="py-3 px-4 text-left text-sm font-medium">Tool</th>
+                                        <th class="py-3 px-4 text-left text-sm font-medium">Best For</th>
+                                        <th class="py-3 px-4 text-left text-sm font-medium">Primary Function</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-300 dark:divide-gray-700">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-900">
+                                        <td class="py-3 px-4 text-sm font-medium">Framework</td>
+                                        <td class="py-3 px-4 text-sm">Strategic planning & high-level decision-making</td>
+                                        <td class="py-3 px-4 text-sm">Setting direction and vision</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-900">
+                                        <td class="py-3 px-4 text-sm font-medium">Playbook Template</td>
+                                        <td class="py-3 px-4 text-sm">Creating consistent, standardized SME playbooks</td>
+                                        <td class="py-3 px-4 text-sm">Driving continuous improvement</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-900">
+                                        <td class="py-3 px-4 text-sm font-medium">SME Playbook</td>
+                                        <td class="py-3 px-4 text-sm">Hands-on execution & practical implementation</td>
+                                        <td class="py-3 px-4 text-sm">Turning strategies into measurable action</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-xl font-semibold mb-4">Framework Benefits</h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Strategic clarity and direction</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Risk mitigation and adaptability</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Scalability and consistency</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Data-driven decision-making</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Efficiency and productivity</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-xl font-semibold mb-4">Playbook Template Benefits</h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Process standardization</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Faster implementation</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Customization and flexibility</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Performance tracking</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-600 dark:text-green-400 mt-1 mr-2"><i class="fas fa-check"></i></span>
+                                    <span>Team alignment and training</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10 bg-amber-50 dark:bg-amber-900/20 p-6 rounded-lg border border-amber-200 dark:border-amber-900/50">
+                        <h3 class="flex items-center text-xl font-semibold mb-4 text-amber-800 dark:text-amber-400">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <span>Common Challenges & Solutions</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/3 font-medium pb-2 md:pb-0">Execution Gaps</div>
+                                <div class="md:w-2/3 text-sm text-gray-600 dark:text-gray-400">Establish structured accountability measures and secure leadership alignment right from the start.</div>
+                            </div>
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/3 font-medium pb-2 md:pb-0">Implementation Time</div>
+                                <div class="md:w-2/3 text-sm text-gray-600 dark:text-gray-400">Opt for pre-built, modular frameworks that are fully customizable to meet your needs.</div>
+                            </div>
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/3 font-medium pb-2 md:pb-0">Too General</div>
+                                <div class="md:w-2/3 text-sm text-gray-600 dark:text-gray-400">Integrate industry-specific examples, case studies, and AI-driven recommendations to tailor the approach.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trade Block Markets Section -->
+        <section id="trade-blocks" class="content-section py-12 md:py-16">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-3xl mx-auto">
+                    <span class="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider text-primary-700 dark:text-primary-300 uppercase bg-primary-100 dark:bg-primary-900 rounded-full">Trade Block Markets</span>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">Leveraging Trade Agreements for Global Expansion</h2>
+                    
+                    <div class="prose prose-lg dark:prose-invert max-w-none">
+                        <p>
+                            Trade Block Markets provide predictable, low-barrier environments that empower Canadian SMEs to expand internationally with reduced costs and risks.
+                        </p>
+                        
+                        <div class="my-8 p-6 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h3 class="text-xl font-semibold mb-4">Global Markets vs. Trade Block Markets</h3>
+                            
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="font-medium">Market Access</div>
+                                    <div class="md:col-span-2 text-sm">
+                                        <span class="block mb-2"><span class="text-red-500 font-medium">Global:</span> Higher barriers, tariffs, and compliance costs</span>
+                                        <span class="block"><span class="text-green-500 font-medium">Trade Blocks:</span> Access to 51 countries with reduced tariffs and easier regulations</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="font-medium">Tariffs & Trade Costs</div>
+                                    <div class="md:col-span-2 text-sm">
+                                        <span class="block mb-2"><span class="text-red-500 font-medium">Global:</span> Unpredictable tariffs and costly customs procedures</span>
+                                        <span class="block"><span class="text-green-500 font-medium">Trade Blocks:</span> Reduced or eliminated tariffs, leading to significant cost savings</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="font-medium">Regulatory Complexity</div>
+                                    <div class="md:col-span-2 text-sm">
+                                        <span class="block mb-2"><span class="text-red-500 font-medium">Global:</span> Each country's unique regulatory requirements</span>
+                                        <span class="block"><span class="text-green-500 font-medium">Trade Blocks:</span> Harmonized rules and simplified trade procedures</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="font-medium">Geopolitical Risks</div>
+                                    <div class="md:col-span-2 text-sm">
+                                        <span class="block mb-2"><span class="text-red-500 font-medium">Global:</span> Exposure to shifting policies and trade wars</span>
+                                        <span class="block"><span class="text-green-500 font-medium">Trade Blocks:</span> More predictable frameworks with legal protections</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-xl font-semibold mt-10 mb-4">Major Trade Blocks</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+                            <div class="bg-white dark:bg-gray-900 p-5 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                <h4 class="text-lg font-medium mb-2">USMCA</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">United States-Mexico-Canada Agreement</p>
+                                <div class="text-sm">
+                                    <span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mr-1 mb-1">United States</span>
+                                    <span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mr-1 mb-1">Canada</span>
+                                    <span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mr-1 mb-1">Mexico</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-5 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                <h4 class="text-lg font-medium mb-2">CPTPP</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Comprehensive & Progressive Agreement for Trans-Pacific Partnership</p>
+                                <div class="text-sm">
+                                    <span class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded mr-1 mb-1">Australia</span>
+                                    <span class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded mr-1 mb-1">Canada</span>
+                                    <span class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded mr-1 mb-1">Japan</span>
+                                    <span class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded mr-1 mb-1">Mexico</span>
+                                    <span class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded mr-1 mb-1">Peru</span>
+                                    <span class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded mr-1 mb-1">UK</span>
+                                    <span class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded mr-1 mb-1">& more</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-5 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                <h4 class="text-lg font-medium mb-2">CETA</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Comprehensive Economic and Trade Agreement</p>
+                                <div class="text-sm">
+                                    <span class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded mr-1 mb-1">Canada</span>
+                                    <span class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded mr-1 mb-1">Germany</span>
+                                    <span class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded mr-1 mb-1">France</span>
+                                    <span class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded mr-1 mb-1">Italy</span>
+                                    <span class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded mr-1 mb-1">Spain</span>
+                                    <span class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded mr-1 mb-1">& many more</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-5 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                <h4 class="text-lg font-medium mb-2">Other Trade Blocks</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Additional opportunities for market expansion</p>
+                                <div class="text-sm">
+                                    <span class="inline-block bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded mr-1 mb-1">ASEAN</span>
+                                    <span class="inline-block bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded mr-1 mb-1">MERCOSUR</span>
+                                    <span class="inline-block bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded mr-1 mb-1">African Continental Free Trade Area</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-xl font-semibold mt-10 mb-4">Focus on CPTPP: Industries Poised for Growth</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+                            <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="h-10 w-10 mb-3 text-green-600 dark:text-green-400">
+                                    <i class="fas fa-leaf fa-2x"></i>
+                                </div>
+                                <h4 class="text-base font-medium mb-2">Agriculture & Agri-Food</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Tariff eliminations on beef, pork, seafood, grains, and dairy unlocking high-potential markets in Japan, Vietnam, and Malaysia.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="h-10 w-10 mb-3 text-blue-600 dark:text-blue-400">
+                                    <i class="fas fa-laptop-code fa-2x"></i>
+                                </div>
+                                <h4 class="text-base font-medium mb-2">Technology & SaaS</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Digital trade provisions reduce barriers for Canadian tech and SaaS companies expanding internationally.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="h-10 w-10 mb-3 text-purple-600 dark:text-purple-400">
+                                    <i class="fas fa-shopping-cart fa-2x"></i>
+                                </div>
+                                <h4 class="text-base font-medium mb-2">E-Commerce & Retail</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Preferential trade terms reduce shipping and import costs across the Asia-Pacific and Latin America.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="h-10 w-10 mb-3 text-teal-600 dark:text-teal-400">
+                                    <i class="fas fa-solar-panel fa-2x"></i>
+                                </div>
+                                <h4 class="text-base font-medium mb-2">Clean Energy & Green Tech</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Boosting renewable energy solutions and clean tech exports that foster economic growth and environmental progress.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="h-10 w-10 mb-3 text-indigo-600 dark:text-indigo-400">
+                                    <i class="fas fa-briefcase fa-2x"></i>
+                                </div>
+                                <h4 class="text-base font-medium mb-2">Professional Services</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Streamlined cross-border trade for consulting, legal, finance, and engineering firms with minimal red tape.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="h-10 w-10 mb-3 text-red-600 dark:text-red-400">
+                                    <i class="fas fa-industry fa-2x"></i>
+                                </div>
+                                <h4 class="text-base font-medium mb-2">Manufacturing & Automotive</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Lower import duties in fast-growing markets like Vietnam, Mexico, and Japan for innovation and competitive advantages.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10 bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-6">CPTPP Benefits for Canadian SMEs</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="flex flex-col md:flex-row md:items-start">
+                                <div class="flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mb-4 md:mb-0 md:mr-4">
+                                    <i class="fas fa-percentage fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-medium mb-1">Lower Tariffs & Market Access</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                                        99% tariff elimination on exports—from agriculture to tech—opening doors to Japan, Australia, Vietnam, Malaysia, Mexico, and beyond.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col md:flex-row md:items-start">
+                                <div class="flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mb-4 md:mb-0 md:mr-4">
+                                    <i class="fas fa-trophy fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-medium mb-1">Competitive Edge</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                                        Preferential access not available to non-CPTPP players, giving your business a stronger position in fast-growing economies.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col md:flex-row md:items-start">
+                                <div class="flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mb-4 md:mb-0 md:mr-4">
+                                    <i class="fas fa-globe fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-medium mb-1">Digital Trade & E-Commerce Growth</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                                        A seamless environment where cross-border data flows freely and digital transactions face no barriers.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col md:flex-row md:items-start">
+                                <div class="flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mb-4 md:mb-0 md:mr-4">
+                                    <i class="fas fa-shield-alt fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-medium mb-1">Stronger IP Protections</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                                        Safeguard your patents, copyrights, trademarks, and trade secrets, making it easier to enforce your brand rights.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10 bg-amber-50 dark:bg-amber-900/20 p-6 rounded-lg border border-amber-200 dark:border-amber-900/50">
+                        <h3 class="flex items-center text-xl font-semibold mb-4 text-amber-800 dark:text-amber-400">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <span>International Expansion Challenges & Solutions</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/3 font-medium pb-2 md:pb-0">Cultural & Language Barriers</div>
+                                <div class="md:w-2/3 text-sm text-gray-600 dark:text-gray-400">Partner with local experts and leverage AI translation tools like DeepL and Google AutoML.</div>
+                            </div>
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/3 font-medium pb-2 md:pb-0">Regulatory Differences</div>
+                                <div class="md:w-2/3 text-sm text-gray-600 dark:text-gray-400">Consult trade specialists who can navigate market-specific trade and tax laws.</div>
+                            </div>
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/3 font-medium pb-2 md:pb-0">Supply Chain & Logistics</div>
+                                <div class="md:w-2/3 text-sm text-gray-600 dark:text-gray-400">Forge partnerships with global shipping leaders—DHL, FedEx, UPS—for efficient distribution.</div>
+                            </div>
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/3 font-medium pb-2 md:pb-0">Currency Exchange Risks</div>
+                                <div class="md:w-2/3 text-sm text-gray-600 dark:text-gray-400">Use hedging strategies and multi-currency platforms such as Wise or Payoneer.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10 border-t border-gray-200 dark:border-gray-800 pt-10">
+                        <h3 class="text-xl font-semibold mb-4">Government Resources for Exporters</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <a href="https://www.edc.ca/" target="_blank" rel="noopener" class="group bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all">
+                                <h4 class="text-base font-medium mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">Export Development Canada (EDC)</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Financing, insurance, and market entry support for Canadian exporters.</p>
+                            </a>
+                            
+                            <a href="https://www.tradecommissioner.gc.ca/" target="_blank" rel="noopener" class="group bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all">
+                                <h4 class="text-base font-medium mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">Trade Commissioner Service (TCS)</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Free advisory services, B2B matchmaking, and trade missions.</p>
+                            </a>
+                            
+                            <a href="https://www.tradecommissioner.gc.ca/funding-financement/canexport/index.aspx" target="_blank" rel="noopener" class="group bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all">
+                                <h4 class="text-base font-medium mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">CanExport Program</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Grants covering up to 50% of your international expansion costs.</p>
+                            </a>
+                            
+                            <a href="https://www.tradecommissioner.gc.ca/cta-atc/index.aspx" target="_blank" rel="noopener" class="group bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all">
+                                <h4 class="text-base font-medium mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">Canadian Technology Accelerator (CTA)</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Incubators to help tech startups grow in international markets.</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Stack Section -->
+        <section id="ai-stack" class="content-section py-12 md:py-16 bg-gray-50 dark:bg-gray-800">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-3xl mx-auto">
+                    <span class="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider text-primary-700 dark:text-primary-300 uppercase bg-primary-100 dark:bg-primary-900 rounded-full">AI Stack</span>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">Leveraging AI for International Expansion</h2>
+                    
+                    <div class="prose prose-lg dark:prose-invert max-w-none">
+                        <p>
+                            AI tools can cut through barriers, optimize operations, and sharpen decision-making. They integrate seamlessly across marketing, sales, supply chain, and finance—fueling both domestic and international growth.
+                        </p>
+                        
+                        <div class="my-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold mb-4">Market Research</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Crayon</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Competitive intelligence and real-time monitoring.</span>
+                                        <a href="https://www.crayon.co/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">SimilarWeb</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Web traffic and market analysis.</span>
+                                        <a href="https://www.similarweb.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold mb-4">Localization & Translation</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">DeepL</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">High-accuracy, context-driven translation.</span>
+                                        <a href="https://www.deepl.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Localize</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Automated website localization.</span>
+                                        <a href="https://localizejs.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold mb-4">Marketing & Lead Generation</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Jasper AI</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Content generation and SEO optimization.</span>
+                                        <a href="https://www.jasper.ai/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Adzooma</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">AI-driven ad management and performance boost.</span>
+                                        <a href="https://www.adzooma.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold mb-4">Customer Support</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Zendesk AI</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Multilingual chatbot for customer service.</span>
+                                        <a href="https://www.zendesk.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Tidio AI</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">24/7 chatbot and FAQ automation.</span>
+                                        <a href="https://www.tidio.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold mb-4">Supply Chain & Logistics</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Flexport AI</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Optimizes freight forwarding and supply chains.</span>
+                                        <a href="https://www.flexport.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">ShipBob AI</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Automates e-commerce fulfillment.</span>
+                                        <a href="https://www.shipbob.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold mb-4">Payments & Finance</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Wise AI</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Efficient cross-border payment processing.</span>
+                                        <a href="https://wise.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Stripe Radar</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Global fraud detection for payments.</span>
+                                        <a href="https://stripe.com/radar" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold mb-4">Compliance & Risk Management</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">OneTrust AI</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Automates GDPR and data compliance.</span>
+                                        <a href="https://www.onetrust.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                    <li class="flex flex-col">
+                                        <span class="font-medium mb-1">Kira Systems</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">AI-driven contract analysis and legal checks.</span>
+                                        <a href="https://kirasystems.com/" target="_blank" rel="noopener" class="text-xs text-primary-600 dark:text-primary-400 mt-1 hover:underline">Learn more <i class="fas fa-external-link-alt text-xs"></i></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section id="summary" class="content-section py-12 md:py-16">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-3xl mx-auto">
+                    <span class="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider text-primary-700 dark:text-primary-300 uppercase bg-primary-100 dark:bg-primary-900 rounded-full">Summary</span>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">Executive Summary & Next Steps</h2>
+                    
+                    <div class="prose prose-lg dark:prose-invert max-w-none">
+                        <p>
+                            As we conclude, let's recap the key strategies for Canadian SMEs looking to expand internationally:
+                        </p>
+                        
+                        <div class="mt-6 p-6 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-100 dark:border-primary-800">
+                            <h3 class="text-xl font-semibold mb-4">Key Takeaways</h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-circle-check"></i></span>
+                                    <span><strong>U.S. trade policies create risks</strong>—market diversification is key to resilience</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-circle-check"></i></span>
+                                    <span><strong>First movers secure new markets</strong> before saturation and competition intensifies</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-circle-check"></i></span>
+                                    <span><strong>AI-driven tools</strong> make international expansion more cost-effective and scalable</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-circle-check"></i></span>
+                                    <span><strong>Trade blocks like CPTPP, CETA, and USMCA</strong> offer preferential access and lower tariffs</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-circle-check"></i></span>
+                                    <span><strong>A well-crafted SME Playbook</strong> drives repeatable success with clear KPIs</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-primary-600 dark:text-primary-400 mt-1 mr-2"><i class="fas fa-circle-check"></i></span>
+                                    <span><strong>Government support is time-sensitive</strong>—delays can mean missed opportunities</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <h3 class="text-xl font-semibold mt-10 mb-4">Action Plan: Next Steps</h3>
+                        
+                        <ol class="space-y-4">
+                            <li class="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <span class="flex items-center font-semibold mb-1">
+                                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mr-2 text-sm">1</span>
+                                    Develop your SME playbooks
+                                </span>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Use our proven template to create a customized roadmap for your international expansion.
+                                </p>
+                            </li>
+                            
+                            <li class="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <span class="flex items-center font-semibold mb-1">
+                                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mr-2 text-sm">2</span>
+                                    Evaluate your technology readiness
+                                </span>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Assess your AI, digital infrastructure, and supply chain readiness for both domestic and international expansion.
+                                </p>
+                            </li>
+                            
+                            <li class="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <span class="flex items-center font-semibold mb-1">
+                                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mr-2 text-sm">3</span>
+                                    Leverage automation & digital tools
+                                </span>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Implement the AI tools that best fit your business needs to scale efficiently and reduce costs.
+                                </p>
+                            </li>
+                            
+                            <li class="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <span class="flex items-center font-semibold mb-1">
+                                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mr-2 text-sm">4</span>
+                                    Establish strategic partnerships
+                                </span>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Form strong domestic and local partnerships to support your international expansion efforts.
+                                </p>
+                            </li>
+                            
+                            <li class="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <span class="flex items-center font-semibold mb-1">
+                                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 mr-2 text-sm">5</span>
+                                    Join our community
+                                </span>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Connect with other Canadian SMEs, share best practices, and support one another on this journey.
+                                </p>
+                            </li>
+                        </ol>
+                        
+                        <div class="mt-10 text-center">
+                            <p class="italic text-gray-600 dark:text-gray-400 mb-6">
+                                "Remember, success favors the proactive. Your future starts now—let's build it together!"
+                            </p>
+                            <a href="https://sprott.carleton.ca/up-our-game-canada/" class="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-all shadow-md hover:shadow-lg">
+                                <span>Visit Official Website</span>
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <a href="https://sprott.carleton.ca/up-our-game-canada/">
+                        <img src="https://sprott.carleton.ca/up-our-game-canada/wp-content/uploads/sites/8/2025/02/Up-Our-Game-Canada-identifier-512x160.png" alt="Up Our Game Canada Logo" class="h-8 mb-6">
+                    </a>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                        A program designed to empower Canadian SMEs to expand internationally and capitalize on global trade opportunities.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="https://twitter.com/SprottSchool" target="_blank" rel="noopener" class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            <i class="fab fa-twitter fa-lg"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/school/sprott-school-of-business/" target="_blank" rel="noopener" class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            <i class="fab fa-linkedin fa-lg"></i>
+                        </a>
+                        <a href="https://www.facebook.com/sprottschool" target="_blank" rel="noopener" class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            <i class="fab fa-facebook fa-lg"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-semibold uppercase tracking-wider mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#introduction" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Introduction</a>
+                        </li>
+                        <li>
+                            <a href="#frameworks" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Frameworks & Playbooks</a>
+                        </li>
+                        <li>
+                            <a href="#trade-blocks" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Trade Block Markets</a>
+                        </li>
+                        <li>
+                            <a href="#ai-stack" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">AI Stack</a>
+                        </li>
+                        <li>
+                            <a href="#summary" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Summary</a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-semibold uppercase tracking-wider mb-4">Resources</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="https://www.edc.ca/" target="_blank" rel="noopener" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Export Development Canada</a>
+                        </li>
+                        <li>
+                            <a href="https://www.tradecommissioner.gc.ca/" target="_blank" rel="noopener" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Trade Commissioner Service</a>
+                        </li>
+                        <li>
+                            <a href="https://www.international.gc.ca/trade-commerce/trade-agreements-accords-commerciaux/agr-acc/cptpp-ptpgp/index.aspx?lang=eng" target="_blank" rel="noopener" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">CPTPP Information</a>
+                        </li>
+                        <li>
+                            <a href="https://www.international.gc.ca/trade-commerce/trade-agreements-accords-commerciaux/agr-acc/ceta-aecg/index.aspx?lang=eng" target="_blank" rel="noopener" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">CETA Information</a>
+                        </li>
+                        <li>
+                            <a href="https://sprott.carleton.ca/" target="_blank" rel="noopener" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Sprott School of Business</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 text-center">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    &copy; 2024 Up Our Game Canada | Sprott School of Business at Carleton University.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="fixed bottom-6 right-6 p-3 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg transition-all transform translate-y-20 opacity-0 focus:outline-none">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        // Theme toggle functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlElement = document.documentElement;
+            
+            // Check user preference or system preference
+            const userTheme = localStorage.getItem('theme');
+            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            
+            // Apply theme
+            if (userTheme === 'dark' || (!userTheme && systemTheme === 'dark')) {
+                htmlElement.classList.add('dark');
+            }
+            
+            // Theme toggle click handler
+            themeToggle.addEventListener('click', () => {
+                if (htmlElement.classList.contains('dark')) {
+                    htmlElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    htmlElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+            
+            // Mobile menu functionality
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Back to top button
+            const backToTopButton = document.getElementById('back-to-top');
+            
+            const toggleBackToTopButton = () => {
+                if (window.scrollY > 300) {
+                    backToTopButton.classList.remove('translate-y-20', 'opacity-0');
+                    backToTopButton.classList.add('translate-y-0', 'opacity-100');
+                } else {
+                    backToTopButton.classList.add('translate-y-20', 'opacity-0');
+                    backToTopButton.classList.remove('translate-y-0', 'opacity-100');
+                }
+            };
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            window.addEventListener('scroll', toggleBackToTopButton);
+            toggleBackToTopButton(); // Initial check
+            
+            // Add intersection observer for content sections
+            const contentSections = document.querySelectorAll('.content-section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-fade-in');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            contentSections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

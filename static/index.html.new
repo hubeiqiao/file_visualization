@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Visualizer</title>
+    <!-- Tailwind CSS (For development only - Use PostCSS plugin or Tailwind CLI for production: https://tailwindcss.com/docs/installation) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Prism.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Adjust the heights of the preview and HTML output sections */
+        #html-output, #preview-iframe {
+            height: 500px; /* Increase from default height */
+            min-height: 500px;
+        }
+        
+        /* Ensure consistent spacing */
+        .result-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            height: 100%;
+        }
+        
+        /* Fix spacing between sections */
+        .section-gap {
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Ensure the result section has proper spacing */
+        #result-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        /* Processing animation improvements */
+        .animate-progress {
+            transition: width 0.5s ease;
+        }
+        
+        /* Animation stopped state */
+        .processing-complete .progress-bar {
+            width: 100% !important;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-200">
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                <i class="fas fa-lightbulb mr-2"></i>File Visualizer
+            </h1>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+                    <i class="fas fa-moon text-blue-300 hidden dark:block"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Usage Instructions -->
+    <div class="bg-gradient-to-r from-primary-50 to-blue-50 dark:from-primary-900/30 dark:to-blue-900/30 py-4">
+        <div class="container mx-auto px-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 mb-5">
+                <h2 class="text-xl font-semibold mb-3 flex items-center">
+                    <i class="fas fa-info-circle text-primary-500 mr-2"></i>How to Use
+                </h2>
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li>Enter your Anthropic API key (required to use Claude AI)</li>
+                    <li>Upload a file or enter text that you want to visualize</li>
+                    <li>Adjust settings if needed, or add specific instructions</li>
+                    <li>Click "Generate Visualization" to create a beautiful HTML representation</li>
+                    <li>View the preview, check token usage, and download the HTML file</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto p-4 md:p-6 animate-fade-in">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Input Section -->
+            <div class="lg:col-span-5 space-y-6">
+                <!-- API Key -->
+                <div id="api-key-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-key text-primary-500 mr-2"></i>Anthropic API Key
+                    </h2>
+                    <div class="mb-4">
+                        <input type="password" id="api-key" placeholder="Enter your Anthropic API key" 
+                            class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                            Your API key is stored locally in your browser and never sent to our servers.
+                        </p>
+                    </div>
+                    <button id="validate-key" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md transition-colors">
+                        <i class="fas fa-check-circle mr-2"></i>Validate Key
+                    </button>
+                    <div id="key-status" class="mt-3 hidden">
+                        <!-- Will be filled by JS -->
+                    </div>
+                </div>
+
+                <!-- File Upload / Text Input -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-file-upload text-primary-500 mr-2"></i>Input Source
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <div class="flex space-x-3 mb-4">
+                            <button id="file-tab" class="flex-1 py-2 px-4 rounded-md bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium">
+                                <i class="fas fa-file mr-2"></i>Upload File
+                            </button>
+                            <button id="text-tab" class="flex-1 py-2 px-4 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-keyboard mr-2"></i>Enter Text
+                            </button>
+                        </div>
+                        
+                        <!-- File Upload -->
+                        <div id="file-input" class="transition-all">
+                            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-primary-500 dark:hover:border-primary-400 transition-colors" id="drop-area">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 dark:text-gray-500 mb-2"></i>
+                                <p class="mb-2">Drag & drop a file here, or <span class="text-primary-500">browse</span></p>
+                                <input type="file" id="file-upload" class="hidden" accept=".txt,.md,.json,.csv,.html,.js,.css,.py,.pdf,.doc,.docx">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Supported file types: txt, md, json, csv, html, js, css, py, pdf, doc, docx</p>
+                            </div>
+                            <div id="file-info" class="mt-3 hidden">
+                                <!-- Will be filled by JS when file is uploaded -->
+                            </div>
+                        </div>
+                        
+                        <!-- Text Input -->
+                        <div id="text-input" class="hidden transition-all">
+                            <textarea id="input-text" rows="6" placeholder="Enter or paste your text here..." 
+                                class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"></textarea>
+                        </div>
+                        
+                        <!-- Token Info - Moved outside both input types so it's visible for both -->
+                        <div id="tokenInfo" class="mt-3">
+                            <!-- Will be filled by JS when file is uploaded or text is entered -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Prompt -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-comment-alt text-primary-500 mr-2"></i>Additional Instructions (Optional)
+                    </h2>
+                    <textarea id="additional-prompt" rows="3" placeholder="Any specific instructions for Claude? (Optional)" 
+                        class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"></textarea>
+                </div>
+
+                <!-- Model Parameters -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-sliders-h text-primary-500 mr-2"></i>Model Parameters
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Temperature -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="temperature" class="font-medium text-gray-900 dark:text-gray-100">Temperature: <span id="temperature-value" class="text-primary-600 dark:text-primary-400">1.0</span></label>
+                                <button id="temperature-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
+                            </div>
+                            <input type="range" id="temperature" min="0" max="1" step="0.1" value="1.0" 
+                                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Lower values = more deterministic, higher values = more creative</p>
+                        </div>
+                        
+                        <!-- Max Tokens -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="max-tokens" class="font-medium text-gray-900 dark:text-gray-100">Max Tokens: <span id="max-tokens-value" class="text-primary-600 dark:text-primary-400">128000</span></label>
+                                <button id="max-tokens-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
+                            </div>
+                            <input type="range" id="max-tokens" min="1000" max="128000" step="1000" value="128000" 
+                                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Maximum number of tokens in Claude's response. Use lower values (20-50K) for large inputs to prevent context window errors.</p>
+                        </div>
+                        
+                        <!-- Thinking Budget -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="thinking-budget" class="font-medium text-gray-900 dark:text-gray-100">Thinking Budget: <span id="thinking-budget-value" class="text-primary-600 dark:text-primary-400">32000</span></label>
+                                <button id="thinking-budget-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
+                            </div>
+                            <input type="range" id="thinking-budget" min="1024" max="128000" step="1024" value="32000" 
+                                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tokens allocated for Claude's thinking process (1,024-128,000)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="text-center">
+                    <button id="generate-btn" disabled class="w-full bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-6 py-3 rounded-md text-lg font-bold shadow-md transition-all cursor-not-allowed">
+                        <i class="fas fa-magic mr-2"></i>Generate Visualization
+                    </button>
+                    <p id="generate-error" class="text-red-500 mt-2 hidden">Please provide an API key and input content.</p>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Processing Status -->
+                <div id="processing-status" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-spinner fa-spin text-primary-500 mr-2"></i>Processing...
+                        </h2>
+                        <div id="elapsed-time" class="text-sm font-medium">
+                            Elapsed: 0s
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
+                        <div id="progress-bar" class="bg-primary-500 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Claude is working on visualizing your content. This may take a few minutes for large inputs.</p>
+                </div>
+
+                <!-- Result Section -->
+                <div id="result-section" class="hidden mt-8">
+                    <!-- Usage Stats -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-chart-line text-primary-500 mr-2"></i>Usage Statistics
+                        </h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Input Tokens</p>
+                                <p id="input-tokens" class="text-lg font-semibold">-</p>
+                            </div>
+                            <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Output Tokens</p>
+                                <p id="output-tokens" class="text-lg font-semibold">-</p>
+                            </div>
+                            <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Thinking Tokens</p>
+                                <p id="thinking-tokens" class="text-lg font-semibold">-</p>
+                            </div>
+                            <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Cost</p>
+                                <p id="total-cost" class="text-lg font-semibold">-</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                            <p>Pricing: Input - $3/million tokens, Output - $15/million tokens, Thinking - $3/million tokens</p>
+                        </div>
+                    </div>
+
+                    <!-- Output reorganized with Preview above Generated HTML -->
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Preview - Now first -->
+                        <div class="col-span-1">
+                            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow h-full">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-medium">Preview</h3>
+                                    <button id="open-preview" class="btn-secondary">
+                                        <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+                                    </button>
+                                </div>
+                                <div class="relative border rounded-lg overflow-hidden" style="height: 500px">
+                                    <iframe id="preview-iframe" class="w-full h-full"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- HTML Output - Now second -->
+                        <div class="col-span-1">
+                            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-medium">Generated HTML</h3>
+                                    <div class="flex space-x-2">
+                                        <button id="copy-html" class="btn-secondary">
+                                            <i class="fas fa-copy mr-1"></i> Copy
+                                        </button>
+                                        <button id="download-html" class="btn-secondary">
+                                            <i class="fas fa-download mr-1"></i> Download
+                                        </button>
+                                    </div>
+                                </div>
+                                <pre id="html-output" class="language-html overflow-auto rounded-lg p-4 bg-gray-50 dark:bg-gray-900"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 shadow-inner mt-8">
+        <div class="container mx-auto px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>Powered by <a href="https://www.anthropic.com/claude" class="text-primary-500 hover:underline" target="_blank">Anthropic Claude</a> with thinking capabilities.</p>
+            <p class="mt-1">© 2024 - Built by <a href="https://www.linkedin.com/in/hubeiqiao/" class="text-primary-500 hover:underline" target="_blank">Joe Hu</a> | <a href="https://buy.stripe.com/6oEdTw8OQ86S0CYcMN" class="text-green-500 hover:underline" target="_blank"><i class="fas fa-coffee mr-1"></i>Buy me a coffee</a></p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html> 

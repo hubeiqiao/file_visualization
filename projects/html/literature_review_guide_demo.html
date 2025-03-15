@@ -1,0 +1,1498 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide to Produce Scoping Literature Reviews Using AI Tools</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f0ff',
+                            100: '#e1e0ff',
+                            200: '#c6c4ff',
+                            300: '#a8a5ff',
+                            400: '#8c89ff',
+                            500: '#7675ff',
+                            600: '#5D5CDE', // Primary interaction color
+                            700: '#4a49b1',
+                            800: '#3d3c94',
+                            900: '#323179',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.7s ease-out',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/css">
+        /* Custom Styles */
+        .section-content {
+            height: auto;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+        
+        .section-open .section-content {
+            max-height: 10000px; /* Large enough to contain any content */
+            transition: max-height 0.5s ease-in, opacity 0.3s ease-in;
+            opacity: 1;
+        }
+        
+        .section-header::after {
+            content: '\f107'; /* Down arrow */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            transition: transform 0.3s ease;
+        }
+        
+        .section-open .section-header::after {
+            transform: rotate(180deg);
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Table styles */
+        .custom-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .custom-table th,
+        .custom-table td {
+            border-bottom-width: 1px;
+            padding: 0.75rem 1rem;
+            position: relative;
+        }
+        
+        .dark .custom-table th,
+        .dark .custom-table td {
+            border-color: rgba(75, 85, 99, 0.5);
+        }
+
+        /* Fade-in animation for sections */
+        .animate-section {
+            opacity: 0;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            transform: translateY(10px);
+        }
+
+        .animate-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Process steps */
+        .process-step {
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        .process-step:before {
+            content: attr(data-step);
+            position: absolute;
+            left: 0;
+            top: 0.25rem;
+            font-weight: 500;
+            color: var(--step-color, #5D5CDE);
+        }
+        
+        /* Hidden content that can be shown */
+        .hidden-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+        }
+        
+        .hidden-content.show {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans transition-colors duration-200">
+    <!-- Header with Navbar -->
+    <header class="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-book-open text-primary-600 text-xl"></i>
+                    <h1 class="text-xl font-semibold truncate">Scoping Review Guide</h1>
+                </div>
+                <div class="flex items-center space-x-2 md:space-x-4">
+                    <button id="dark-mode-toggle" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
+                        <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+                        <i class="fas fa-moon text-blue-300 hidden dark:block"></i>
+                    </button>
+                    <nav class="hidden md:flex space-x-1">
+                        <a href="#part1" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">Foundation</a>
+                        <a href="#part2" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">Method</a>
+                        <a href="#part3" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">Updates</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Hero Section -->
+        <section class="py-12 md:py-16 animate-section">
+            <div class="max-w-3xl mx-auto text-center">
+                <h1 class="text-3xl md:text-4xl font-bold mb-6 leading-tight">
+                    Guide to Produce Scoping Literature Reviews Using <span class="text-primary-600 dark:text-primary-500">AI Tools</span>
+                </h1>
+                <p class="text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
+                    A comprehensive guide for conducting effective scoping reviews with AI assistance for Technology Innovation Management.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 mb-12">
+                    <a href="#part1" class="inline-flex items-center px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors duration-200">
+                        <i class="fas fa-book mr-2"></i>
+                        Get Started
+                    </a>
+                    <a href="#part2" class="inline-flex items-center px-5 py-2.5 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
+                        <i class="fas fa-clipboard-list mr-2"></i>
+                        View Methods
+                    </a>
+                </div>
+                
+                <!-- Overview Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                    <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-md border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:border-primary-600 dark:hover:border-primary-500">
+                        <div class="mb-4 text-primary-600 dark:text-primary-500">
+                            <i class="fas fa-search text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium mb-2">Foundation</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm">
+                            Frameworks, benefits, and limitations of scoping reviews in TIM.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-md border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:border-primary-600 dark:hover:border-primary-500">
+                        <div class="mb-4 text-primary-600 dark:text-primary-500">
+                            <i class="fas fa-cogs text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium mb-2">Methodology</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm">
+                            9-step process with AI integration for efficient reviews.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-md border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:border-primary-600 dark:hover:border-primary-500">
+                        <div class="mb-4 text-primary-600 dark:text-primary-500">
+                            <i class="fas fa-sync-alt text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium mb-2">Updates</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm">
+                            Maintaining the guide as AI tools and methods evolve.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Part 1: Foundation of Scoping Reviews -->
+        <section id="part1" class="mb-16 pt-8 animate-section">
+            <div class="border-l-4 border-primary-600 dark:border-primary-500 pl-4 mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold">PART 1: FOUNDATION OF SCOPING REVIEWS</h2>
+                <p class="text-gray-600 dark:text-gray-400 mt-2">
+                    Understanding the core concepts, benefits and limitations of scoping reviews in TIM.
+                </p>
+            </div>
+            
+            <!-- Visual Summary of Part 1 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-md border border-gray-200 dark:border-gray-700">
+                    <h3 class="font-medium mb-4 flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-question-circle"></i></span>
+                        When to Use
+                    </h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Broad or exploratory questions</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Emerging technology fields</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Diverse multidisciplinary literature</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Identifying research gaps</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-md border border-gray-200 dark:border-gray-700">
+                    <h3 class="font-medium mb-4 flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-robot"></i></span>
+                        AI Benefits
+                    </h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Rapid literature screening</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Enhanced data discovery</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Automated topic clustering</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Streamlined data extraction</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-md border border-gray-200 dark:border-gray-700">
+                    <h3 class="font-medium mb-4 flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-exclamation-circle"></i></span>
+                        Limitations
+                    </h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>No formal quality assessment</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>AI citation hallucinations</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Potential algorithmic bias</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Requires human oversight</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Glossary Section -->
+            <div class="mb-8 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="section-header cursor-pointer bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between items-center">
+                    <h3 class="text-lg font-medium flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-book"></i></span>
+                        Glossary
+                    </h3>
+                </div>
+                <div class="section-content bg-white dark:bg-gray-900 px-6 py-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full custom-table">
+                            <thead>
+                                <tr class="bg-gray-50 dark:bg-gray-800">
+                                    <th class="text-left font-medium">Term</th>
+                                    <th class="text-left font-medium">Definition</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-medium">Boolean operators</td>
+                                    <td>Logical connectors (AND, OR, NOT) used in database searches to refine search results by including or excluding specific terms.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Grey literature</td>
+                                    <td>Information produced outside of traditional publishing and distribution channels, such as reports, conference proceedings, and government documents.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Human oversight</td>
+                                    <td>The involvement of human judgment and decision-making in monitoring, guiding, or intervening in automated systems to ensure ethical, accurate, and responsible outcomes.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">PRISMA-ScR</td>
+                                    <td>The Preferred Reporting Items for Systematic Reviews and Meta-Analyses for Scoping Reviews, a framework that provides guidelines for conducting and reporting scoping reviews.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Scoping review</td>
+                                    <td>A type of literature review that maps key concepts, evidence, and research gaps in a field, typically without assessing the quality of the included studies.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Systematic review</td>
+                                    <td>A structured and comprehensive review of existing research on a specific question, using a rigorous methodology to identify, appraise, and synthesize relevant studies.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Introduction Section -->
+            <div class="mb-8 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="section-header cursor-pointer bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between items-center">
+                    <h3 class="text-lg font-medium flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-info-circle"></i></span>
+                        Introduction
+                    </h3>
+                </div>
+                <div class="section-content bg-white dark:bg-gray-900 px-6 py-6">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="w-full md:w-1/3 mb-4 md:mb-0">
+                            <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-md border border-gray-200 dark:border-gray-700">
+                                <h4 class="font-medium text-lg mb-3 text-primary-600 dark:text-primary-500">What is a Scoping Review?</h4>
+                                <p class="text-gray-700 dark:text-gray-300">
+                                    A scoping review gathers and examines a wide range of sources to show what is known and unknown. Gaps in the literature can inspire new business ideas or research questions.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-2/3">
+                            <p class="mb-4">
+                                Within Technology Innovation Management (TIM), scoping reviews can inform:
+                            </p>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                                <div class="bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 flex items-center text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-chart-line"></i></span>
+                                    <span>Venture pitches</span>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 flex items-center text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-globe"></i></span>
+                                    <span>Market analysis</span>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 flex items-center text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-lightbulb"></i></span>
+                                    <span>Business opportunities</span>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 flex items-center text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-box"></i></span>
+                                    <span>Product development</span>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 flex items-center text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-cog"></i></span>
+                                    <span>Process improvement</span>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 flex items-center text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-users"></i></span>
+                                    <span>Innovation ecosystems</span>
+                                </div>
+                            </div>
+                            
+                            <p class="mb-4">
+                                In Technology Innovation Management, a scoping review helps you see what is already known—whether 
+                                in blockchain commercialization, open innovation ecosystems, or emerging AI startups—and spot new 
+                                opportunities. By combining human expertise with AI tools, TIM researchers can sift through large, 
+                                varied studies, uncover practical insights from non-traditional sources, and guide innovation 
+                                strategies for the future.
+                            </p>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border-l-2 border-primary-600 dark:border-primary-500">
+                                <p class="text-gray-800 dark:text-gray-200 text-sm">
+                                    Unlike a systematic review, scoping reviews cast a wider net, enabling TIM practitioners to gain insights into rapidly evolving technology landscapes—sometimes well before methodologies and theoretical constructs have fully matured.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- When to Use a Scoping Review Section -->
+            <div class="mb-8 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="section-header cursor-pointer bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between items-center">
+                    <h3 class="text-lg font-medium flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-tasks"></i></span>
+                        1.1 When to Use a Scoping Review
+                    </h3>
+                </div>
+                <div class="section-content bg-white dark:bg-gray-900 px-6 py-6">
+                    <p class="mb-6">In TIM, scoping reviews are especially valuable when:</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                        <!-- Card 1 -->
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                                <h4 class="font-medium">Broad or Exploratory Questions</h4>
+                            </div>
+                            <div class="p-4">
+                                <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                                    Use a scoping review if you wish to explore a wide variety of studies on a topic, rather than measuring how well something works.
+                                </p>
+                                <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700 text-sm">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Example:</p>
+                                    <p class="text-sm">
+                                        Investigating how AI-driven platforms are transforming technology commercialization across various industries.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card 2 -->
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                                <h4 class="font-medium">Emerging Topics</h4>
+                            </div>
+                            <div class="p-4">
+                                <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                                    Use when the field is new, and key concepts, definitions, and knowledge gaps are unclear.
+                                </p>
+                                <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700 text-sm">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Example:</p>
+                                    <p class="text-sm">
+                                        Mapping quantum computing applications in early-stage technology startups, where key players, definitions, and standard practices are still evolving.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card 3 -->
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                                <h4 class="font-medium">Heterogeneous Literature</h4>
+                            </div>
+                            <div class="p-4">
+                                <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                                    Use when studies cover diverse methodologies, study designs, and disciplines, making systematic synthesis impractical.
+                                </p>
+                                <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700 text-sm">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Example:</p>
+                                    <p class="text-sm">
+                                        Integrating findings from multidisciplinary sources (engineering, business, sociology, etc.) on the use of AI in different industries.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional sections - hidden by default but can be shown with Load More button -->
+            <div id="more-part1-content" class="hidden-content">
+                <!-- Key Frameworks Section -->
+                <div class="mb-8 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="section-header cursor-pointer bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-lg font-medium flex items-center">
+                            <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-sitemap"></i></span>
+                            1.2 Key Frameworks
+                        </h3>
+                    </div>
+                    <div class="section-content bg-white dark:bg-gray-900 px-6 py-6">
+                        <p class="mb-6">Scoping reviews in TIM often follow one or more of five main frameworks:</p>
+                        
+                        <div class="mb-6 overflow-x-auto scrollbar-hide">
+                            <div class="inline-flex space-x-4 pb-4 min-w-full">
+                                <!-- Framework 1 -->
+                                <div class="min-w-[280px] bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
+                                    <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                                        <h4 class="font-medium">Arksey and O'Malley (2005)</h4>
+                                    </div>
+                                    <div class="p-4 flex-grow">
+                                        <div class="flex items-center mb-3 text-sm">
+                                            <span class="font-medium mr-2">Best for:</span>
+                                            <span>Fast-changing fields</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                            Five-step outline that you can update as you go. Works well for fast-changing fields like financial technology (fintech).
+                                        </p>
+                                        <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700 mt-auto">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Example:</p>
+                                            <p class="text-sm">
+                                                Mapping wearable technology for remote patient monitoring, identifying emerging sensor innovations and untapped market niches.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Framework 2 -->
+                                <div class="min-w-[280px] bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
+                                    <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                                        <h4 class="font-medium">Levac et al. (2010)</h4>
+                                    </div>
+                                    <div class="p-4 flex-grow">
+                                        <div class="flex items-center mb-3 text-sm">
+                                            <span class="font-medium mr-2">Best for:</span>
+                                            <span>Stakeholder engagement</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                            Extends Arksey and O'Malley's model by stressing stakeholder engagement—vital for TIM researchers collaborating with startups.
+                                        </p>
+                                        <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700 mt-auto">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Example:</p>
+                                            <p class="text-sm">
+                                                Engaging accelerators, manufacturers, and regulators in refining a review on IoT-based smart manufacturing.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Framework 3 -->
+                                <div class="min-w-[280px] bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
+                                    <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                                        <h4 class="font-medium">JBI Framework</h4>
+                                    </div>
+                                    <div class="p-4 flex-grow">
+                                        <div class="flex items-center mb-3 text-sm">
+                                            <span class="font-medium mr-2">Best for:</span>
+                                            <span>Methodological rigor</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                            Offers a refined methodology for planning and conducting scoping reviews with enhanced rigor and transparency.
+                                        </p>
+                                        <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700 mt-auto">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Example:</p>
+                                            <p class="text-sm">
+                                                Conducting a structured review on 3D-printing technologies for rapid prototyping to boost credibility with investors.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Benefits of Using AI Section -->
+                <div class="mb-8 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="section-header cursor-pointer bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-lg font-medium flex items-center">
+                            <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-robot"></i></span>
+                            1.3 Benefits of Using AI for Scoping Reviews
+                        </h3>
+                    </div>
+                    <div class="section-content bg-white dark:bg-gray-900 px-6 py-6">
+                        <p class="mb-6">
+                            AI can manage large volumes of diverse data—quickly and consistently—making it invaluable for scoping reviews in TIM. 
+                            It helps teams move faster to market, discover better product-market fits, stay ahead of disruptive technologies, 
+                            and uncover new opportunities or threats.
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                            <!-- Benefit 1 -->
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                                <div class="p-4">
+                                    <div class="flex items-center mb-4">
+                                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-bolt"></i></span>
+                                        <h4 class="font-medium">Speed &amp; Efficiency</h4>
+                                    </div>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-start text-sm">
+                                            <span class="text-gray-400 mr-2">•</span>
+                                            <span>
+                                                <span class="font-medium">Rapid literature screening:</span> 
+                                                AI quickly scans large volumes of articles, patents, and reports.
+                                            </span>
+                                        </li>
+                                        <li class="flex items-start text-sm">
+                                            <span class="text-gray-400 mr-2">•</span>
+                                            <span>
+                                                <span class="font-medium">Automated deduplication:</span> 
+                                                AI removes duplicate studies, saving considerable time.
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Benefit 2 -->
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                                <div class="p-4">
+                                    <div class="flex items-center mb-4">
+                                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-search"></i></span>
+                                        <h4 class="font-medium">Enhanced Discovery</h4>
+                                    </div>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-start text-sm">
+                                            <span class="text-gray-400 mr-2">•</span>
+                                            <span>
+                                                <span class="font-medium">Diverse data sources:</span> 
+                                                AI pulls from journals, preprints, websites, and more.
+                                            </span>
+                                        </li>
+                                        <li class="flex items-start text-sm">
+                                            <span class="text-gray-400 mr-2">•</span>
+                                            <span>
+                                                <span class="font-medium">Intelligent recommendations:</span> 
+                                                ML surfaces relevant but less visible research.
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Benefit 3 -->
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                                <div class="p-4">
+                                    <div class="flex items-center mb-4">
+                                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-layer-group"></i></span>
+                                        <h4 class="font-medium">Improved Organization</h4>
+                                    </div>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-start text-sm">
+                                            <span class="text-gray-400 mr-2">•</span>
+                                            <span>
+                                                <span class="font-medium">Topic clustering:</span> 
+                                                AI groups articles into thematic clusters for quicker navigation.
+                                            </span>
+                                        </li>
+                                        <li class="flex items-start text-sm">
+                                            <span class="text-gray-400 mr-2">•</span>
+                                            <span>
+                                                <span class="font-medium">Automatic tagging:</span> 
+                                                Keywords and metadata extraction for better organization.
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border-l-2 border-primary-600 dark:border-primary-500 text-sm">
+                            <p>
+                                <span class="font-medium">Key Takeaway:</span>
+                                AI speeds up the research process and delivers more actionable insights. However, human oversight remains essential to validate AI-generated findings, detect biases, and ensure the accuracy of synthesized information.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Load More Button -->
+            <div class="text-center py-6">
+                <button id="load-more-part1" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 border border-gray-200 dark:border-gray-700 text-sm">
+                    Load More Sections 
+                    <i class="fas fa-chevron-down ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Part 2: Method to Produce Scoping Reviews -->
+        <section id="part2" class="mb-16 pt-8 animate-section">
+            <div class="border-l-4 border-primary-600 dark:border-primary-500 pl-4 mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold">PART 2: METHOD TO PRODUCE SCOPING REVIEWS</h2>
+                <p class="text-gray-600 dark:text-gray-400 mt-2">
+                    A detailed, step-by-step methodology for conducting scoping reviews using AI tools.
+                </p>
+            </div>
+            
+            <!-- Visual Summary of Part 2 -->
+            <div class="mb-12">
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-md p-6 mb-4 border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-medium mb-6 flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-list-ol"></i></span>
+                        9-Step Process for AI-Enhanced Scoping Reviews
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-4">
+                            <div class="process-step" data-step="1." style="--step-color: #5D5CDE;">
+                                <h4 class="font-medium mb-1">Formulate Question &amp; Scope</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Define research questions and scope using AI-assisted refinement.
+                                </p>
+                            </div>
+                            
+                            <div class="process-step" data-step="2." style="--step-color: #5D5CDE;">
+                                <h4 class="font-medium mb-1">Search for Articles</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Use AI-driven search strategies to retrieve relevant literature.
+                                </p>
+                            </div>
+                            
+                            <div class="process-step" data-step="3." style="--step-color: #5D5CDE;">
+                                <h4 class="font-medium mb-1">Select Articles</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Screen and filter studies with AI assistance and human validation.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="process-step" data-step="4." style="--step-color: #5D5CDE;">
+                                <h4 class="font-medium mb-1">Extract Data</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Utilize AI to extract and organize key study insights.
+                                </p>
+                            </div>
+                            
+                            <div class="process-step" data-step="5." style="--step-color: #5D5CDE;">
+                                <h4 class="font-medium mb-1">Analyze &amp; Synthesize</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Identify trends and gaps using AI-powered categorization.
+                                </p>
+                            </div>
+                            
+                            <div class="process-step" data-step="6." style="--step-color: #5D5CDE;">
+                                <h4 class="font-medium mb-1">Interpret Results</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Balance AI-generated insights with critical human evaluation.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="process-step" data-step="7." style="--step-color: #5D5CDE;">
+                                <h4 class="font-medium mb-1">Write the Review</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Use AI for drafting while maintaining human oversight.
+                                </p>
+                            </div>
+                            
+                            <div class="process-step" data-step="8." style="--step-color: #5D5CDE;">
+                                <h4 class="font-medium mb-1">Ethical Considerations</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Apply ethical guidelines to AI integration and research integrity.
+                                </p>
+                            </div>
+                            
+                            <div class="process-step" data-step="9." style="--step-color: #5D5CDE;">
+                                <h4 class="font-medium mb-1">Disseminate Findings</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Leverage AI for summarization, visualization, and sharing research.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-900 p-4 rounded-md mt-6 border border-gray-200 dark:border-gray-700 text-sm">
+                        <p class="text-gray-700 dark:text-gray-300">
+                            <span class="font-medium">Key Principle:</span>
+                            AI enhances efficiency but doesn't replace human expertise. Use AI for repetitive tasks while relying on human judgment for critical analysis and theoretical alignment.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Introduction Section -->
+            <div class="mb-8 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="section-header cursor-pointer bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between items-center">
+                    <h3 class="text-lg font-medium flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-info-circle"></i></span>
+                        Introduction
+                    </h3>
+                </div>
+                <div class="section-content bg-white dark:bg-gray-900 px-6 py-6">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="w-full md:w-2/3">
+                            <p class="mb-4">
+                                Conducting a scoping review requires a structured approach. This ensures clarity, transparency, 
+                                and reliability throughout the research process. Part 2 outlines a step-by-step 
+                                method tailored for TIM students, faculty and professionals who are integrating AI tools to 
+                                enhance efficiency and precision in the scoping review process.
+                            </p>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 rounded-md p-4 mb-4 border border-gray-200 dark:border-gray-700">
+                                <h4 class="font-medium mb-2 text-primary-600 dark:text-primary-500">Critical Thinking in TIM Context</h4>
+                                <p class="text-sm">
+                                    Critical thinking is the ability to analyze, evaluate, and synthesize information systematically to make informed decisions. 
+                                    For TIM professionals, it involves questioning assumptions, assessing evidence, 
+                                    identifying biases, and applying logical reasoning to solve complex problems in technology innovation and management.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border-l-2 border-primary-600 dark:border-primary-500">
+                                <p class="text-gray-800 dark:text-gray-200 text-sm">
+                                    AI enhances efficiency in literature reviews but does not replace human expertise. Use AI for 
+                                    automating repetitive tasks, such as summarization and categorization, while relying on human 
+                                    judgment for critical analysis, theoretical alignment, and decision-making.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full md:w-1/3">
+                            <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-md border border-gray-200 dark:border-gray-700">
+                                <h4 class="font-medium mb-4 text-center">AI and Human Roles</h4>
+                                
+                                <div class="flex items-center mb-4 p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-3"><i class="fas fa-robot"></i></span>
+                                    <div>
+                                        <h5 class="font-medium text-sm">AI Handles</h5>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Search automation, categorization, summarization</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-3"><i class="fas fa-user"></i></span>
+                                    <div>
+                                        <h5 class="font-medium text-sm">Humans Handle</h5>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Critical analysis, theoretical alignment, decision-making</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional content - hidden by default but can be shown with Load More button -->
+            <div id="more-part2-content" class="hidden-content">
+                <!-- Step 1 Section -->
+                <div class="mb-8 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="section-header cursor-pointer bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-lg font-medium flex items-center">
+                            <span class="text-primary-600 dark:text-primary-500 mr-2">1.</span>
+                            Formulate the Review Question and Scope
+                        </h3>
+                    </div>
+                    <div class="section-content bg-white dark:bg-gray-900 px-6 py-6">
+                        <p class="mb-6">
+                            A scoping review requires a broad and exploratory review question that captures the full range of relevant studies and perspectives.
+                        </p>
+                        
+                        <!-- AI Role, Human Oversight, Guidance -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-robot"></i></span>
+                                    <h4 class="font-medium">AI's Role</h4>
+                                </div>
+                                <ul class="space-y-2">
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Generate review question variations and refine clarity</span>
+                                    </li>
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Suggest related topics, synonyms, and search terms</span>
+                                    </li>
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Analyze existing literature to highlight research gaps</span>
+                                    </li>
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Identify key authors and influential papers</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-user-check"></i></span>
+                                    <h4 class="font-medium">Human Oversight</h4>
+                                </div>
+                                <ul class="space-y-2">
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Ensure clarity and feasibility of review questions</span>
+                                    </li>
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Validate AI-generated refinements for focus and precision</span>
+                                    </li>
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Incorporate relevant academic models and theoretical frameworks</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-compass"></i></span>
+                                    <h4 class="font-medium">Guidance</h4>
+                                </div>
+                                <ul class="space-y-2">
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Compare AI-suggested questions with published scoping reviews</span>
+                                    </li>
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Align the review question with existing frameworks (e.g., PCC: Population, Concept, Context)</span>
+                                    </li>
+                                    <li class="flex items-start text-sm">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        <span>Use AI-generated starting points, then refine with domain expertise</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- PCC Framework -->
+                        <div class="mb-8">
+                            <div class="flex items-center mb-4">
+                                <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-project-diagram"></i></span>
+                                <h4 class="text-lg font-medium">PCC Framework for Structuring Review Questions</h4>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md mb-6 border border-gray-200 dark:border-gray-700">
+                                <div class="grid grid-cols-3 gap-4 text-center mb-4">
+                                    <div>
+                                        <div class="bg-white dark:bg-gray-900 py-2 px-3 rounded-md mb-2 border border-gray-200 dark:border-gray-700">
+                                            <h5 class="font-medium text-primary-600 dark:text-primary-500">Population</h5>
+                                        </div>
+                                        <p class="text-sm">Who or what is being studied?</p>
+                                    </div>
+                                    <div>
+                                        <div class="bg-white dark:bg-gray-900 py-2 px-3 rounded-md mb-2 border border-gray-200 dark:border-gray-700">
+                                            <h5 class="font-medium text-primary-600 dark:text-primary-500">Concept</h5>
+                                        </div>
+                                        <p class="text-sm">What are the core ideas being examined?</p>
+                                    </div>
+                                    <div>
+                                        <div class="bg-white dark:bg-gray-900 py-2 px-3 rounded-md mb-2 border border-gray-200 dark:border-gray-700">
+                                            <h5 class="font-medium text-primary-600 dark:text-primary-500">Context</h5>
+                                        </div>
+                                        <p class="text-sm">What's the setting or environment?</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Example Cards -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                                <!-- Example 1 -->
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                    <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                                        <h5 class="font-medium">Example: Product Development</h5>
+                                    </div>
+                                    <div class="p-4">
+                                        <ul class="mb-4 text-sm space-y-2">
+                                            <li class="flex">
+                                                <span class="font-medium w-24">Population:</span>
+                                                <span>Startups developing AI-powered products</span>
+                                            </li>
+                                            <li class="flex">
+                                                <span class="font-medium w-24">Concept:</span>
+                                                <span>Challenges in scaling AI-driven prototypes</span>
+                                            </li>
+                                            <li class="flex">
+                                                <span class="font-medium w-24">Context:</span>
+                                                <span>Venture acceleration programs</span>
+                                            </li>
+                                        </ul>
+                                        <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                                            <p class="text-sm">
+                                                <span class="font-medium">Review question:</span> What are the key challenges and success factors influencing the scaling of AI-driven product prototypes in technology startups within venture acceleration programs?
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Example 2 -->
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                    <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                                        <h5 class="font-medium">Example: Digital Transformation</h5>
+                                    </div>
+                                    <div class="p-4">
+                                        <ul class="mb-4 text-sm space-y-2">
+                                            <li class="flex">
+                                                <span class="font-medium w-24">Population:</span>
+                                                <span>Mid-sized manufacturing firms</span>
+                                            </li>
+                                            <li class="flex">
+                                                <span class="font-medium w-24">Concept:</span>
+                                                <span>Adoption of Industry 4.0 technologies</span>
+                                            </li>
+                                            <li class="flex">
+                                                <span class="font-medium w-24">Context:</span>
+                                                <span>North American manufacturing</span>
+                                            </li>
+                                        </ul>
+                                        <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                                            <p class="text-sm">
+                                                <span class="font-medium">Review question:</span> What are the primary barriers and facilitators influencing the adoption of Industry 4.0 technologies in mid-sized Canadian manufacturing firms?
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 1 Outputs -->
+                        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
+                            <h4 class="font-medium mb-3 flex items-center">
+                                <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-clipboard-check"></i></span>
+                                Step 1 Outputs
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                                    <h5 class="font-medium text-sm mb-1">Research Question</h5>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">A clearly defined, focused question using PCC or another appropriate framework.</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                                    <h5 class="font-medium text-sm mb-1">Review Objectives</h5>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Concise statement outlining what the review aims to achieve and knowledge gaps to address.</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                                    <h5 class="font-medium text-sm mb-1">Preliminary Keywords</h5>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Initial set of keywords, Boolean operators, and alternate terms for database searches.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Load More Button -->
+            <div class="text-center py-6">
+                <button id="load-more-part2" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 border border-gray-200 dark:border-gray-700 text-sm">
+                    Load More Steps 
+                    <i class="fas fa-chevron-down ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Part 3: Updating Scoping Review Guide -->
+        <section id="part3" class="mb-16 pt-8 animate-section">
+            <div class="border-l-4 border-primary-600 dark:border-primary-500 pl-4 mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold">PART 3: UPDATING SCOPING REVIEW GUIDE</h2>
+                <p class="text-gray-600 dark:text-gray-400 mt-2">
+                    Maintaining and evolving this guide as methods and AI tools continue to develop.
+                </p>
+            </div>
+            
+            <!-- Visual Summary of Part 3 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-md border border-gray-200 dark:border-gray-700">
+                    <h3 class="font-medium mb-4 flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-award"></i></span>
+                        Guide Strengths
+                    </h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Translates literature reviews into practical TIM assets</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Offers step-by-step process with TIM-specific examples</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Integrates AI tools to enhance efficiency</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Maintains integrity through human oversight</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-md border border-gray-200 dark:border-gray-700">
+                    <h3 class="font-medium mb-4 flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-code-branch"></i></span>
+                        Version Control
+                    </h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Structured versioning system (v1.0, v1.1, v2.0)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Scheduled reviews every six months</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Comprehensive change documentation</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>TIM stakeholder input for continuous improvement</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-md border border-gray-200 dark:border-gray-700">
+                    <h3 class="font-medium mb-4 flex items-center">
+                        <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-hands-helping"></i></span>
+                        Ways to Contribute
+                    </h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Enhance literature review process</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Improve clarity and accuracy</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Add troubleshooting guidance</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-gray-400 mr-2">•</span>
+                            <span>Expand examples and use cases</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Additional content - hidden by default but can be shown with Load More button -->
+            <div id="more-part3-content" class="hidden-content">
+                <!-- Introduction Section -->
+                <div class="mb-8 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="section-header cursor-pointer bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-lg font-medium flex items-center">
+                            <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-info-circle"></i></span>
+                            Introduction
+                        </h3>
+                    </div>
+                    <div class="section-content bg-white dark:bg-gray-900 px-6 py-4">
+                        <p>
+                            Research and practitioner methods and the AI tools that support them are constantly evolving, 
+                            making it essential to keep this guide up to date. Part 3 outlines the guide's strengths and the 
+                            process for maintaining, improving, and expanding the guide to ensure it remains a valuable 
+                            resource for TIM faculty, students, and practitioners.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Strengths of the Guide Section -->
+                <div class="mb-8 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="section-header cursor-pointer bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-lg font-medium flex items-center">
+                            <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-award"></i></span>
+                            3.1 Strengths of the Guide
+                        </h3>
+                    </div>
+                    <div class="section-content bg-white dark:bg-gray-900 px-6 py-6">
+                        <!-- Key Strength: Transforms Literature Reviews -->
+                        <div class="mb-8">
+                            <div class="flex items-center mb-4">
+                                <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-exchange-alt"></i></span>
+                                <h4 class="font-medium">Transforms literature reviews into valuable TIM assets</h4>
+                            </div>
+                            
+                            <p class="mb-4">The guide helps users turn research findings into practical applications, including:</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700 flex items-start text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mt-0.5 mr-2"><i class="fas fa-chart-line"></i></span>
+                                    <div>
+                                        <h5 class="font-medium mb-1">Venture Pitches</h5>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Identifies emerging opportunities to attract investors.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700 flex items-start text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mt-0.5 mr-2"><i class="fas fa-globe"></i></span>
+                                    <div>
+                                        <h5 class="font-medium mb-1">Market Entry Strategies</h5>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Analyzes trends and regulations for informed decisions.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700 flex items-start text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mt-0.5 mr-2"><i class="fas fa-user-secret"></i></span>
+                                    <div>
+                                        <h5 class="font-medium mb-1">Competitive Intelligence</h5>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Tracks competitors' R&amp;D, patents, and strategies.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700 flex items-start text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mt-0.5 mr-2"><i class="fas fa-box"></i></span>
+                                    <div>
+                                        <h5 class="font-medium mb-1">Product Development</h5>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Detects advancements and customer needs to guide R&amp;D.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700 flex items-start text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mt-0.5 mr-2"><i class="fas fa-map"></i></span>
+                                    <div>
+                                        <h5 class="font-medium mb-1">Technology Landscapes</h5>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Maps key players and innovations for strategic positioning.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700 flex items-start text-sm">
+                                    <span class="text-primary-600 dark:text-primary-500 mt-0.5 mr-2"><i class="fas fa-file-alt"></i></span>
+                                    <div>
+                                        <h5 class="font-medium mb-1">Business Plans</h5>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Shapes business models and refines go-to-market strategies.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Other Strengths -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-list-ol"></i></span>
+                                    <h4 class="font-medium">Step-by-step Approach</h4>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                    The guide outlines a clear, structured process covering topic selection, search strategy, 
+                                    source evaluation, synthesis, visualization, and reporting, making literature reviews more actionable.
+                                </p>
+                                <div class="bg-white dark:bg-gray-900 p-2 rounded-md border border-gray-200 dark:border-gray-700">
+                                    <p class="text-xs text-gray-700 dark:text-gray-300">
+                                        Includes TIM-specific examples for immediate practical application
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <span class="text-primary-600 dark:text-primary-500 mr-2"><i class="fas fa-robot"></i></span>
+                                    <h4 class="font-medium">AI Tool Integration</h4>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                    AI accelerates research by automating search term refinement, citation management, text summarization, 
+                                    and synthesis, enabling faster, more comprehensive reviews.
+                                </p>
+                                <div class="bg-white dark:bg-gray-900 p-2 rounded-md border border-gray-200 dark:border-gray-700">
+                                    <p class="text-xs text-gray-700 dark:text-gray-300">
+                                        Includes current AI tools with specific recommendations for each step
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Load More Button -->
+            <div class="text-center py-6">
+                <button id="load-more-part3" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 border border-gray-200 dark:border-gray-700 text-sm">
+                    Load More Sections 
+                    <i class="fas fa-chevron-down ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="py-12 bg-gray-50 dark:bg-gray-800 rounded-md mb-12 animate-section border border-gray-200 dark:border-gray-700">
+            <div class="max-w-3xl mx-auto text-center px-4">
+                <div class="mb-6 text-primary-600 dark:text-primary-500">
+                    <i class="fas fa-hands-helping text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-4">Ready to Contribute?</h2>
+                <p class="mb-8 text-gray-700 dark:text-gray-300 text-lg max-w-2xl mx-auto">
+                    Help improve this guide by sharing your expertise, experiences, and insights.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="https://carleton.ca/tim/contact-us/" target="_blank" class="inline-flex items-center px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors duration-200">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Contact Us
+                    </a>
+                    <a href="https://sprott.carleton.ca/up-our-game-canada/" target="_blank" class="inline-flex items-center px-5 py-2.5 bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 border border-gray-200 dark:border-gray-700">
+                        <i class="fas fa-book-open mr-2 text-primary-600 dark:text-primary-500"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="md:flex md:justify-between">
+                <div class="mb-8 md:mb-0">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-book-open text-primary-600 dark:text-primary-500 text-xl mr-2"></i>
+                        <h2 class="text-xl font-bold">Scoping Review Guide</h2>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-md">
+                        A comprehensive guide to producing scoping literature reviews using AI tools for Technology Innovation Management.
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Version: 1.0 | Last Updated: March 4, 2025
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-2">
+                    <div>
+                        <h3 class="text-sm font-medium mb-4 text-gray-900 dark:text-white">Resources</h3>
+                        <ul class="text-gray-600 dark:text-gray-400 text-sm space-y-3">
+                            <li>
+                                <a href="https://carleton.ca/tim/" target="_blank" class="hover:text-primary-600 dark:hover:text-primary-500 flex items-center">
+                                    <i class="fas fa-external-link-alt mr-2 text-xs text-primary-600 dark:text-primary-500"></i>
+                                    TIM Program
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://sprott.carleton.ca/up-our-game-canada/" target="_blank" class="hover:text-primary-600 dark:hover:text-primary-500 flex items-center">
+                                    <i class="fas fa-external-link-alt mr-2 text-xs text-primary-600 dark:text-primary-500"></i>
+                                    Up Our Game Canada
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium mb-4 text-gray-900 dark:text-white">Navigation</h3>
+                        <ul class="text-gray-600 dark:text-gray-400 text-sm space-y-3">
+                            <li>
+                                <a href="#part1" class="hover:text-primary-600 dark:hover:text-primary-500 flex items-center">
+                                    <i class="fas fa-chevron-right mr-2 text-xs text-primary-600 dark:text-primary-500"></i>
+                                    Foundations
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#part2" class="hover:text-primary-600 dark:hover:text-primary-500 flex items-center">
+                                    <i class="fas fa-chevron-right mr-2 text-xs text-primary-600 dark:text-primary-500"></i>
+                                    Method
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#part3" class="hover:text-primary-600 dark:hover:text-primary-500 flex items-center">
+                                    <i class="fas fa-chevron-right mr-2 text-xs text-primary-600 dark:text-primary-500"></i>
+                                    Updates
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-6 border-gray-200 dark:border-gray-700">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 md:mb-0">
+                    © 2024 Carleton University. All Rights Reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to top button -->
+    <button id="back-to-top" class="fixed bottom-8 right-8 bg-primary-600 hover:bg-primary-700 text-white rounded-md p-2 hidden transition-all duration-300 border border-primary-400">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const html = document.documentElement;
+        
+        // Check system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            html.classList.add('dark');
+        }
+        
+        // Listen for changes in system preference
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+        });
+        
+        // Toggle dark mode on button click
+        darkModeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+        });
+        
+        // Section toggles
+        document.querySelectorAll('.section-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.parentElement;
+                section.classList.toggle('section-open');
+            });
+        });
+        
+        // Initialize first section in each part to be open by default
+        document.querySelectorAll('#part1 .section-header:first-of-type, #part2 .section-header:first-of-type, #part3 .section-header:first-of-type').forEach(header => {
+            header.click();
+        });
+        
+        // Back to top button
+        const backToTopButton = document.getElementById('back-to-top');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.remove('hidden');
+                backToTopButton.classList.add('flex');
+            } else {
+                backToTopButton.classList.remove('flex');
+                backToTopButton.classList.add('hidden');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Load more buttons functionality
+        document.getElementById('load-more-part1').addEventListener('click', function() {
+            const button = this;
+            const content = document.getElementById('more-part1-content');
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                button.innerHTML = 'Load More Sections <i class="fas fa-chevron-down ml-2"></i>';
+            } else {
+                content.classList.add('show');
+                button.innerHTML = 'Show Less <i class="fas fa-chevron-up ml-2"></i>';
+            }
+        });
+        
+        document.getElementById('load-more-part2').addEventListener('click', function() {
+            const button = this;
+            const content = document.getElementById('more-part2-content');
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                button.innerHTML = 'Load More Steps <i class="fas fa-chevron-down ml-2"></i>';
+            } else {
+                content.classList.add('show');
+                button.innerHTML = 'Show Less <i class="fas fa-chevron-up ml-2"></i>';
+            }
+        });
+        
+        document.getElementById('load-more-part3').addEventListener('click', function() {
+            const button = this;
+            const content = document.getElementById('more-part3-content');
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                button.innerHTML = 'Load More Sections <i class="fas fa-chevron-down ml-2"></i>';
+            } else {
+                content.classList.add('show');
+                button.innerHTML = 'Show Less <i class="fas fa-chevron-up ml-2"></i>';
+            }
+        });
+        
+        // Animation for sections as they come into view
+        const animateSections = () => {
+            const sections = document.querySelectorAll('.animate-section');
+            
+            sections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (sectionTop < windowHeight * 0.85) {
+                    section.classList.add('visible');
+                }
+            });
+        };
+        
+        // Run animation check on load and scroll
+        window.addEventListener('load', animateSections);
+        window.addEventListener('scroll', animateSections);
+    </script>
+
+
+</body></html>

@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide to Produce Scoping Literature Reviews Using AI Tools</title>
+<!-- TailwindCSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Inter Font -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+
+<script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                },
+                colors: {
+                    primary: {
+                        50: '#f5f8ff',
+                        100: '#eaf0ff',
+                        200: '#d9e4ff',
+                        300: '#bacfff',
+                        400: '#8faeff',
+                        500: '#638aff',
+                        600: '#3d67ff',
+                        700: '#2c51f0',
+                        800: '#1e3bd1',
+                        900: '#1c36a7',
+                    },
+                    tim: {
+                        red: '#cc0000',
+                        dark: '#222222'
+                    }
+                }
+            }
+        }
+    };
+</script>
+
+<style type="text/css">
+    /* Custom styles */
+    .content-section h2 {
+        @apply mt-8 mb-4 text-2xl font-bold text-gray-800 dark:text-gray-100;
+    }
+    
+    .content-section h3 {
+        @apply mt-6 mb-3 text-xl font-semibold text-gray-700 dark:text-gray-200;
+    }
+    
+    .content-section p {
+        @apply mb-4 text-gray-600 dark:text-gray-300;
+    }
+    
+    .content-section ul, .content-section ol {
+        @apply mb-4 pl-5 text-gray-600 dark:text-gray-300;
+    }
+    
+    .content-section ul {
+        @apply list-disc;
+    }
+    
+    .content-section ol {
+        @apply list-decimal;
+    }
+    
+    .content-section li {
+        @apply mb-2;
+    }
+    
+    /* Fade-in animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.5);
+        border-radius: 20px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(107, 114, 128, 0.7);
+    }
+    
+    .dark ::-webkit-scrollbar-thumb {
+        background-color: rgba(75, 85, 99, 0.5);
+    }
+    
+    .dark ::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(55, 65, 81, 0.7);
+    }
+</style>
+</head>
+<body class="bg-white dark:bg-gray-900 transition-colors duration-200">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <a href="https://carleton.ca/tim/" class="flex items-center space-x-2" target="_blank" rel="noopener">
+                    <img src="https://carleton.ca/tim/wp-content/uploads/sites/52/2024/07/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-copy-scaled.jpg" alt="TIM Program Logo" class="h-8 dark:hidden">
+                    <img src="https://carleton.ca/tim/wp-content/uploads/sites/52/2024/07/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-copy-scaled.jpg" alt="TIM Program Logo" class="hidden dark:block h-8 filter invert">
+                </a>
+            <!-- Desktop Navigation and Theme Toggle -->
+            <div class="hidden md:flex items-center space-x-6">
+                <nav class="flex space-x-6">
+                    <a href="#part1" class="text-gray-600 hover:text-tim-red dark:text-gray-300 dark:hover:text-white transition-colors duration-200">Foundation</a>
+                    <a href="#part2" class="text-gray-600 hover:text-tim-red dark:text-gray-300 dark:hover:text-white transition-colors duration-200">Method</a>
+                    <a href="#part3" class="text-gray-600 hover:text-tim-red dark:text-gray-300 dark:hover:text-white transition-colors duration-200">Updates</a>
+                </nav>
+                
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200" aria-label="Toggle dark mode">
+                    <i class="fas fa-sun text-gray-600 dark:text-gray-400 dark:hidden"></i>
+                    <i class="fas fa-moon hidden dark:block text-gray-400"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Navigation Toggle -->
+            <div class="md:hidden flex items-center space-x-4">
+                <button id="mobile-theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200" aria-label="Toggle dark mode">
+                    <i class="fas fa-sun text-gray-600 dark:text-gray-400 dark:hidden"></i>
+                    <i class="fas fa-moon hidden dark:block text-gray-400"></i>
+                </button>
+                
+                <button id="mobile-menu-button" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200" aria-label="Toggle mobile menu">
+                    <i class="fas fa-bars text-gray-600 dark:text-gray-400"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
+            <nav class="flex flex-col space-y-4">
+                <a href="#part1" class="text-gray-600 hover:text-tim-red dark:text-gray-300 dark:hover:text-white transition-colors duration-200">Foundation of Scoping Reviews</a>
+                <a href="#part2" class="text-gray-600 hover:text-tim-red dark:text-gray-300 dark:hover:text-white transition-colors duration-200">Method to Produce Scoping Reviews</a>
+                <a href="#part3" class="text-gray-600 hover:text-tim-red dark:text-gray-300 dark:hover:text-white transition-colors duration-200">Updating Scoping Review Guide</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section class="py-12 sm:py-16 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 transition-colors duration-200">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+        <div class="text-center">
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 fade-in">Guide to Produce Scoping Literature Reviews Using AI Tools</h1>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto fade-in" style="animation-delay: 0.1s;">A comprehensive guide for TIM students and faculty to conduct thorough and reproducible scoping literature reviews using artificial intelligence tools.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-12">
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Table of Contents (Sidebar) - Fixed on Desktop -->
+        <div class="lg:w-1/4 mb-8 lg:mb-0">
+            <div class="lg:sticky lg:top-24">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Table of Contents</h2>
+                <nav class="space-y-1">
+                    <div>
+                        <a href="#part1" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-tim-red dark:hover:text-white font-medium transition-colors duration-200">Part 1: Foundation of Scoping Reviews</a>
+                        <div class="ml-4 space-y-1 mt-1">
+                            <a href="#glossary" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Glossary</a>
+                            <a href="#introduction1" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Introduction</a>
+                            <a href="#when-to-use" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">When to Use a Scoping Review</a>
+                            <a href="#key-frameworks" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Key Frameworks</a>
+                            <a href="#benefits" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Benefits of Using AI</a>
+                            <a href="#limitations-scoping" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Limitations of Scoping Reviews</a>
+                            <a href="#limitations-ai" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Limitations of Using AI Tools</a>
+                            <a href="#ai-biases" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">AI Biases</a>
+                            <a href="#human-oversight" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Human Oversight</a>
+                            <a href="#grey-literature" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Grey Literature Searches</a>
+                            <a href="#reference-management" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Reference Management</a>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <a href="#part2" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-tim-red dark:hover:text-white font-medium transition-colors duration-200">Part 2: Method to Produce Scoping Reviews</a>
+                        <div class="ml-4 space-y-1 mt-1">
+                            <a href="#introduction2" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Introduction</a>
+                            <a href="#step1" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Step 1: Formulate Review Question</a>
+                            <a href="#step2" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Step 2: Search for Articles</a>
+                            <a href="#step3" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Step 3: Select Articles</a>
+                            <a href="#step4" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Step 4: Extract Data</a>
+                            <a href="#step5" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Step 5: Analyze Data</a>
+                            <a href="#step6" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Step 6: Interpret Results</a>
+                            <a href="#step7" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Step 7: Write the Review</a>
+                            <a href="#step8" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Step 8: Ethical Considerations</a>
+                            <a href="#step9" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Step 9: Disseminate Findings</a>
+                            <a href="#checklist" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Checklist for Authors</a>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <a href="#part3" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-tim-red dark:hover:text-white font-medium transition-colors duration-200">Part 3: Updating Scoping Review Guide</a>
+                        <div class="ml-4 space-y-1 mt-1">
+                            <a href="#introduction3" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Introduction</a>
+                            <a href="#strengths" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Strengths of the Guide</a>
+                            <a href="#version-control" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Version Control</a>
+                            <a href="#disclosure" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">AI Assistance Disclosure</a>
+                            <a href="#contribute" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Ways To Contribute</a>
+                            <a href="#acknowledgements" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Acknowledgements</a>
+                            <a href="#epilogue" class="block py-1 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm hover:text-tim-red dark:hover:text-white transition-colors duration-200">Epilogue</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="lg:w-3/4 content-section">
+            <!-- Part 1: Foundation of Scoping Reviews -->
+            <section id="part1" class="mb-16">
+                <div class="bg-gradient-to-r from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-lg p-6 mb-8 border border-primary-100 dark:border-gray-700 shadow-sm">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">PART 1. FOUNDATION OF SCOPING REVIEWS</h2>
+                    <p class="text-gray-600 dark:text-gray-300">This section introduces the fundamental concepts of scoping reviews, explains when to use them, outlines key frameworks, and discusses the benefits and limitations of using AI tools in the TIM context.</p>
+                </div>
+                
+                <!-- Glossary -->
+                <div id="glossary" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">Glossary</h3>
+                    <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Term</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Definition</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Boolean operators</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">Logical connectors (AND, OR, NOT) used in database searches to refine search results by including or excluding specific terms.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Grey literature</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">Information produced outside of traditional publishing and distribution channels, such as reports, conference proceedings, and government documents.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Human oversight</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">The involvement of human judgment and decision-making in monitoring, guiding, or intervening in automated systems to ensure ethical, accurate, and responsible outcomes.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">PRISMA-ScR</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">The Preferred Reporting Items for Systematic Reviews and Meta-Analyses for Scoping Reviews, a framework that provides guidelines for conducting and reporting scoping reviews.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Scoping review</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">A type of literature review that maps key concepts, evidence, and research gaps in a field, typically without assessing the quality of the included studies.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Systematic review</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">A structured and comprehensive review of existing research on a specific question, using a rigorous methodology to identify, appraise, and synthesize relevant studies.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Introduction -->
+                <div id="introduction1" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">Introduction</h3>
+                    <p class="text-gray-600 dark:text-gray-300">A scoping review gathers and examines a wide range of sources to show what is known and unknown. Gaps in the literature can inspire new business ideas or research questions. Within Technology Innovation Management (TIM), scoping reviews can inform venture pitches, new market analysis, business opportunities, new product development, process improvement, competitive landscape, technology disruptions, emerging business models, IP management, innovation ecosystems, research vignettes, TIM projects and theses, among other key areas.</p>
+                    
+                    <p class="text-gray-600 dark:text-gray-300 mt-4">In Technology Innovation Management, a scoping review helps you see what is already known—whether in blockchain commercialization, open innovation ecosystems, or emerging AI startups—and spot new opportunities. By combining human expertise with AI tools, TIM researchers can sift through large, varied studies, uncover practical insights from non-traditional sources, and guide innovation strategies for the future.</p>
+                    
+                    <p class="text-gray-600 dark:text-gray-300 mt-4">Unlike a systematic review, scoping reviews cast a wider net, enabling TIM students, faculty, and practitioners to gain insights into rapidly evolving technology landscapes—sometimes well before a rigid set of methodologies and theoretical constructs have fully matured.</p>
+                    
+                    <p class="text-gray-600 dark:text-gray-300 mt-4">If your review question is narrowly defined, aims to evaluate the quality of interventions, or measures effectiveness (e.g., comparing success rates of two IP licensing strategies), a systematic review is more suitable.</p>
+                </div>
+                
+                <!-- When to Use a Scoping Review -->
+                <div id="when-to-use" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">1.1 When to Use a Scoping Review Instead of a Systematic Review</h3>
+                    <p class="text-gray-600 dark:text-gray-300">In TIM, scoping reviews are especially valuable when:</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1. Review questions are broad or exploratory</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Use a scoping review if you wish to explore a wide variety of studies on a topic, rather than measuring how well something works.</li>
+                                <li><em>Example:</em> Investigating how AI-driven platforms are transforming technology commercialization across various industries.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">2. Emerging topics</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Use when the field is new, and key concepts, definitions, and knowledge gaps are unclear.</li>
+                                <li><em>Example:</em> Mapping quantum computing applications in early-stage technology startups, where key players, definitions, and standard practices are still evolving.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">3. Heterogeneous literature</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Use when studies cover diverse methodologies, study designs, and disciplines, making systematic synthesis impractical.</li>
+                                <li><em>Example:</em> Integrating findings from multidisciplinary sources (engineering, business, sociology, etc.) on the use of AI in different industries (e.g., healthcare, finance, manufacturing).</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">4. Minimal need for critical appraisal</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Use when assessing the methodological quality and risk of bias of individual studies is not a primary objective.</li>
+                                <li><em>Example:</em> When the goal is to catalog existing strategies for open innovation rather than evaluate their effectiveness quantitatively.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md md:col-span-2">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">5. Identifying gaps and trends</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Use when the goal is to summarize existing research, identify gaps, and inform future research directions rather than draw specific conclusions on intervention efficacy.</li>
+                                <li><em>Example:</em> Spotting uncharted areas in blockchain-based supply chain management, highlighting market opportunities and research directions.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key Frameworks -->
+                <div id="key-frameworks" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">1.2 Key Frameworks</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Scoping reviews in TIM often follow one or more of five main frameworks:</p>
+                    <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 mt-2 mb-4">
+                        <li>Arksey and O'Malley (2005)</li>
+                        <li>Levac et al. (2010)</li>
+                        <li>Joanna Briggs Institute (JBI) Scoping Review Framework</li>
+                        <li>PRISMA-ScR</li>
+                        <li>Recent AI-focused updates (2020–present)</li>
+                    </ul>
+                    <p class="text-gray-600 dark:text-gray-300">Each framework brings a different strength to the process—for example, stakeholder engagement or standardized reporting—and may be combined for a better outcome.</p>
+                    
+                    <div class="space-y-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1. Arksey and O'Malley (2005)</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>They created a five-step outline that you can update as you go. It works well for fast-changing fields like financial technology (fintech).</li>
+                                <li><em>Example:</em> Use the Arksey and O'Malley (2005) scoping approach to broadly map out existing literature on wearable technology for remote patient monitoring, capturing everything from academic journals to patent filings and industry whitepapers. This high-level mapping helps product developers examine the full landscape, identifying emerging areas (e.g., sensor innovations) and untapped market niches.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">2. Levac et al. (2010)</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Extends Arksey and O'Malley's model by stressing stakeholder engagement—vital for TIM researchers who must collaborate with startups, incubators, or corporate R&D teams.</li>
+                                <li><em>Example:</em> Engage startup accelerators, device manufacturers, and regulatory bodies in refining your scoping review on IoT-based smart manufacturing. Their feedback can help you adjust the scope in real time—ensuring your final review addresses the most pressing industry questions and technological challenges.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">3. Joanna Briggs Institute (JBI) Scoping Review Framework</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Offers a refined methodology for planning and conducting scoping reviews. In TIM, this can help ensure rigor and transparency when examining diverse sources (e.g., patents, technical standards, market analyses).</li>
+                                <li><em>Example:</em> Follow JBI's refined methodology to conduct a scoping review on 3D-printing technologies for rapid prototyping. Use the JBI approach to systematically plan and execute literature searches, guaranteeing a transparent process that boosts your credibility when pitching commercialization strategies to potential investors or industry partners.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">4. PRISMA-ScR</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Focuses on standardized reporting of scoping reviews, making your technology roadmap or innovation policy scoping study more credible and replicable.</li>
+                                <li><em>Example:</em> Ensure your scoping review on blockchain applications in supply chain management follows PRISMA-ScR guidelines for transparent, reproducible reporting. A clear flow diagram and well-documented inclusion criteria demonstrate to potential investors or collaborators that you have thoroughly vetted the market and underlying technologies.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">5. Recent Updates (2020–Present)</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Incorporate AI-powered literature review tools to manage the expanding volume of innovation-related studies, speeding up data collection and analysis.</li>
+                                <li><em>Example:</em> Leverage AI-based literature screening and data extraction tools to accelerate your scoping review on digital entrepreneurship ecosystems post-COVID-19. These newer methods can help you quickly navigate large volumes of unstructured data (e.g., social media trends or preprint repositories), ensuring that you capture rapidly evolving technological shifts in real time.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Benefits of Using AI -->
+                <div id="benefits" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">1.3 Benefits of Using AI for Scoping Reviews in TIM Context</h3>
+                    <p class="text-gray-600 dark:text-gray-300">AI can manage large volumes of diverse data—quickly and consistently—making it invaluable for scoping reviews in TIM. It helps teams move faster to market, discover better product-market fits, stay ahead of disruptive technologies, and uncover new opportunities or threats. Overall, AI speeds up the research process and delivers more actionable insights.</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">Speed and efficiency</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li><strong>Rapid literature screening:</strong> AI tools can quickly scan and organize large volumes of articles, patents, and reports, making them especially valuable in fast-changing technology fields.</li>
+                                <li><strong>Automated deduplication:</strong> AI algorithms detect and remove duplicate studies, saving considerable time, especially when searching across multiple databases for modern technology solutions or startup case studies.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">Enhanced discovery</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li><strong>Diverse data sources:</strong> AI can pull from a broad array of sources—academic journals, preprints, corporate websites, social media, and more—capturing real-time insights into fast-evolving markets.</li>
+                                <li><strong>Intelligent recommendations:</strong> Machine learning–based recommendation systems can surface relevant but less visible research (e.g., startup whitepapers, conference abstracts), promoting a more comprehensive view of the innovation landscape.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">Improved organization</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li><strong>Topic clustering:</strong> AI tools group articles into thematic clusters (e.g., "blockchain-based supply chain optimization," "IoT in smart manufacturing"), helping TIM scholars quickly identify emerging subfields or niches.</li>
+                                <li><strong>Automatic tagging & categorization:</strong> Keywords and metadata can be automatically extracted, making it easier to track and organize specific topics like "IP management," "digital entrepreneurship," or "innovation ecosystems."</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">Scalable analysis</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li><strong>Big data handling:</strong> AI excels at processing massive datasets, which is crucial when investigating large-scale phenomena such as global patent filings or venture capital investments in multiple technology domains.</li>
+                                <li><strong>Dynamic updating:</strong> As new publications appear, AI can re-run searches and highlight the latest research, enabling timely additions to your literature pool without exhaustive manual screening.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">Reduced human error</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li><strong>Consistent screening criteria:</strong> Automated inclusion and exclusion processes reduce subjective or inconsistent decisions, giving review teams greater confidence in their screening results.</li>
+                                <li><strong>Continuous refinement:</strong> Teams can tune AI models to focus on specific aspects—like certain technologies or market segments—thereby refining search accuracy over time.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">Insight generation</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li><strong>Text Summarization:</strong> AI tools can generate concise overviews of complex studies, making it easier for TIM professionals to spot key findings (e.g., technology readiness levels, business model innovations).</li>
+                                <li><strong>Trend detection:</strong> By analyzing patterns in published material (keywords, citations, research designs), AI can reveal emerging trends (e.g., early signals of a shift toward quantum computing in finance).</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Limitations of Scoping Reviews -->
+                <div id="limitations-scoping" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">1.4 Limitations of Scoping Reviews</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Scoping reviews give you a broad overview of a topic—particularly useful in TIM—yet they come with certain drawbacks you should keep in mind:</p>
+                    
+                    <div class="space-y-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1. Lack of critical appraisal</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>You may capture low-quality studies, such as anecdotal claims about innovation incubation success without rigorous data.</li>
+                                <li><em>Example:</em> When surveying innovation incubator outcomes, the scoping review might include highly speculative blogs or anecdotal success stories, overlooking important methodological flaws. This lack of rigorous appraisal can lead to an inflated perception of how effective certain incubation strategies truly are.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">2. Broad and less focused scope</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>You might have a high-level overview of IP management strategies but insufficient depth for policy recommendations.</li>
+                                <li><em>Example:</em> A scoping review examining global IP management strategies in emerging technology could gather a wide array of information—patent analytics, trade secrets, licensing frameworks—but remain too general to guide specific policy or strategic decisions at a national innovation agency.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">3. No formal strength-of-evidence assessment</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>The range of methodologies in TIM (quantitative, qualitative, case studies) makes it difficult to uniformly assess quality.</li>
+                                <li><em>Example:</em> When exploring digital entrepreneurship in different markets, you might include everything from small qualitative case studies to large-scale surveys. Without a uniform standard of evidence quality, it becomes challenging to compare findings and prioritize the most reliable data.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">4. Selection bias</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Without strict inclusion criteria, you risk overemphasizing highly cited technology clusters and missing newer, underexplored areas.</li>
+                                <li><em>Example:</em> Focusing on highly cited articles about AI startups might exclude innovative, under-the-radar studies from new journals or lesser-known regions. Consequently, the review would miss emerging technologies and less recognized innovation hubs.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">5. Heterogeneity of studies</h4>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Combining data with technical feasibility studies can complicate thematic analysis.</li>
+                                <li><em>Example:</em> A scoping review on smart city innovations might combine municipal financing data, engineering feasibility reports, and user experience research. Disparate formats and analytical methods make it difficult to consolidate findings into coherent thematic insights.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Limitations of Using AI Tools -->
+                <div id="limitations-ai" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">1.5 Limitations of Using AI Tools to Produce Scoping Reviews</h3>
+                    <p class="text-gray-600 dark:text-gray-300">AI tools can improve productivity when mapping complex technology markets, yet caution is necessary:</p>
+                    
+                    <div class="space-y-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1.5.1 AI-created mistakes in citations – sometimes called 'hallucinations'</h4>
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <div class="md:w-1/2">
+                                    <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Limitation:</strong></p>
+                                    <p class="text-gray-600 dark:text-gray-300">An AI might invent references ("hallucinations") or misattribute authors regarding cloud computing commercialization.</p>
+                                </div>
+                                <div class="md:w-1/2">
+                                    <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Mitigation:</strong></p>
+                                    <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                        <li>Double-check each citation in IEEE Xplore, Scopus, or Google Scholar.</li>
+                                        <li>Use Zotero or Mendeley to ensure format accuracy and consistent referencing.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1.5.2 Lack of Contextual Understanding</h4>
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <div class="md:w-1/2">
+                                    <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Limitation:</strong></p>
+                                    <p class="text-gray-600 dark:text-gray-300">AI may oversimplify multi-stage innovation models, missing critical nuances about ecosystem stakeholders.</p>
+                                </div>
+                                <div class="md:w-1/2">
+                                    <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Mitigation:</strong></p>
+                                    <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                        <li>Rely on human expertise for domain context.</li>
+                                        <li>Validate AI summaries with original studies and industry experts.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1.5.3 Bias in AI-Generated Content</h4>
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <div class="md:w-1/2">
+                                    <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Limitation:</strong></p>
+                                    <p class="text-gray-600 dark:text-gray-300">AI may reflect biases favoring Anglophone research or well-funded corporate labs.</p>
+                                </div>
+                                <div class="md:w-1/2">
+                                    <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Mitigation:</strong></p>
+                                    <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                        <li>Conduct diverse database searches.</li>
+                                        <li>Confirm AI-driven insights by triangulating with multiple sources.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1.5.4 Overreliance on Recent Literature</h4>
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <div class="md:w-1/2">
+                                    <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Limitation:</strong></p>
+                                    <p class="text-gray-600 dark:text-gray-300">AI might miss foundational works in technology transfer, foundational patents, or early research on a technology.</p>
+                                </div>
+                                <div class="md:w-1/2">
+                                    <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Mitigation:</strong></p>
+                                    <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                        <li>Use manual backward citation to find classic publications.</li>
+                                        <li>Scan references in foundational TIM papers or historical innovation case studies.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Biases -->
+                <div id="ai-biases" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">1.6 AI Biases</h3>
+                    <p class="text-gray-600 dark:text-gray-300">When using AI for scoping reviews in TIM, remember that different biases can shape your understanding of technology trends and emerging markets.</p>
+                    
+                    <div class="space-y-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1.6.1 Selection bias</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Bias:</strong> Overrepresentation of highly visible sources (e.g., leading technology journals) while ignoring non-English or underrepresented regions.</p>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Example:</strong></p>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>An AI-driven literature search on digital entrepreneurship repeatedly prioritizes reports from large, well-known technology companies in Silicon Valley, ignoring valuable case studies from smaller ventures or emerging regions (e.g., Southeast Asia). As a result, the final review underrepresents diverse startup ecosystems.</li>
+                            </ul>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Mitigation:</strong></p>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Extend your search to regional databases or local innovation hubs (e.g., Asia, Africa, or Latin America).</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1.6.2 Algorithmic bias</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Bias:</strong> AI may amplify established perspectives on Silicon Valley success, downplaying alternative innovation ecosystems.</p>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Example:</strong></p>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>An AI tool trained on data from software-based enterprises may incorrectly categorize studies about hardware innovation in robotics or biotech as irrelevant. This skews the literature set, making it difficult to identify opportunities in sectors outside the AI's "learned" domain.</li>
+                            </ul>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Mitigation:</strong></p>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Use multiple AI tools, cross-verify results, and highlight emerging markets or niche industries.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">1.6.3 Confirmation bias</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Bias:</strong> AI may align with initial search terms ("successful platform business models") while excluding contradictory findings.</p>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Example:</strong></p>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>If initial keyword filters emphasize "successful" blockchain pilots, the AI may exclude articles discussing failed or stalled pilots. This one-sided selection inflates the perceived success rate of blockchain implementations in supply chain or coordination.</li>
+                            </ul>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2"><strong>Mitigation:</strong></p>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>Include counter-narratives (e.g., "failures of platform models") and examine the results critically.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Human Oversight -->
+                <div id="human-oversight" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">1.7 Human Oversight</h3>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                        <p class="text-gray-600 dark:text-gray-300">In TIM scoping reviews, human oversight involves researchers, faculty, or industry experts:</p>
+                        <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 mt-4 space-y-2">
+                            <li>Monitoring AI outputs for domain accuracy (e.g., correct application of innovation frameworks).</li>
+                            <li>Evaluating the suitability and credibility of included studies (e.g., ensuring newly funded R&D projects are captured).</li>
+                            <li>Intervening when AI misinterprets a key concept (e.g., conflating digital entrepreneurship with e-commerce alone).</li>
+                        </ul>
+                        <p class="text-gray-600 dark:text-gray-300 mt-4">TIM practitioners must blend AI's efficiency with their contextual knowledge of emerging technology markets, investor behaviors, and regulatory landscapes to maintain methodological soundness.</p>
+                    </div>
+                </div>
+                
+                <!-- Grey Literature Searches -->
+                <div id="grey-literature" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">1.8 Step-by-step Approach to Grey Literature Searches</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Grey literature can reveal real-world insights that traditional journals often miss—like industry roadmaps, market reports, or policy drafts. Use the following steps to make sure you capture insights from these valuable sources:</p>
+                    
+                    <div class="space-y-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold">1</span>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white">Define the Scope of Grey Literature</h4>
+                            </div>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 ml-11">
+                                <li>Identify which technology reports, innovation policy documents, and whitepapers align with your review question (e.g., "How do corporate accelerators foster digital entrepreneurship?").</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold">2</span>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white">Pick Your Main Keywords</h4>
+                            </div>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 ml-11">
+                                <li>Outline core TIM concepts (e.g., "open innovation," "venture capital trends") and synonyms.</li>
+                                <li>Combine them with Boolean operators ("IoT AND cybersecurity" OR "IoT AND privacy").</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold">3</span>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white">Select Relevant Grey Literature Sources</h4>
+                            </div>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 ml-11">
+                                <li><strong>Government databases:</strong> Policy frameworks on startups, public R&D funding programs.</li>
+                                <li><strong>Think tanks and NGOs:</strong> Reports on global technology adoption (e.g., Brookings, World Economic Forum).</li>
+                                <li><strong>Industry reports:</strong>
+                                    <ul class="list-disc pl-5 mt-1">
+                                        <li>Examine market research firms like Gartner and Forrester for high-level trends.</li>
+                                        <li>Check CB Insights or PitchBook for startup funding data and technology acquisitions.</li>
+                                        <li>Use patent databases (USPTO, Google Patents) to see current innovation activity.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reference Management -->
+                <div id="reference-management" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">1.9 Reference Management</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Organizing a scoping review in TIM often involves hundreds of sources—from academic articles to market research or new market analyses.</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-3">1.9.1 Why Reference Managers Help</h4>
+                            <ul class="space-y-3">
+                                <li class="flex gap-3">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                                        <i class="fas fa-folder-tree text-primary-700 dark:text-primary-300 text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800 dark:text-white">Efficient organization</p>
+                                        <p class="text-gray-600 dark:text-gray-300 text-sm">Create folders for IP studies, digital platforms research, policy documents, etc.</p>
+                                    </div>
+                                </li>
+                                <li class="flex gap-3">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                                        <i class="fas fa-quote-left text-primary-700 dark:text-primary-300 text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800 dark:text-white">Automated citation formatting</p>
+                                        <p class="text-gray-600 dark:text-gray-300 text-sm">Generate references in APA, Harvard, or custom in-house styles.</p>
+                                    </div>
+                                </li>
+                                <li class="flex gap-3">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                                        <i class="fas fa-users text-primary-700 dark:text-primary-300 text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800 dark:text-white">Collaboration and sharing</p>
+                                        <p class="text-gray-600 dark:text-gray-300 text-sm">Allow research teams across universities or technology labs to co-manage references in real time.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-3">1.9.2 Reference Managers</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">We recommend the use of Zotero with Mendeley and EndNote as alternatives:</p>
+                            
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                        <i class="fas fa-book text-blue-500 dark:text-blue-300"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-medium text-gray-800 dark:text-white">Zotero</h5>
+                                        <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 text-sm mt-1">
+                                            <li>Captures webpages and integrates with Google Docs</li>
+                                            <li>Integrates with AI plugins (e.g., ARIA, ResearchRabbit)</li>
+                                            <li>Excellent for quickly saving references from webpages</li>
+                                            <li>Open source</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex gap-3">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                                        <i class="fas fa-file-pdf text-red-500 dark:text-red-300"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-medium text-gray-800 dark:text-white">Mendeley</h5>
+                                        <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 text-sm mt-1">
+                                            <li>AI-driven suggestions for new papers in your field</li>
+                                            <li>Strong PDF annotation and social features</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex gap-3">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                                        <i class="fas fa-database text-green-500 dark:text-green-300"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-medium text-gray-800 dark:text-white">EndNote</h5>
+                                        <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 text-sm mt-1">
+                                            <li>Ideal for large-scale data management</li>
+                                            <li>Integrates with external AI tools for advanced mapping</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Part 2: Method to Produce Scoping Reviews -->
+            <section id="part2" class="mb-16">
+                <div class="bg-gradient-to-r from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-lg p-6 mb-8 border border-primary-100 dark:border-gray-700 shadow-sm">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">PART 2. METHOD TO PRODUCE SCOPING REVIEWS</h2>
+                    <p class="text-gray-600 dark:text-gray-300">This section provides a step-by-step guide on how to conduct scoping reviews using AI tools, from formulating research questions to disseminating findings.</p>
+                </div>
+                
+                <!-- Introduction to Part 2 -->
+                <div id="introduction2" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">Introduction</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Conducting a scoping review requires a structured approach. This ensures clarity, transparency, and reliability throughout the research process. Part 2 outlines a step-by-step method tailored for TIM students, faculty and professionals who are integrating AI tools to enhance efficiency and precision in the scoping review process.</p>
+                    
+                    <p class="text-gray-600 dark:text-gray-300 mt-4">The method consists of nine steps, each integrating AI for improved efficiency:</p>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm mt-6">
+                        <ol class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mt-0.5">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">1</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white">Formulate the Review Question and Scope</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Define the research question and scope using AI-assisted refinement.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mt-0.5">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">2</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white">Search for Articles</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Use AI-driven search strategies to retrieve relevant literature.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mt-0.5">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">3</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white">Select Articles</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Screen and filter studies using AI-assisted tools while ensuring manual validation.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mt-0.5">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">4</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white">Extract Data</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Utilize AI to extract and organize key study insights.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mt-0.5">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">5</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white">Analyze and Synthesize Data</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Identify trends, themes, and gaps using AI-powered categorization.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mt-0.5">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">6</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white">Interpret Results</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Balance AI-generated insights with critical human evaluation.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mt-0.5">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">7</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white">Write the Scoping Review</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Use AI for drafting and structuring content while maintaining human oversight.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mt-0.5">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">8</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white">Incorporate Ethical Considerations</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Apply ethical guidelines to AI integration and research integrity.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mt-0.5">
+                                    <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">9</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white">Disseminate Findings</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Leverage AI for summarization, visualization, and research dissemination.</p>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-500 p-4 mt-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-lightbulb text-yellow-600 dark:text-yellow-400 mt-1"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-yellow-700 dark:text-yellow-300">AI enhances efficiency in literature reviews but does not replace human expertise. Use AI for automating repetitive tasks, such as summarization and categorization, while relying on human judgment for critical analysis, theoretical alignment, and decision-making.</p>
+                                <p class="text-yellow-700 dark:text-yellow-300 mt-2">Manual oversight ensures accuracy, depth, and theoretical alignment. Practical AI integration can streamline, but not automate, critical thinking.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 1: Formulate the Review Question -->
+                <div id="step1" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">2.1 Step 1: Formulate the Review Question and Scope</h3>
+                    <p class="text-gray-600 dark:text-gray-300">A scoping review requires a broad and exploratory review question that captures the full range of relevant studies and perspectives.</p>
+                    
+                    <div class="grid md:grid-cols-3 gap-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-center mb-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                                    <i class="fas fa-robot text-green-600 dark:text-green-400"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white ml-3">AI's role</h4>
+                            </div>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-2 text-sm">
+                                <li>Use ChatGPT to generate review question variations and refine clarity</li>
+                                <li>Start with a broad search and refine iteratively</li>
+                                <li>AI can suggest related topics, synonyms, and potential search terms</li>
+                                <li>AI tools can analyze existing literature to highlight research gaps</li>
+                                <li>Use AI to identify key authors and influential papers</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-center mb-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                    <i class="fas fa-user-check text-blue-600 dark:text-blue-400"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white ml-3">Human oversight</h4>
+                            </div>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-2 text-sm">
+                                <li>Ensure clarity and feasibility – The review question should align with the scope of a scoping review (broad but structured)</li>
+                                <li>Validate AI-generated refinements – AI may suggest overly broad or irrelevant variations</li>
+                                <li>Consider theoretical frameworks – AI does not inherently apply research theories</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <div class="flex items-center mb-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                                    <i class="fas fa-compass text-purple-600 dark:text-purple-400"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white ml-3">Guidance</h4>
+                            </div>
+                            <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-2 text-sm">
+                                <li>Compare AI-suggested review questions with published scoping reviews</li>
+                                <li>Align the review question with existing frameworks (e.g., PCC: Population, Concept, Context)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">2.1.2 Population, Concept, Context (PCC) framework for structuring review questions</h4>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">The PCC framework ensures clarity in scoping review formulation, helping TIM students and faculty define their focus areas effectively.</p>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                            <h5 class="font-medium text-gray-800 dark:text-white mb-3">Example 1: Product development</h5>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white text-sm">Population:</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Startups developing AI-powered products</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white text-sm">Concept:</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Challenges in scaling AI-driven prototypes to market-ready solutions</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 dark:text-white text-sm">Context:</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Technology-based entrepreneurship and venture acceleration programs</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <p class="font-medium text-gray-800 dark:text-white text-sm">Review question:</p>
+                                <p class="text-gray-600 dark:text-gray-300">What are the key challenges and success factors influencing the scaling of AI-driven product prototypes in technology startups within venture acceleration programs?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Continue with other steps in Part 2 -->
+                
+                <!-- Checklist for Authors -->
+                <div id="checklist" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">2.10 Checklist for Authors and Reviewers</h3>
+                    <p class="text-gray-600 dark:text-gray-300">To ensure a rigorous and high-quality scoping review, authors and reviewers should systematically assess their work against the following checklist. This checklist aligns with the key steps and considerations outlined in this guide for Technology Innovation Management (TIM) research.</p>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mt-6 shadow-sm">
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white mb-3 flex items-center">
+                                    <span class="w-6 h-6 flex-shrink-0 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mr-2">
+                                        <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">1</span>
+                                    </span>
+                                    Formulate the research question and scope
+                                </h4>
+                                <ul class="space-y-2 pl-8">
+                                    <li class="flex items-start">
+                                        <span class="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 border border-gray-300 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <i class="fas fa-check text-green-500 text-xs hidden"></i>
+                                        </span>
+                                        <span class="text-gray-600 dark:text-gray-300">Clearly define the Population, Concept, and Context (PCC framework).</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 border border-gray-300 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <i class="fas fa-check text-green-500 text-xs hidden"></i>
+                                        </span>
+                                        <span class="text-gray-600 dark:text-gray-300">Ensure the research question is specific, relevant, and actionable for TIM research.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 border border-gray-300 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <i class="fas fa-check text-green-500 text-xs hidden"></i>
+                                        </span>
+                                        <span class="text-gray-600 dark:text-gray-300">Establish the scope of the review, balancing breadth and depth.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 border border-gray-300 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <i class="fas fa-check text-green-500 text-xs hidden"></i>
+                                        </span>
+                                        <span class="text-gray-600 dark:text-gray-300">Define the time, literature types, geographical scope, and stakeholder perspectives.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white mb-3 flex items-center">
+                                    <span class="w-6 h-6 flex-shrink-0 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mr-2">
+                                        <span class="text-primary-700 dark:text-primary-300 font-semibold text-xs">2</span>
+                                    </span>
+                                    Identify and select relevant studies
+                                </h4>
+                                <ul class="space-y-2 pl-8">
+                                    <li class="flex items-start">
+                                        <span class="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 border border-gray-300 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <i class="fas fa-check text-green-500 text-xs hidden"></i>
+                                        </span>
+                                        <span class="text-gray-600 dark:text-gray-300">Identify academic databases, industry reports, patents, and preprints as sources.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 border border-gray-300 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <i class="fas fa-check text-green-500 text-xs hidden"></i>
+                                        </span>
+                                        <span class="text-gray-600 dark:text-gray-300">Develop a precise search strategy with Boolean operators and relevant filters.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2 border border-gray-300 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <i class="fas fa-check text-green-500 text-xs hidden"></i>
+                                        </span>
+                                        <span class="text-gray-600 dark:text-gray-300">Use AI-powered tools to refine search results.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <!-- More checklist items would be included here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Part 3: Updating Scoping Review Guide -->
+            <section id="part3" class="mb-16">
+                <div class="bg-gradient-to-r from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-lg p-6 mb-8 border border-primary-100 dark:border-gray-700 shadow-sm">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">PART 3. UPDATING SCOPING REVIEW GUIDE</h2>
+                    <p class="text-gray-600 dark:text-gray-300">This section outlines the strengths of the guide and the process for maintaining, improving, and expanding it to ensure it remains a valuable resource.</p>
+                </div>
+                
+                <!-- Introduction to Part 3 -->
+                <div id="introduction3" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">Introduction</h3>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                        <p class="text-gray-600 dark:text-gray-300">Research and practitioner methods and the AI tools that support them are constantly evolving, making it essential to keep this guide up to date. Part 3 outlines the guide's strengths and the process for maintaining, improving, and expanding the guide to ensure it remains a valuable resource for TIM faculty, students, and practitioners.</p>
+                    </div>
+                </div>
+                
+                <!-- Strengths of the Guide -->
+                <div id="strengths" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">3.1 Strengths of the Guide</h3>
+                    
+                    <div class="space-y-6 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2 flex items-center">
+                                <i class="fas fa-exchange-alt text-primary-600 dark:text-primary-400 mr-2"></i>
+                                Transforms literature reviews into valuable TIM assets
+                            </h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-3">The guide helps users turn research findings into practical applications, including:</p>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <div>
+                                    <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 text-sm">
+                                        <li><strong>Venture pitches:</strong> Identifies emerging opportunities to attract investors.</li>
+                                        <li><strong>New market entry strategies:</strong> Analyzes trends and regulations for informed decision-making.</li>
+                                        <li><strong>Competitive intelligence reports:</strong> Tracks competitors' R&D, patents, partnerships, and market strategies.</li>
+                                        <li><strong>Product development:</strong> Detects technological advancements and customer needs to guide R&D.</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 text-sm">
+                                        <li><strong>Technology landscapes:</strong> Maps key players and innovations for strategic positioning.</li>
+                                        <li><strong>Business plans:</strong> Uses AI-driven literature reviews to shape business models and assess market viability.</li>
+                                        <li><strong>Technology adoption pathways:</strong> Identifies barriers and enablers to streamline implementation.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2 flex items-center">
+                                <i class="fas fa-map-signs text-primary-600 dark:text-primary-400 mr-2"></i>
+                                Provides a step-by-step approach with TIM-specific examples
+                            </h4>
+                            <p class="text-gray-600 dark:text-gray-300">The guide outlines a clear, structured process covering topic selection, search strategy, source evaluation, synthesis, visualization, and reporting, making literature reviews more actionable.</p>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2 flex items-center">
+                                <i class="fas fa-robot text-primary-600 dark:text-primary-400 mr-2"></i>
+                                Integrates AI tools to improve efficiency and depth
+                            </h4>
+                            <p class="text-gray-600 dark:text-gray-300">AI accelerates research by automating search term refinement, citation management, text summarization, and synthesis, enabling faster, more comprehensive reviews.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Version Control and Updates -->
+                <div id="version-control" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">3.2 Version Control and Updates System for the Scoping Review Guide</h3>
+                    <p class="text-gray-600 dark:text-gray-300">To ensure that the Guide to Producing Scoping Literature Reviews Using AI Tools remains current, accurate, and aligned with evolving best practices, a structured version control and update system has been implemented. This system allows for periodic reviews, stakeholder contributions, and transparent documentation of changes.</p>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm mt-6">
+                        <h4 class="font-semibold text-gray-800 dark:text-white mb-3">Version Control System</h4>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="font-medium text-gray-800 dark:text-white text-sm mb-2">Version numbering:</h5>
+                                <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 text-sm">
+                                    <li>Each update is assigned a unique version number (e.g., v1.0, v1.1, v2.0).</li>
+                                    <li>Major updates (e.g., methodological changes) increase the primary number (e.g., v1.0 → v2.0).</li>
+                                    <li>Minor updates (e.g., clarifications, formatting improvements) increase the secondary number (e.g., v1.1 → v1.2).</li>
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <h5 class="font-medium text-gray-800 dark:text-white text-sm mb-2">Update frequency:</h5>
+                                <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 space-y-1 text-sm">
+                                    <li><strong>Scheduled Reviews:</strong> A comprehensive review is conducted every six months to incorporate new methodologies, databases, and AI tools.</li>
+                                    <li><strong>Ad-Hoc updates:</strong> Interim updates are applied as needed based on emerging best practices, feedback, or changes in database policies.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2">Current version information</h4>
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                <div class="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Version:</span>
+                                    <span class="ml-2 text-gray-800 dark:text-white">1.0</span>
+                                </div>
+                                <div class="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated:</span>
+                                    <span class="ml-2 text-gray-800 dark:text-white">March 4, 2025</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Assistance Disclosure -->
+                <div id="disclosure" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">3.3 AI Assistance and Human Oversight Disclosure Statement</h3>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="fas fa-info-circle text-primary-500 dark:text-primary-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-gray-600 dark:text-gray-300">This guide to producing scoping reviews was developed using AI-powered tools to enhance content generation, structuring, and accessibility. AI tools—including ChatGPT and Perplexity—were used for drafting, summarizing, expanding content, and structuring, while Gemini 2.0, Grok 3, and OpenAI Deep Research provided additional feedback on AI- and human-generated content.</p>
+                                
+                                <p class="text-gray-600 dark:text-gray-300 mt-4">All AI-generated content underwent human oversight, ensuring accuracy, methodological soundness, and adherence to academic standards. The review process included:</p>
+                                <ul class="list-disc pl-5 text-gray-600 dark:text-gray-300 mt-2 space-y-1">
+                                    <li>Validation of AI-generated text for factual correctness, coherence, and relevance.</li>
+                                    <li>Manual verification of all citations to prevent hallucinations or misattributions.</li>
+                                    <li>Bias detection measures to ensure diverse perspectives and minimize AI-driven inaccuracies.</li>
+                                    <li>Multiple review cycles, including feedback from two additional human reviewers.</li>
+                                </ul>
+                                
+                                <p class="text-gray-600 dark:text-gray-300 mt-4">While AI-assisted drafting accounted for approximately 50% of the initial content, all sections were manually reviewed, refined, or rewritten to ensure depth, clarity, and scholarly rigor. The integration of AI in this guide aligns with Carleton University's guidelines on responsible AI use, transparency, and academic integrity.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ways to Contribute -->
+                <div id="contribute" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">3.4 Ways to Contribute</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Here are suggestions on how you can contribute to improving the guide:</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mt-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                                        <i class="fas fa-rocket text-green-600 dark:text-green-400 text-sm"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-gray-800 dark:text-white">Enhance the literature review process</h4>
+                                    <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">Suggest ways to improve the production of scoping and systematic literature reviews using innovative technologies (e.g., OpenAI's Deep Research).</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                        <i class="fas fa-edit text-blue-600 dark:text-blue-400 text-sm"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-gray-800 dark:text-white">Improve clarity and accuracy</h4>
+                                    <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">Identify errors or provide suggestions to make the guide clearer and easier to understand.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                                        <i class="fas fa-wrench text-purple-600 dark:text-purple-400 text-sm"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-gray-800 dark:text-white">Develop a troubleshooting section</h4>
+                                    <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">Create a guide for resolving familiar challenges with solutions like refining search queries, adjusting Boolean operators, and using alternative sources.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
+                                        <i class="fas fa-lightbulb text-yellow-600 dark:text-yellow-400 text-sm"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-gray-800 dark:text-white">Expand examples and use cases</h4>
+                                    <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">Add real-world examples, such as sample scoping review scenarios, step-by-step walkthroughs with actual research topics, and screenshots demonstrating AI tools in use.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mt-6">
+                        <p class="text-gray-600 dark:text-gray-300">If you would like to contribute through a TIM project, coursework, extracurricular activities, or other means, please contact Tony Bailetti at <a href="mailto:tony.bailetti@carleton.ca" class="text-primary-600 dark:text-primary-400 hover:underline">tony.bailetti@carleton.ca</a>.</p>
+                    </div>
+                </div>
+                
+                <!-- Acknowledgements -->
+                <div id="acknowledgements" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">3.5 Acknowledgements</h3>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                        <p class="text-gray-600 dark:text-gray-300">This guide benefits from contributions by TIM faculty and students at Carleton University, integrating methodological best practices and practical improvements based on real-world applications of AI-assisted scoping reviews.</p>
+                    </div>
+                </div>
+                
+                <!-- Epilogue -->
+                <div id="epilogue" class="mb-12 opacity-0 transform translate-y-4 transition-all duration-500">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">3.6 Epilogue</h3>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                        <p class="text-gray-600 dark:text-gray-300">By following this guide, TIM faculty and students can efficiently conduct scoping reviews with AI tools while maintaining rigor, ethical integrity, and transparency. AI tools should augment rather than replace human expertise in literature synthesis. By balancing automation with critical evaluation, scoping reviews can yield valuable insights that inform future research and decision-making.</p>
+                        
+                        <p class="text-gray-600 dark:text-gray-300 mt-4">Conducting a scoping literature review is a dynamic and iterative process that requires careful planning, systematic execution, and ethical considerations. By leveraging AI tools and reference management systems, TIM students and faculty can enhance efficiency and improve the quality of their reviews. However, AI should be used as a supportive tool, with human oversight ensuring accuracy, relevance, and integrity in data interpretation.</p>
+                        
+                        <p class="text-gray-600 dark:text-gray-300 mt-4">The landscape of academic research continues to evolve, with increasing emphasis on transparency, collaboration, accessibility, and human oversight. As AI-driven methodologies become more sophisticated, researchers must remain critical in their evaluation and application of these technologies, maintaining ethical integrity and adherence to established guidelines such as PRISMA-ScR and JBI.</p>
+                        
+                        <p class="text-gray-600 dark:text-gray-300 mt-4">A well-conducted scoping review serves as a foundational resource for future research, identifying gaps, trends, and opportunities within a field. The insights generated from this process contribute to academic discourse, inform policy, and support evidence-based decision-making across disciplines.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-50 dark:bg-gray-800 py-8 border-t border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <a href="https://carleton.ca/tim/" class="flex items-center" target="_blank" rel="noopener">
+                    <img src="https://carleton.ca/tim/wp-content/uploads/sites/52/2024/07/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-copy-scaled.jpg" alt="TIM Program Logo" class="h-6 dark:hidden">
+                    <img src="https://carleton.ca/tim/wp-content/uploads/sites/52/2024/07/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-copy-scaled.jpg" alt="TIM Program Logo" class="hidden dark:block h-6 filter invert">
+                </a>
+            </div>
+            
+            <div class="text-center md:text-right">
+                <p class="text-sm text-gray-600 dark:text-gray-400">© 2025 Technology Innovation Management Program, Carleton University</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Version: 1.0 - Last Updated: March 4, 2025</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Back to Top Button -->
+<button id="back-to-top" class="fixed bottom-4 right-4 bg-gray-800 dark:bg-gray-700 text-white p-2 rounded-full shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-gray-700 dark:hover:bg-gray-600">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- JavaScript -->
+<script>
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+    
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+    const html = document.documentElement;
+    
+    // Check for system preference
+    function getSystemPreference() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    
+    // Check for saved theme preference or use system preference
+    function getThemePreference() {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme || getSystemPreference();
+    }
+    
+    // Apply theme
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            html.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+        }
+        localStorage.setItem('theme', theme);
+    }
+    
+    // Initialize theme
+    applyTheme(getThemePreference());
+    
+    // Theme toggle event handlers
+    function toggleTheme() {
+        const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
+    }
+    
+    themeToggle.addEventListener('click', toggleTheme);
+    mobileThemeToggle.addEventListener('click', toggleTheme);
+    
+    // Listen for system preference changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (!localStorage.getItem('theme')) {
+            applyTheme(e.matches ? 'dark' : 'light');
+        }
+    });
+    
+    // Back to top button functionality
+    const backToTopButton = document.getElementById('back-to-top');
+    
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            backToTopButton.classList.replace('opacity-0', 'opacity-100');
+            backToTopButton.classList.replace('invisible', 'visible');
+        } else {
+            backToTopButton.classList.replace('opacity-100', 'opacity-0');
+            setTimeout(() => {
+                if (window.scrollY <= 300) {
+                    backToTopButton.classList.replace('visible', 'invisible');
+                }
+            }, 300);
+        }
+    });
+    
+    backToTopButton.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+    
+    // Fade-in animation for content sections
+    document.addEventListener('DOMContentLoaded', function() {
+        const contentSections = document.querySelectorAll('.content-section > div');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.remove('opacity-0', 'transform', 'translate-y-4');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        });
+        
+        contentSections.forEach(section => {
+            observer.observe(section);
+        });
+    });
+    
+    // Interactive checklist functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('.flex.items-start span.inline-flex');
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                const checkIcon = this.querySelector('.fa-check');
+                checkIcon.classList.toggle('hidden');
+                this.classList.toggle('bg-green-100');
+                this.classList.toggle('border-green-500');
+            });
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                // Close mobile menu if open
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Update URL without scrolling
+                    history.pushState(null, null, targetId);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
