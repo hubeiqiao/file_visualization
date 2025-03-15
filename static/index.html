@@ -36,6 +36,7 @@
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     },
                     keyframes: {
                         fadeIn: {
@@ -85,38 +86,233 @@
             width: 100% !important;
             transition: width 0.3s ease;
         }
+        
+        /* Visually enhanced header */
+        .header-gradient {
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+        }
+        
+        /* Steps styling for How to Use section */
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .step-card {
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 9999px;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        
+        /* Example section styling */
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .example-card {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .example-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .example-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-200">
     <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-sm">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                <i class="fas fa-lightbulb mr-2"></i>File Visualizer
-            </h1>
-            <div class="flex items-center space-x-4">
-                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                    <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
-                    <i class="fas fa-moon text-blue-300 hidden dark:block"></i>
-                </button>
+    <header class="header-gradient shadow-md">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col items-center text-center">
+                <h1 class="text-4xl font-bold text-white mb-2 flex items-center">
+                    <i class="fas fa-wand-magic-sparkles mr-3 animate-pulse-slow"></i>
+                    File Visualizer
+                </h1>
+                <p class="text-blue-100 max-w-2xl">
+                    Transform your plain documents into stunning, interactive HTML visualizations powered by Claude 3.7's thinking capabilities
+                </p>
             </div>
         </div>
     </header>
 
     <!-- Usage Instructions -->
-    <div class="bg-gradient-to-r from-primary-50 to-blue-50 dark:from-primary-900/30 dark:to-blue-900/30 py-4">
+    <div class="bg-gradient-to-r from-primary-50 to-blue-50 dark:from-primary-900/30 dark:to-blue-900/30 py-8">
         <div class="container mx-auto px-4">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 mb-5">
-                <h2 class="text-xl font-semibold mb-3 flex items-center">
-                    <i class="fas fa-info-circle text-primary-500 mr-2"></i>How to Use
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-5">
+                <h2 class="text-2xl font-semibold mb-6 text-center">
+                    <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                    How to Use
                 </h2>
-                <ol class="list-decimal pl-5 space-y-2">
-                    <li>Enter your Anthropic API key (required to use Claude AI)</li>
-                    <li>Upload a file or enter text that you want to visualize</li>
-                    <li>Adjust settings if needed, or add specific instructions</li>
-                    <li>Click "Generate Visualization" to create a beautiful HTML representation</li>
-                    <li>View the preview, check token usage, and download the HTML file</li>
-                </ol>
+                
+                <div class="step-container">
+                    <!-- Step 1: API Key -->
+                    <div class="step-card bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
+                        <div class="step-number bg-primary-500 text-white">1</div>
+                        <h3 class="text-lg font-medium mb-2 text-primary-700 dark:text-primary-300">Enter Your Anthropic API Key</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-2">
+                            You'll need an Anthropic API key to use Claude 3.7's thinking capabilities.
+                        </p>
+                        <div class="mt-auto">
+                            <details class="mt-2">
+                                <summary class="cursor-pointer text-primary-600 dark:text-primary-400 hover:underline">
+                                    How to get an API key?
+                                </summary>
+                                <div class="pl-4 mt-2 text-sm">
+                                    <ol class="list-decimal pl-4 space-y-1">
+                                        <li>Visit <a href="https://console.anthropic.com/" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline">Anthropic Console</a></li>
+                                        <li>Sign up or log in to your account</li>
+                                        <li>Navigate to "API Keys" section</li>
+                                        <li>Create a new API key (starts with "sk-ant-")</li>
+                                        <li>Copy the key (you'll only see it once!)</li>
+                                    </ol>
+                                    <p class="mt-2 text-gray-600 dark:text-gray-400">The API key allows pay-as-you-go access to Claude's capabilities. You'll only be charged for the tokens you use.</p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Upload content -->
+                    <div class="step-card bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                        <div class="step-number bg-blue-500 text-white">2</div>
+                        <h3 class="text-lg font-medium mb-2 text-blue-700 dark:text-blue-300">Upload Your Content</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-2">
+                            Upload a file or paste your text content into the text area.
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                            Supported formats: PDF, DOCX, TXT, HTML, MD, CSV, JSON, and more.
+                        </p>
+                        <div class="mt-auto">
+                            <details class="mt-2">
+                                <summary class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">
+                                    Size limits and token calculation
+                                </summary>
+                                <div class="pl-4 mt-2 text-sm">
+                                    <p>The application will automatically count the tokens in your content and estimate the input cost.</p>
+                                    <ul class="list-disc pl-4 mt-1">
+                                        <li>Maximum input: 128K tokens (approx. 100 pages)</li>
+                                        <li>Cost: Approx. $3 per million input tokens</li>
+                                        <li>Typical generation: $0.20-$2.00 total</li>
+                                    </ul>
+                                    <p class="mt-2 text-gray-600 dark:text-gray-400">Currently, you can only process one file at a time due to token limitations.</p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Customize -->
+                    <div class="step-card bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
+                        <div class="step-number bg-indigo-500 text-white">3</div>
+                        <h3 class="text-lg font-medium mb-2 text-indigo-700 dark:text-indigo-300">Customize Settings</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-2">
+                            Adjust generation settings or add custom instructions.
+                        </p>
+                        <div class="mt-auto">
+                            <details class="mt-2">
+                                <summary class="cursor-pointer text-indigo-600 dark:text-indigo-400 hover:underline">
+                                    Tips for customization
+                                </summary>
+                                <div class="pl-4 mt-2 text-sm">
+                                    <p>In the "Additional Instructions" box:</p>
+                                    <ul class="list-disc pl-4 mt-1">
+                                        <li>Request specific visual styles or layouts</li>
+                                        <li>Add links to images you want included</li>
+                                        <li>Suggest specific data visualizations</li>
+                                        <li>If not satisfied with the first result, add more specific requirements and regenerate</li>
+                                    </ul>
+                                    <p class="mt-2">The "Temperature" controls creativity (higher = more creative, lower = more conservative), while "Thinking Budget" allows Claude to reason more deeply about complex content.</p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Generate and Deploy -->
+                    <div class="step-card bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                        <div class="step-number bg-green-500 text-white">4</div>
+                        <h3 class="text-lg font-medium mb-2 text-green-700 dark:text-green-300">Generate & Deploy</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-2">
+                            Click "Generate" and wait while Claude works its magic!
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                            Generation takes 5-20 minutes depending on content size. Keep your connection open.
+                        </p>
+                        <div class="mt-auto">
+                            <details class="mt-2">
+                                <summary class="cursor-pointer text-green-600 dark:text-green-400 hover:underline">
+                                    Deploying your HTML file
+                                </summary>
+                                <div class="pl-4 mt-2 text-sm">
+                                    <p>Once generated, you can:</p>
+                                    <ul class="list-disc pl-4 mt-1">
+                                        <li>Download the complete HTML file</li>
+                                        <li>Deploy it for free using:
+                                            <ul class="list-circle pl-4 mt-1">
+                                                <li><a href="https://github.io" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">GitHub Pages</a></li>
+                                                <li><a href="https://netlify.drop" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">Netlify Drop</a></li>
+                                                <li><a href="https://surge.sh" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">Surge.sh</a></li>
+                                                <li><a href="https://vercel.com" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">Vercel</a></li>
+                                            </ul>
+                                        </li>
+                                        <li>Share the link with anyone</li>
+                                    </ul>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Examples Section -->
+                <div class="mt-10">
+                    <h3 class="text-xl font-semibold mb-4 text-center">See Examples of What's Possible</h3>
+                    <div class="example-grid">
+                        <a href="https://egkxhslu0z.yourware.so/" target="_blank" class="example-card bg-white dark:bg-gray-700 shadow-md">
+                            <img src="https://i.imgur.com/M3bgNMK.png" alt="Guide to Produce Scoping Reviews" class="example-image">
+                            <div class="p-4">
+                                <h4 class="font-medium text-lg mb-1">Scoping Reviews Guide</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Academic guide transformed into an interactive, navigable web page with clear sections and visual hierarchy.</p>
+                            </div>
+                        </a>
+                        <a href="https://mk9wzcfz6q.yourware.so/" target="_blank" class="example-card bg-white dark:bg-gray-700 shadow-md">
+                            <img src="https://i.imgur.com/kDLkHQA.png" alt="Up Our Game Canada Module 8" class="example-image">
+                            <div class="p-4">
+                                <h4 class="font-medium text-lg mb-1">Up Our Game, Canada! Module 8</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Training material transcript converted into an elegant, branded learning experience with enhanced readability.</p>
+                            </div>
+                        </a>
+                    </div>
+                    <p class="text-center mt-5 text-sm text-gray-600 dark:text-gray-400">
+                        These visualizations were created with a single prompt using File Visualizer!
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -193,48 +389,51 @@
                     <h2 class="text-xl font-semibold mb-4 flex items-center">
                         <i class="fas fa-comment-alt text-primary-500 mr-2"></i>Additional Instructions (Optional)
                     </h2>
-                    <textarea id="additional-prompt" rows="3" placeholder="Any specific instructions for Claude? (Optional)" 
+                    <textarea id="additional-prompt" rows="3" placeholder="Any specific requirements for your visualization? Add custom styling instructions, layout preferences, or image links here." 
                         class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"></textarea>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                        Not satisfied with the first result? Add more specific requirements here and regenerate.
+                    </p>
                 </div>
 
                 <!-- Model Parameters -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
                     <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-sliders-h text-primary-500 mr-2"></i>Model Parameters
+                        <i class="fas fa-sliders-h text-primary-500 mr-2"></i>Generation Settings
                     </h2>
                     
                     <div class="space-y-4">
                         <!-- Temperature -->
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label for="temperature" class="font-medium text-gray-900 dark:text-gray-100">Temperature: <span id="temperature-value" class="text-primary-600 dark:text-primary-400">1.0</span></label>
+                                <label for="temperature" class="font-medium text-gray-900 dark:text-gray-100">Creativity Level: <span id="temperature-value" class="text-primary-600 dark:text-primary-400">1.0</span></label>
                                 <button id="temperature-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
                             <input type="range" id="temperature" min="0" max="1" step="0.1" value="1.0" 
                                 class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Lower values = more deterministic, higher values = more creative</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Lower values create more predictable, consistent results. Higher values allow more creativity and variation.</p>
                         </div>
                         
                         <!-- Max Tokens -->
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label for="max-tokens" class="font-medium text-gray-900 dark:text-gray-100">Max Tokens: <span id="max-tokens-value" class="text-primary-600 dark:text-primary-400">128000</span></label>
+                                <label for="max-tokens" class="font-medium text-gray-900 dark:text-gray-100">Output Length: <span id="max-tokens-value" class="text-primary-600 dark:text-primary-400">128000</span></label>
                                 <button id="max-tokens-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
                             <input type="range" id="max-tokens" min="1000" max="128000" step="1000" value="128000" 
                                 class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Maximum number of tokens in Claude's response. Use lower values (20-50K) for large inputs to prevent context window errors.</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Controls how much content Claude can generate. For large inputs, use a lower value (20-50K) to prevent errors.</p>
                         </div>
                         
                         <!-- Thinking Budget -->
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label for="thinking-budget" class="font-medium text-gray-900 dark:text-gray-100">Thinking Budget: <span id="thinking-budget-value" class="text-primary-600 dark:text-primary-400">32000</span></label>
+                                <label for="thinking-budget" class="font-medium text-gray-900 dark:text-gray-100">Thinking Depth: <span id="thinking-budget-value" class="text-primary-600 dark:text-primary-400">32000</span></label>
                                 <button id="thinking-budget-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
                             <input type="range" id="thinking-budget" min="1024" max="128000" step="1024" value="32000" 
                                 class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tokens allocated for Claude's thinking process (1,024-128,000)</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Allocates how much "thinking" Claude can do before responding. Higher values allow deeper analysis of complex content.</p>
                         </div>
                     </div>
                 </div>
@@ -263,7 +462,8 @@
                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
                         <div id="progress-bar" class="bg-primary-500 h-2.5 rounded-full" style="width: 0%"></div>
                     </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Claude is working on visualizing your content. This may take a few minutes for large inputs.</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Claude is working on visualizing your content. This may take 5-20 minutes depending on your content size.</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Please keep this connection open until the process completes.</p>
                 </div>
 
                 <!-- Result Section -->
@@ -293,6 +493,7 @@
                         </div>
                         <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
                             <p>Pricing: Input - $3/million tokens, Output - $15/million tokens, Thinking - $3/million tokens</p>
+                            <p class="mt-1">Typical generations cost between $0.20-$2.00 depending on content size and complexity.</p>
                         </div>
                     </div>
 
@@ -338,9 +539,20 @@
 
     <!-- Footer -->
     <footer class="bg-white dark:bg-gray-800 shadow-inner mt-8">
-        <div class="container mx-auto px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>Powered by <a href="https://www.anthropic.com/claude" class="text-primary-500 hover:underline" target="_blank">Anthropic Claude</a> with thinking capabilities.</p>
-            <p class="mt-1">© 2024 - Built by <a href="https://www.linkedin.com/in/hubeiqiao/" class="text-primary-500 hover:underline" target="_blank">Joe Hu</a> | <a href="https://buy.stripe.com/6oEdTw8OQ86S0CYcMN" class="text-green-500 hover:underline" target="_blank"><i class="fas fa-coffee mr-1"></i>Buy me a coffee</a></p>
+        <div class="container mx-auto px-4 py-6 text-center">
+            <p class="text-gray-600 dark:text-gray-400">Powered by <a href="https://www.anthropic.com/claude" class="text-primary-500 hover:underline" target="_blank">Anthropic Claude 3.7</a> with thinking capabilities</p>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">© 2025 - <span class="font-medium">File Visualizer</span> by <a href="https://www.linkedin.com/in/hubeiqiao/" class="text-primary-500 hover:underline" target="_blank">Joe Hu</a></p>
+            <div class="mt-4">
+                <a href="https://buy.stripe.com/6oEdTw8OQ86S0CYcMN" class="inline-flex items-center px-4 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full hover:bg-green-200 dark:hover:bg-green-800 transition-colors" target="_blank">
+                    <i class="fas fa-coffee mr-2"></i> Appreciate this magic? Buy me a coffee!
+                </a>
+            </div>
+            <div class="flex justify-center mt-4">
+                <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                    <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+                    <i class="fas fa-moon text-blue-300 hidden dark:block"></i>
+                </button>
+            </div>
         </div>
     </footer>
 

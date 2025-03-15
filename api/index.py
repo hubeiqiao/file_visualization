@@ -31,6 +31,14 @@ else:
         traceback_str = traceback.format_exc()
         print(f"Unhandled exception: {str(e)}\n{traceback_str}")
         
+        # Special handling for Anthropic client errors
+        if "Anthropic" in str(e) and "proxies" in str(e):
+            return jsonify({
+                "error": "API key error: The current version of the Anthropic library is not compatible with this environment.",
+                "detail": "Please try updating the library or contact the site administrator.",
+                "traceback": traceback_str
+            }), 500
+        
         # Return JSON instead of HTML for HTTP errors
         return jsonify({
             "error": str(e),
