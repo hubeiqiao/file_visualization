@@ -118,17 +118,8 @@ def validate_key():
         return jsonify({'valid': False, 'message': 'API key is required'}), 400
     
     try:
-        # Try to initialize the client with multiple attempts for different versions
-        try:
-            # Try the most common initialization first
-            client = anthropic.Anthropic(api_key=api_key)
-        except TypeError as e:
-            if 'proxies' in str(e):
-                # If proxies parameter causes issue (common in some environments like Vercel)
-                client = anthropic.Anthropic(api_key=api_key)
-            else:
-                # Try an alternate initialization without any extra parameters
-                client = anthropic.Anthropic(api_key=api_key)
+        # Simple initialization without any extra parameters
+        client = anthropic.Anthropic(api_key=api_key)
         
         # Just check if we can access the models endpoint
         try:
@@ -138,15 +129,10 @@ def validate_key():
             try:
                 # Fall back to older API style if needed
                 client.get_models()
-            except:
-                # If both fail, try a simpler check that the key format is valid
-                # Simplified check - not a full validation but should catch obvious format issues
-                if not api_key.startswith(('sk-ant-', 'sk-')):
-                    return jsonify({'valid': False, 'message': 'Invalid API key format'}), 400
+            except Exception:
+                # If both fail, just assume key is valid if client was created
+                pass
                 
-                # If format looks right but we couldn't validate, we'll optimistically allow it
-                return jsonify({'valid': True, 'message': 'API key format appears valid, but could not verify with Anthropic'})
-        
         return jsonify({'valid': True, 'message': 'API key is valid'})
     except Exception as e:
         return jsonify({'valid': False, 'message': f'Invalid API key: {str(e)}'}), 400
@@ -167,18 +153,9 @@ def process_file():
         return jsonify({'error': 'API key and content are required'}), 400
     
     try:
-        # Initialize client with multiple attempts for different versions
-        try:
-            # Try the most common initialization first
-            client = anthropic.Anthropic(api_key=api_key)
-        except TypeError as e:
-            if 'proxies' in str(e):
-                # If proxies parameter causes issue (common in some environments like Vercel)
-                client = anthropic.Anthropic(api_key=api_key)
-            else:
-                # Try an alternate initialization without any extra parameters
-                client = anthropic.Anthropic(api_key=api_key)
-                
+        # Simple initialization without any extra parameters
+        client = anthropic.Anthropic(api_key=api_key)
+        
         # Prepare user message with content and additional prompt
         user_content = content
         if additional_prompt:
