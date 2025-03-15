@@ -152,60 +152,90 @@
 <body class="bg-white text-gray-900 min-h-screen flex flex-col transition-colors duration-200">
     <!-- Header -->
     <header class="header-gradient shadow-md">
-        <div class="container mx-auto px-4 py-8">
+        <div class="container mx-auto px-4 py-10">
             <div class="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left">
-                <h1 class="text-4xl font-bold text-white mb-2 flex items-center">
-                    <i class="fas fa-wand-magic-sparkles mr-3 animate-pulse-slow"></i>
+                <h1 class="text-5xl font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-wand-magic-sparkles mr-4 animate-pulse-slow text-4xl"></i>
                     File Visualizer
                 </h1>
-                <p class="text-blue-100 max-w-2xl md:text-right">
-                    Transform your plain documents into stunning, interactive HTML visualizations
-                </p>
+                <div class="max-w-2xl md:text-right flex flex-col items-center md:items-end">
+                    <p class="text-blue-100 text-xl mb-3">
+                        Transform your plain documents into stunning, interactive HTML visualizations
+                    </p>
+                    <div class="bg-blue-800/50 rounded-lg p-3 mt-2 inline-flex items-center">
+                        <div class="flex items-center text-white">
+                            <div class="mr-3 text-center">
+                                <i class="fas fa-file-alt text-3xl text-gray-300"></i>
+                                <div class="text-xs mt-1">Plain Document</div>
+                            </div>
+                            <i class="fas fa-arrow-right mx-3 text-blue-300"></i>
+                            <div class="mx-2 text-center">
+                                <i class="fas fa-magic text-xl text-yellow-300"></i>
+                                <div class="text-xs">Claude 3.7</div>
+                            </div>
+                            <i class="fas fa-arrow-right mx-3 text-blue-300"></i>
+                            <div class="ml-3 text-center">
+                                <i class="fas fa-file-code text-3xl text-yellow-200"></i>
+                                <div class="text-xs mt-1">Interactive HTML</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Examples Section - Now before How to Use -->
-    <div class="bg-gradient-to-r from-primary-50 to-blue-50 py-8">
+    <div class="bg-gradient-to-r from-primary-50 to-blue-50 py-12">
         <div class="container mx-auto px-4">
-            <div class="bg-white rounded-lg shadow-md p-6 mb-5">
-                <h2 class="text-2xl font-semibold mb-6 text-center">
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-5">
+                <h2 class="text-3xl font-semibold mb-8 text-center">
                     <i class="fas fa-star text-primary-500 mr-2"></i>
                     See What's Possible
                 </h2>
                 
                 <div class="example-grid">
-                    <div class="example-card bg-white shadow-md">
-                        <div class="bg-blue-500 h-40 flex items-center justify-center">
-                            <i class="fas fa-book text-white text-6xl"></i>
+                    <div class="example-card bg-white shadow-lg hover:shadow-xl cursor-pointer" onclick="window.open('https://egkxhslu0z.yourware.so/', '_blank')">
+                        <div class="bg-blue-500 h-48 flex items-center justify-center">
+                            <i class="fas fa-book text-white text-7xl"></i>
                         </div>
-                        <div class="p-4">
-                            <h4 class="font-medium text-lg mb-1">Scoping Reviews Guide</h4>
-                            <p class="text-sm text-gray-600">Academic guide transformed into an interactive, navigable web page with clear sections and visual hierarchy.</p>
+                        <div class="p-5">
+                            <h4 class="font-medium text-lg mb-2">Scoping Reviews Guide</h4>
+                            <p class="text-gray-600">Academic guide transformed into an interactive, navigable web page with clear sections and visual hierarchy.</p>
+                            <div class="mt-3 text-primary-600 flex items-center">
+                                <span>View Example</span>
+                                <i class="fas fa-external-link-alt ml-2"></i>
+                            </div>
                         </div>
                     </div>
-                    <div class="example-card bg-white shadow-md">
-                        <div class="bg-green-500 h-40 flex items-center justify-center">
-                            <i class="fas fa-graduation-cap text-white text-6xl"></i>
+                    <div class="example-card bg-white shadow-lg hover:shadow-xl cursor-pointer" onclick="window.open('https://mk9wzcfz6q.yourware.so/', '_blank')">
+                        <div class="bg-green-500 h-48 flex items-center justify-center">
+                            <i class="fas fa-graduation-cap text-white text-7xl"></i>
                         </div>
-                        <div class="p-4">
-                            <h4 class="font-medium text-lg mb-1">Educational Training Material</h4>
-                            <p class="text-sm text-gray-600">Training material transcript converted into an elegant, branded learning experience with enhanced readability.</p>
+                        <div class="p-5">
+                            <h4 class="font-medium text-lg mb-2">Educational Training Material</h4>
+                            <p class="text-gray-600">Training material transcript converted into an elegant, branded learning experience with enhanced readability.</p>
+                            <div class="mt-3 text-green-600 flex items-center">
+                                <span>View Example</span>
+                                <i class="fas fa-external-link-alt ml-2"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <p class="text-center mt-5 text-lg font-semibold text-primary-600">
-                    ✨ These visualizations were created with a single prompt using File Visualizer! ✨
-                </p>
+                <div class="text-center mt-8">
+                    <p class="text-2xl font-bold text-primary-600 bg-primary-50 py-3 px-6 rounded-full inline-block shadow-sm">
+                        ✨ These visualizations were created with a single prompt using File Visualizer! ✨
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Usage Instructions -->
-    <div class="bg-white py-8">
+    <div class="bg-white py-12">
         <div class="container mx-auto px-4">
-            <div class="bg-white rounded-lg shadow-md p-6 mb-5">
-                <h2 class="text-2xl font-semibold mb-6 text-center">
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-5">
+                <h2 class="text-3xl font-semibold mb-8 text-center">
                     <i class="fas fa-info-circle text-primary-500 mr-2"></i>
                     How to Use
                 </h2>
@@ -218,8 +248,9 @@
                         <p class="text-gray-700 mb-2">
                             This app is <strong>completely free</strong> to use, but requires an Anthropic API key.
                         </p>
-                        <p class="text-gray-700 mb-2">
-                            <strong>Note:</strong> You'll only be charged by Anthropic for the API usage. Keep your API key confidential and never share it with others.
+                        <p class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 mb-2 font-medium">
+                            <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                            <strong>Important:</strong> You'll only be charged by Anthropic for the API usage. Keep your API key confidential and never share it with others.
                         </p>
                         <div class="mt-auto">
                             <details class="mt-2">
