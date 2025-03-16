@@ -1,2 +1,2 @@
-Last deployed: 2024-05-19
-Fixed: API key validation and proxies issues, updated Anthropic client to v0.33.0 
+Last deployed: 2024-05-20
+Fixed: Vercel-specific API key validation using direct API calls, added diagnostics 

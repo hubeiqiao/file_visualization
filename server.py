@@ -122,28 +122,34 @@ def validate_key():
     if not api_key.startswith(('sk-ant-', 'sk-')):
         return jsonify({'valid': False, 'message': 'Invalid API key format. Key should start with sk-ant- or sk-'}), 400
     
+    # Check if running on Vercel
+    is_vercel = os.environ.get('VERCEL', False)
+    
     try:
-        # Use our helper function to create a compatible client
+        # Create client - we have special handling for Vercel in the create_anthropic_client function
         client = create_anthropic_client(api_key)
         
         # Try to make a minimal API call to verify the key
         try:
-            # Try different methods depending on what's available
-            if hasattr(client, 'models') and hasattr(client.models, 'list'):
+            # Check if this is our special Vercel-compatible client
+            if hasattr(client, 'models') and not hasattr(client, 'beta'):
+                client.models.list()
+            # Normal client checks
+            elif hasattr(client, 'models') and hasattr(client.models, 'list'):
                 client.models.list()
             elif hasattr(client, 'get_models'):
                 client.get_models()
             elif hasattr(client, 'count_tokens'):
                 client.count_tokens("Test message")
-            # If none of these methods work, the constructor succeeded but we couldn't verify the key
-            # We'll assume it's valid since we can create a client
-                
+            
+            # If we get here, the key works
             return jsonify({'valid': True, 'message': 'API key is valid'})
                 
         except Exception as api_e:
             error_str = str(api_e)
+            print(f"API test error: {error_str}")
             
-            # Check for specific authentication errors
+            # Check for authentication errors
             if any(phrase in error_str.lower() for phrase in ['auth', 'key', 'invalid', '401', 'unauthorized']):
                 print(f"API authentication failed: {error_str}")
                 return jsonify({
@@ -164,12 +170,20 @@ def validate_key():
         error_str = str(e)
         print(f"API key validation error: {error_str}\n{error_traceback}")
         
-        # Check for specific error types and provide helpful messages
+        # More detailed error handling
         if "proxies" in error_str:
-            return jsonify({
-                'valid': False, 
-                'message': 'API client configuration error. Please try using a newer Anthropic API key format.'
-            }), 400
+            # This is the issue we're specifically trying to fix for Vercel
+            print(f"Proxies error detected: {error_str}")
+            if is_vercel:
+                return jsonify({
+                    'valid': False, 
+                    'message': 'Unable to validate API key in this environment. Try using the key directly for generation.'
+                }), 400
+            else:
+                return jsonify({
+                    'valid': False, 
+                    'message': 'API client configuration error. Please try using a newer Anthropic API key format.'
+                }), 400
         else:
             return jsonify({
                 'valid': False, 
