@@ -1,2 +1,2 @@
-Last deployed: 2024-05-17
-Fixed: API key and analyze-tokens issues 
+Last deployed: 2024-05-18
+Fixed: Anthropic API client proxies issue in helper_function.py 

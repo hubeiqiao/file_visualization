@@ -125,18 +125,28 @@ def validate_key():
         # Just check if we can access the models endpoint
         try:
             # Try the newer API style first
-            client.models.list()
-        except (AttributeError, TypeError):
-            try:
+            if hasattr(client, 'models') and hasattr(client.models, 'list'):
+                client.models.list()
+            elif hasattr(client, 'get_models'):
                 # Fall back to older API style if needed
                 client.get_models()
-            except Exception:
-                # If both fail, just assume key is valid if client was created
-                pass
+            elif hasattr(client, 'count_tokens'):
+                # If neither models method is available, try count_tokens
+                client.count_tokens("Test message")
+            # If no methods work, we'll still assume the key is valid if client was created
+                
+        except Exception as api_e:
+            # Only fail if this is an authentication error
+            if "auth" in str(api_e).lower() or "key" in str(api_e).lower() or "invalid" in str(api_e).lower():
+                return jsonify({'valid': False, 'message': f'API authentication failed: {str(api_e)}'}), 400
                 
         return jsonify({'valid': True, 'message': 'API key is valid'})
     except Exception as e:
-        return jsonify({'valid': False, 'message': f'Invalid API key: {str(e)}'}), 400
+        import traceback
+        error_traceback = traceback.format_exc()
+        error_msg = f"Invalid API key: {str(e)}"
+        print(f"API key validation error: {error_msg}\n{error_traceback}")
+        return jsonify({'valid': False, 'message': error_msg}), 400
 
 @app.route('/api/process', methods=['POST'])
 def process_file():
