@@ -64,7 +64,7 @@ class VercelCompatibleClient:
         self.base_url = "https://api.anthropic.com/v1"
         self.headers = {
             "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
+            "anthropic-version": "2023-10-16",
             "content-type": "application/json"
         }
         
@@ -147,14 +147,16 @@ class VercelCompatibleClient:
                 if thinking:
                     payload["thinking"] = thinking
                 
-                # Add beta features if specified
-                if betas and isinstance(betas, list):
-                    payload["beta"] = betas
+                # Add beta features if specified - Fixed to use the correct format
+                # The Anthropic API expects beta features to be in the 'anthropic-beta' header
+                headers = dict(self.client.headers)
+                if betas and isinstance(betas, list) and len(betas) > 0:
+                    headers["anthropic-beta"] = ",".join(betas)
                 
                 # Make the API request to stream response
                 stream_response = requests.post(
                     f"{self.client.base_url}/messages",
-                    headers=self.client.headers,
+                    headers=headers,
                     json=payload,
                     stream=True
                 )
@@ -181,7 +183,7 @@ class VercelCompatibleClient:
         def __init__(self, client):
             self.client = client
         
-        def create(self, model, max_tokens, temperature, system, messages):
+        def create(self, model, max_tokens, temperature, system, messages, thinking=None, betas=None):
             """
             Create a message using the Anthropic API directly (non-streaming)
             """
@@ -216,10 +218,20 @@ class VercelCompatibleClient:
                 "messages": formatted_messages
             }
             
+            # Add thinking if specified
+            if thinking:
+                payload["thinking"] = thinking
+                
+            # Add beta features if specified - Fixed to use the correct format
+            # The Anthropic API expects beta features to be in the 'anthropic-beta' header
+            headers = dict(self.client.headers)
+            if betas and isinstance(betas, list) and len(betas) > 0:
+                headers["anthropic-beta"] = ",".join(betas)
+            
             # Make the API request
             response = requests.post(
                 f"{self.client.base_url}/messages",
-                headers=self.client.headers,
+                headers=headers,
                 json=payload
             )
             

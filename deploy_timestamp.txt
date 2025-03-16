@@ -1,2 +1,2 @@
-Last deployed: 2024-05-21
-Fixed: Added full message generation capability to Vercel-compatible client 
+Last deployed: 2024-05-22
+Fixed: Corrected handling of beta parameters for Anthropic API and updated API version 
