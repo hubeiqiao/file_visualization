@@ -312,7 +312,7 @@ async function validateApiKey() {
     
     if (!key) {
         showKeyStatus(false, 'Please enter an API key');
-        return;
+        return false;
     }
     
     try {
@@ -333,13 +333,16 @@ async function validateApiKey() {
             showKeyStatus(true, 'API key is valid');
             localStorage.setItem(API_KEY_STORAGE_KEY, key);
             state.apiKeyValidated = true;
+            return key;
         } else {
             showKeyStatus(false, data.message || 'Invalid API key');
             state.apiKeyValidated = false;
+            return false;
         }
     } catch (error) {
         showKeyStatus(false, `Error: ${error.message}`);
         state.apiKeyValidated = false;
+        return false;
     } finally {
         elements.validateKeyBtn.disabled = false;
         elements.validateKeyBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Validate Key';
@@ -805,105 +808,70 @@ function updateGenerateButtonState() {
 
 // Generation Process
 async function startGeneration() {
-    if (state.processing) return;
-    
-    state.processing = true;
-    state.generatedHtml = '';
-    
+    if (state.processing) {
+        return;
+    }
+
+    // Validate inputs
+    const apiKey = validateApiKey();
+    if (!apiKey) {
+        return;
+    }
+
+    const inputContent = getInputContent();
+    if (!inputContent) {
+        if (elements.generateError) {
+            elements.generateError.textContent = 'Please provide input content';
+            elements.generateError.classList.remove('hidden');
+        }
+        return;
+    }
+
     // Update UI
-    elements.generateBtn.disabled = true;
-    elements.generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-    elements.processingStatus.classList.remove('hidden');
-    elements.resultSection.classList.add('hidden');
+    state.processing = true;
+    if (elements.generateBtn) {
+        elements.generateBtn.disabled = true;
+        elements.generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    }
     
-    // Disable all inputs during generation
-    disableInputsDuringGeneration(true);
-    
-    // Start progress animation
-    elements.progressBar.style.width = '0%';
-    elements.progressBar.classList.add('animate-progress');
-    
-    // Start elapsed time counter
-    state.startTime = new Date();
-    startElapsedTimeCounter();
-    
+    // Get parameters for generating HTML
+    const params = {
+        api_key: apiKey,
+        source: inputContent,
+        format_prompt: elements.formatInstructions ? elements.formatInstructions.value : '',
+        model: elements.model ? elements.model.value : 'claude-3-7-sonnet-20250219',
+        max_tokens: elements.maxTokens ? parseInt(elements.maxTokens.value) : 128000,
+        temperature: elements.temperature ? parseFloat(elements.temperature.value) : 1.0,
+        thinking_budget: elements.thinkingBudget ? parseInt(elements.thinkingBudget.value) : 32000
+    };
+
     try {
-        // Prepare request data based on active tab
-        let content;
-        let file_type = 'txt';
-        
-        if (state.activeTab === 'file') {
-            content = state.fileContent;
-            // Set the file type if available
-            if (state.file) {
-                file_type = state.file.name.split('.').pop().toLowerCase();
-            }
-        } else {
-            content = state.textContent;
+        // Check if we're using the streaming version with reconnect support
+        if (typeof generateHTMLStreamWithReconnection === 'function') {
+            // Use the new streaming function with reconnection support
+            generateHTMLStreamWithReconnection(
+                params.api_key,
+                params.source,
+                params.format_prompt,
+                params.model,
+                params.max_tokens,
+                params.temperature,
+                params.thinking_budget
+            );
+            return;
         }
         
-        // System prompt for Claude
-        const systemPrompt = `I will provide you with a file, analyze its content, and transform it into a visually appealing and well-structured webpage.
-
-### Content Requirements
-* Maintain the core information from the original file while presenting it in a clearer and more visually engaging format.
-
-### Design Style
-* Follow a modern and minimalistic design inspired by Linear App.
-* Use a clear visual hierarchy to emphasize important content.
-* Adopt a professional and harmonious color scheme that is easy on the eyes for extended reading.
-
-### Technical Specifications
-* Use HTML5, TailwindCSS 3.0+ (via CDN), and necessary JavaScript.
-* Implement a fully functional dark/light mode toggle, defaulting to the system setting.
-* Ensure clean, well-structured code with appropriate comments for easy understanding and maintenance.
-
-### Responsive Design
-* The page must be fully responsive, adapting seamlessly to mobile, tablet, and desktop screens.
-* Optimize layout and typography for different screen sizes.
-* Ensure a smooth and intuitive touch experience on mobile devices.
-
-### Icons & Visual Elements
-* Use professional icon libraries like Font Awesome or Material Icons (via CDN).
-* Integrate illustrations or charts that best represent the content.
-* Avoid using emojis as primary icons.
-
-### User Interaction & Experience
-
-Enhance the user experience with subtle micro-interactions:
-* Buttons should have slight enlargement and color transitions on hover.
-* Cards should feature soft shadows and border effects on hover.
-* Implement smooth scrolling effects throughout the page.
-* Content blocks should have an elegant fade-in animation on load.
-
-### Performance Optimization
-* Ensure fast page loading by avoiding large, unnecessary resources.
-* Use modern image formats (WebP) with proper compression.
-* Implement lazy loading for content-heavy pages.
-
-### Output Requirements
-* Deliver a fully functional standalone HTML file, including all necessary CSS and JavaScript.
-* Ensure the code meets W3C standards with no errors or warnings.
-* Maintain consistent design and functionality across different browsers.
-
-Create the most effective and visually appealing webpage based on the uploaded file's content type (document, data, images, etc.).`;
-        
-        // Setup the EventSource for streaming response
-        await processWithStreaming({
-            api_key: state.apiKey,
-            content: content,
-            file_type: file_type,
-            system_prompt: systemPrompt,
-            additional_prompt: elements.additionalPrompt.value,
-            temperature: state.temperature,
-            max_tokens: state.maxTokens,
-            thinking_budget: state.thinkingBudget
-        });
-        
+        // Fall back to original implementation if the new function isn't available
+        // Start event source
+        startEventSource(params);
     } catch (error) {
-        console.error('Generation error:', error);
-        showToast(`Error: ${error.message}`, 'error');
-        resetGenerationUI();
+        console.error('Error starting generation:', error);
+        showNotification(`Generation error: ${error.message}`, 'error');
+        
+        // Reset UI
+        elements.processingStatus.classList.add('hidden');
+        state.processing = false;
+        updateGenerateButtonState();
     }
 }
 
@@ -1366,6 +1334,242 @@ function disableInputsDuringGeneration(disable) {
             elements.dropArea.classList.remove('pointer-events-none', 'opacity-50');
         }
     }
+}
+
+// Add a new function to handle the streaming API with Vercel timeout handling
+async function generateHTMLStreamWithReconnection(apiKey, sourceContent, formatInstructions, model, maxTokens, temperature, thinkingTokens) {
+    // Clear previous results
+    elements.htmlOutput.value = '';
+    elements.previewIframe.srcdoc = '';
+    
+    // Show loading indicators
+    elements.processingStatus.classList.remove('hidden');
+    elements.resultSection.classList.add('hidden');
+    
+    // Update UI state
+    state.processing = true;
+    updateGenerateButtonState();
+    
+    // Track the HTML content
+    let fullHtmlContent = '';
+    
+    // Track thinking content
+    let thinkingContent = '';
+    
+    // Track session for reconnection
+    let sessionId = null;
+    let reconnectionAttempts = 0;
+    const MAX_RECONNECTION_ATTEMPTS = 5;
+    
+    function connectToStream() {
+        // Prepare request data
+        const requestData = {
+            api_key: apiKey,
+            source: sourceContent,
+            format_prompt: formatInstructions || '',
+            model: model || 'claude-3-7-sonnet-20250219',
+            max_tokens: maxTokens || 128000,
+            temperature: temperature || 1.0,
+            thinking_budget: thinkingTokens || 32000
+        };
+        
+        // If this is a reconnection, include the session ID
+        if (sessionId) {
+            requestData.session_id = sessionId;
+            console.log(`Reconnecting to stream with session ID: ${sessionId}`);
+        }
+        
+        // Create EventSource for streaming
+        const streamUrl = '/api/process-stream'; 
+        
+        // We can't use EventSource directly because we need to send POST data
+        // Instead, we'll use fetch with streaming response handling
+        fetch(streamUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            
+            // Set up a reader to process the stream
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            
+            // Process the stream
+            function processStream() {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        console.log('Stream complete');
+                        return;
+                    }
+                    
+                    // Decode the chunk and add it to our buffer
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    // Process complete SSE messages in the buffer
+                    let lines = buffer.split('\n\n');
+                    buffer = lines.pop() || ''; // Keep the last incomplete chunk in the buffer
+                    
+                    // Process each complete SSE message
+                    for (const line of lines) {
+                        if (line.trim() && line.startsWith('data: ')) {
+                            try {
+                                // Extract the JSON data
+                                const jsonStr = line.substring(6); // Remove 'data: ' prefix
+                                const data = JSON.parse(jsonStr);
+                                
+                                // Handle different message types
+                                switch (data.type) {
+                                    case 'start':
+                                        console.log('Generation started');
+                                        break;
+                                        
+                                    case 'thinking_start':
+                                        elements.thinkingTokens.textContent = 'Claude is thinking...';
+                                        break;
+                                        
+                                    case 'thinking_update':
+                                        // Update thinking output
+                                        thinkingContent += data.content;
+                                        elements.thinkingTokens.textContent = `<pre>${escapeHtml(thinkingContent)}</pre>`;
+                                        // Auto-scroll to the bottom
+                                        elements.thinkingTokens.scrollTop = elements.thinkingTokens.scrollHeight;
+                                        break;
+                                        
+                                    case 'thinking_end':
+                                        // Show completed thinking
+                                        elements.thinkingTokens.textContent = 
+                                            `<p>Thinking complete! Here's Claude's reasoning:</p>
+                                            <pre>${escapeHtml(thinkingContent)}</pre>`;
+                                        break;
+                                        
+                                    case 'content':
+                                        // Update HTML content
+                                        fullHtmlContent += data.text;
+                                        
+                                        // Update preview and textarea
+                                        elements.htmlOutput.value = fullHtmlContent;
+                                        
+                                        try {
+                                            // Try to render the HTML as it comes in
+                                            elements.previewIframe.srcdoc = fullHtmlContent;
+                                        } catch (e) {
+                                            console.error('Error updating preview:', e);
+                                        }
+                                        break;
+                                        
+                                    case 'reconnect':
+                                        // Handle Vercel timeout - need to reconnect
+                                        sessionId = data.session_id;
+                                        console.log(`Need to reconnect with session ID: ${sessionId}`);
+                                        
+                                        // Check if we've tried too many times
+                                        if (reconnectionAttempts >= MAX_RECONNECTION_ATTEMPTS) {
+                                            throw new Error(`Too many reconnection attempts (${reconnectionAttempts})`);
+                                        }
+                                        
+                                        // Close current connection and reconnect
+                                        reader.cancel();
+                                        reconnectionAttempts++;
+                                        
+                                        // Show reconnection message
+                                        const reconnectMsg = `Connection timed out. Reconnecting (attempt ${reconnectionAttempts}/${MAX_RECONNECTION_ATTEMPTS})...`;
+                                        elements.thinkingTokens.textContent += `<p>${reconnectMsg}</p>`;
+                                        
+                                        // Reconnect after a short delay
+                                        setTimeout(connectToStream, 1000);
+                                        return; // Exit this processing loop
+                                        
+                                    case 'error':
+                                        // Handle error
+                                        throw new Error(`API error: ${data.error}`);
+                                        
+                                    case 'usage':
+                                        // Update token usage
+                                        updateTokenUsage(data.usage);
+                                        break;
+                                        
+                                    case 'end':
+                                        // Generation complete
+                                        console.log('Generation complete');
+                                        // Hide loading indicators
+                                        elements.processingStatus.classList.add('hidden');
+                                        elements.resultSection.classList.remove('hidden');
+                                        // Update UI state
+                                        state.processing = false;
+                                        updateGenerateButtonState();
+                                        
+                                        // Save the generated HTML
+                                        state.generatedHtml = fullHtmlContent;
+                                        break;
+                                }
+                            } catch (error) {
+                                console.error('Error processing stream message:', error, line);
+                                // Don't throw here - try to continue processing the stream
+                            }
+                        }
+                    }
+                    
+                    // Continue processing the stream
+                    processStream();
+                }).catch(error => {
+                    console.error('Error reading stream:', error);
+                    
+                    // If this was due to a reconnection, the reader.cancel() above will cause an error here
+                    // We can safely ignore it since we're handling the reconnection elsewhere
+                    if (!sessionId) {
+                        // Only show error if not a planned reconnection
+                        elements.thinkingTokens.textContent += `<p class="error">Error: ${error.message}</p>`;
+                        elements.processingStatus.classList.add('hidden');
+                        elements.resultSection.classList.add('hidden');
+                        state.processing = false;
+                        updateGenerateButtonState();
+                    }
+                });
+            }
+            
+            // Start processing
+            processStream();
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            elements.thinkingTokens.textContent += `<p class="error">Error: ${error.message}</p>`;
+            elements.processingStatus.classList.add('hidden');
+            elements.resultSection.classList.add('hidden');
+            state.processing = false;
+            updateGenerateButtonState();
+        });
+    }
+    
+    // Start the initial connection
+    connectToStream();
+}
+
+// Helper function to update token usage display
+function updateTokenUsage(usage) {
+    const inputTokens = usage.input_tokens || 0;
+    const outputTokens = usage.output_tokens || 0;
+    const thinkingTokens = usage.thinking_tokens || 0;
+    const totalTokens = usage.total_tokens || (inputTokens + outputTokens + thinkingTokens);
+    
+    // Estimate cost at $3 per million tokens for Claude 3.7 Sonnet
+    const estimatedCost = (totalTokens / 1000000) * 3;
+    
+    // Update the UI
+    elements.totalCost.textContent = `$${estimatedCost.toFixed(4)}`;
+}
+
+// Helper function to safely escape HTML 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Initialize the app

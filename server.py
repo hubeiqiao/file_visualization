@@ -516,6 +516,152 @@ def analyze_tokens():
     except Exception as e:
         return jsonify({"error": f"Error analyzing tokens: {str(e)}"}), 500
 
+@app.route('/api/process-stream', methods=['POST'])
+def process_stream():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    # Get required data from request
+    api_key = data.get('api_key')
+    source = data.get('source', '')
+    format_prompt = data.get('format_prompt', '')
+    model = data.get('model', 'claude-3-7-sonnet-20250219')
+    max_tokens = int(data.get('max_tokens', 128000))
+    temperature = float(data.get('temperature', 1.0))
+    thinking_budget = int(data.get('thinking_budget', 32000))
+    session_id = data.get('session_id')  # For reconnections
+    
+    # Check if API key is provided
+    if not api_key:
+        return jsonify({"error": "API key is required"}), 400
+    
+    # Check if source is provided
+    if not source:
+        return jsonify({"error": "Source code or text is required"}), 400
+    
+    # Check if this is a reconnection request
+    is_reconnection = bool(session_id)
+    
+    # Check if we're running on Vercel
+    is_vercel = os.environ.get('VERCEL', False)
+    
+    try:
+        # Create the Anthropic client
+        client = create_anthropic_client(api_key)
+        
+        # Set up a streaming response
+        def generate():
+            try:
+                system_prompt = """You are an expert web developer and technical communicator.
+Your task is to transform the provided content into a beautiful, readable HTML document.
+Make the output visually appealing and well-structured for maximum readability.
+                
+Create a COMPLETE and SELF-CONTAINED HTML document that:
+- Includes proper HTML5 doctype, head, meta tags, and body
+- Has all CSS styles embedded directly in a <style> tag in the head
+- Applies a clean, modern design that's easy to read
+- Preserves code formatting with syntax highlighting where appropriate
+- Renders mathematical notation properly if present
+- Includes responsive design principles for mobile and desktop viewing
+- Does NOT rely on any external CSS, JS, or image files
+"""
+                
+                if format_prompt:
+                    system_prompt += f"\n\nAdditional formatting instructions:\n{format_prompt}"
+                
+                # Define the messages
+                messages = [
+                    {"role": "user", "content": f"Please transform this content into a beautiful HTML page with CSS styling:\n\n{source}"}
+                ]
+                
+                # Set up beta parameters for large output
+                betas = ["output-128k-2025-02-19"]
+                
+                # Stream the response
+                with client.beta.messages.stream(
+                    model=model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    system=system_prompt,
+                    messages=messages,
+                    thinking={"enable": True, "max_tokens": thinking_budget},
+                    betas=betas
+                ) as stream:
+                    # First, indicate the start of the streaming process
+                    yield 'data: {"type": "start"}\n\n'
+                    
+                    # Stream the thinking response first
+                    thinking_content = ""
+                    for chunk in stream:
+                        # Handle different types of response chunks
+                        if chunk.type == 'thinking_start':
+                            yield 'data: {"type": "thinking_start"}\n\n'
+                        
+                        elif chunk.type == 'thinking_update':
+                            # Append thinking content
+                            thinking_fragment = chunk.thinking.content
+                            thinking_content += thinking_fragment
+                            
+                            # Stream thinking update
+                            yield f'data: {{"type": "thinking_update", "content": {json.dumps(thinking_fragment)}}}\n\n'
+                        
+                        elif chunk.type == 'thinking_end':
+                            yield 'data: {"type": "thinking_end"}\n\n'
+                        
+                        elif chunk.type == 'content_block_delta':
+                            # For content, we stream HTML content
+                            text_fragment = chunk.delta.text
+                            
+                            # Stream content update
+                            yield f'data: {{"type": "content", "text": {json.dumps(text_fragment)}}}\n\n'
+                            
+                        elif chunk.type == 'error':
+                            # Handle errors from our custom wrapper
+                            error_msg = chunk.error
+                            yield f'data: {{"type": "error", "error": {json.dumps(error_msg)}}}\n\n'
+                            
+                        elif chunk.type == 'reconnect_signal':
+                            # Handle reconnection signals from our wrapper
+                            session_id = chunk.session_id
+                            chunk_count = chunk.chunk_count
+                            yield f'data: {{"type": "reconnect", "session_id": "{session_id}", "chunk_count": {chunk_count}}}\n\n'
+                            return  # End this stream to allow client to reconnect
+                    
+                    # When we're done, include the usage information
+                    if stream.usage:
+                        usage_data = {
+                            'input_tokens': stream.usage.input_tokens,
+                            'output_tokens': stream.usage.output_tokens,
+                            'thinking_tokens': stream.usage.thinking_tokens,
+                            'total_tokens': stream.usage.input_tokens + stream.usage.output_tokens + stream.usage.thinking_tokens
+                        }
+                        yield f'data: {{"type": "usage", "usage": {json.dumps(usage_data)}}}\n\n'
+                    
+                    # Signal the end of the stream
+                    yield 'data: {"type": "end"}\n\n'
+            
+            except Exception as e:
+                # Handle errors
+                error_msg = str(e)
+                print(f"Error in generate: {error_msg}")
+                
+                # Check if this is a timeout that requires client reconnection
+                if is_vercel and "Vercel timeout - client should continue with session" in error_msg:
+                    session_id = error_msg.split("session: ")[1]
+                    yield f'data: {{"type": "reconnect", "session_id": "{session_id}", "error": "Vercel timeout"}}\n\n'
+                else:
+                    yield f'data: {{"type": "error", "error": {json.dumps(error_msg)}}}\n\n'
+        
+        # Return the streaming response
+        return Response(generate(), mimetype='text/event-stream')
+    
+    except Exception as e:
+        # Handle outer exceptions
+        error_msg = str(e)
+        print(f"Error in process_stream: {error_msg}")
+        return jsonify({"error": f"Error processing request: {error_msg}"}), 500
+
 if __name__ == '__main__':
     print("Claude 3.7 File Visualizer starting...")
     port = int(os.environ.get('PORT', 5001))
