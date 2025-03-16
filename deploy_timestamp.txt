@@ -1,2 +1,2 @@
-Last deployed: 2024-05-22
-Fixed: Corrected handling of beta parameters for Anthropic API and updated API version 
+Last deployed: 2024-05-23
+Fixed: Reverted to stable Anthropic API version header format to fix version error 

@@ -64,7 +64,7 @@ class VercelCompatibleClient:
         self.base_url = "https://api.anthropic.com/v1"
         self.headers = {
             "x-api-key": api_key,
-            "anthropic-version": "2023-10-16",
+            "anthropic-version": "2023-06-01",
             "content-type": "application/json"
         }
         
