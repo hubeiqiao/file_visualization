@@ -159,24 +159,27 @@
                     File Visualizer
                 </h1>
                 <div class="max-w-2xl md:text-right flex flex-col items-center md:items-end">
-                    <p class="text-blue-100 text-xl mb-3">
+                    <p class="text-blue-100 text-xl mb-3 whitespace-nowrap">
                         Transform your plain documents into stunning, interactive HTML visualizations
                     </p>
                     <div class="bg-blue-800/50 rounded-lg p-3 mt-2 inline-flex items-center">
                         <div class="flex items-center text-white">
-                            <div class="mr-3 text-center">
+                            <div class="mr-3 text-center relative">
                                 <i class="fas fa-file-alt text-3xl text-gray-300"></i>
                                 <div class="text-xs mt-1">Plain Document</div>
+                                <div class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full opacity-75"></div>
                             </div>
                             <i class="fas fa-arrow-right mx-3 text-blue-300"></i>
-                            <div class="mx-2 text-center">
-                                <i class="fas fa-magic text-xl text-yellow-300"></i>
-                                <div class="text-xs">Claude 3.7</div>
+                            <div class="mx-2 text-center relative">
+                                <i class="fas fa-magic text-2xl text-yellow-300 animate-pulse"></i>
+                                <div class="text-xs">Magic</div>
+                                <span class="absolute -top-1 -left-3 -right-3 h-8 bg-yellow-400/20 rounded-full blur-md"></span>
                             </div>
                             <i class="fas fa-arrow-right mx-3 text-blue-300"></i>
-                            <div class="ml-3 text-center">
+                            <div class="ml-3 text-center relative">
                                 <i class="fas fa-file-code text-3xl text-yellow-200"></i>
                                 <div class="text-xs mt-1">Interactive HTML</div>
+                                <div class="absolute -top-1 -left-1 w-4 h-4 bg-green-500 rounded-full opacity-75"></div>
                             </div>
                         </div>
                     </div>
@@ -327,10 +330,10 @@
                         <div class="step-number bg-green-500 text-white">4</div>
                         <h3 class="text-lg font-medium mb-2 text-green-700">Generate & Deploy</h3>
                         <p class="text-gray-700 mb-2">
-                            Click "Generate" and wait while Claude works its magic on your document!
+                            Click "Generate" and wait while the magic happens on your document!
                         </p>
                         <p class="text-gray-600 text-sm mb-2">
-                            Generation takes 5-20 minutes depending on content size. Keep your connection open.
+                            Generation takes 5-20 minutes depending on content size. <strong>Keep your internet connection stable during this process.</strong>
                         </p>
                         <div class="mt-auto">
                             <details class="mt-2">
@@ -589,12 +592,6 @@
                 <a href="https://buy.stripe.com/6oEdTw8OQ86S0CYcMN" class="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors" target="_blank">
                     <i class="fas fa-coffee mr-2"></i> Appreciate this magic? Buy me a coffee!
                 </a>
-            </div>
-            <div class="flex justify-center mt-4">
-                <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors">
-                    <i class="fas fa-sun text-yellow-500"></i>
-                    <i class="fas fa-moon text-blue-300 hidden"></i>
-                </button>
             </div>
         </div>
     </footer>
