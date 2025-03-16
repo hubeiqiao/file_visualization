@@ -1,39 +1,53 @@
 {
   "version": 2,
-  "git": {
-    "deploymentEnabled": {
-      "production-ready": true,
-      "main": false,
-      "updated-ui": false
-    }
-  },
-  "builds": [
+  "cleanUrls": true,
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+      "source": "/",
+      "destination": "/api"
     },
     {
-      "src": "static/**",
-      "use": "@vercel/static"
+      "source": "/(.*).html",
+      "destination": "/api"
+    },
+    { 
+      "source": "/api/(.*)",
+      "destination": "/api" 
+    },
+    {
+      "source": "/(.*).css",
+      "destination": "/static/$1.css"
+    },
+    {
+      "source": "/(.*).js",
+      "destination": "/static/$1.js"
+    },
+    {
+      "source": "/(.*).ico",
+      "destination": "/static/$1.ico"
+    },
+    {
+      "source": "/(.*).png",
+      "destination": "/static/$1.png"
+    },
+    { 
+      "source": "/(.*)",
+      "destination": "/api"
     }
   ],
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/api/analyze-tokens",
-      "methods": ["POST", "OPTIONS"],
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
+  "functions": {
+    "api/index.py": {
+      "memory": 1024,
+      "maxDuration": 60
     }
-  ]
+  },
+  "build": {
+    "env": {
+      "PYTHON_VERSION": "3.11"
+    }
+  },
+  "env": {
+    "VERCEL": "true",
+    "VERCEL_DEPLOYMENT_TIMESTAMP": "2024-05-24T00:30:00Z"
+  }
 } 
