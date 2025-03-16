@@ -20,6 +20,9 @@ import docx
 import io
 import base64
 import random 
+import socket
+import argparse
+import sys
 
 app = Flask(__name__, static_folder='static')
 CORS(app)  # Enable CORS for all routes
@@ -518,8 +521,10 @@ def analyze_tokens():
 
 @app.route('/api/process-stream', methods=['POST'])
 def process_stream():
+    print("==== API PROCESS STREAM REQUEST RECEIVED ====")
     data = request.get_json()
     if not data:
+        print("ERROR: No data provided in process-stream request")
         return jsonify({"error": "No data provided"}), 400
     
     # Get required data from request
@@ -534,24 +539,37 @@ def process_stream():
     
     # Check if API key is provided
     if not api_key:
+        print("ERROR: API key is missing in process-stream request")
         return jsonify({"error": "API key is required"}), 400
     
     # Check if source is provided
     if not source:
+        print("ERROR: Source content is missing in process-stream request")
         return jsonify({"error": "Source code or text is required"}), 400
+    
+    print(f"Process stream request: model={model}, max_tokens={max_tokens}, source_length={len(source)}")
     
     # Check if this is a reconnection request
     is_reconnection = bool(session_id)
+    if is_reconnection:
+        print(f"This is a reconnection request with session_id: {session_id}")
     
     # Check if we're running on Vercel
     is_vercel = os.environ.get('VERCEL', False)
+    if is_vercel:
+        print("Running in Vercel environment")
+    else:
+        print("Running in local environment")
     
     try:
         # Create the Anthropic client
+        print("Creating Anthropic client")
         client = create_anthropic_client(api_key)
+        print("Anthropic client created successfully")
         
         # Set up a streaming response
         def generate():
+            print("Starting generate function for streaming response")
             try:
                 system_prompt = """You are an expert web developer and technical communicator.
 Your task is to transform the provided content into a beautiful, readable HTML document.
@@ -662,12 +680,53 @@ Create a COMPLETE and SELF-CONTAINED HTML document that:
         print(f"Error in process_stream: {error_msg}")
         return jsonify({"error": f"Error processing request: {error_msg}"}), 500
 
+# Add a simple test endpoint
+@app.route('/api/test', methods=['GET', 'POST'])
+def test_api():
+    """Simple test endpoint to verify API connectivity"""
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        return jsonify({
+            "status": "success", 
+            "message": "API test endpoint is working",
+            "received_data": data,
+            "timestamp": time.time()
+        })
+    else:
+        return jsonify({
+            "status": "success", 
+            "message": "API test endpoint is working", 
+            "timestamp": time.time()
+        })
+
 if __name__ == '__main__':
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Start the Claude 3.7 File Visualizer server')
+    parser.add_argument('--port', type=int, help='Port to run the server on')
+    args = parser.parse_args()
+    
+    # Determine the port to use (priority: command-line arg > environment var > default)
+    port = args.port or int(os.environ.get('PORT', 5001))
+    
     print("Claude 3.7 File Visualizer starting...")
-    port = int(os.environ.get('PORT', 5001))
-    host = '0.0.0.0' if os.environ.get('PORT') else 'localhost'
-    print(f"Server running at http://{host}:{port}")
-    app.run(host=host, port=port, debug=os.environ.get('DEBUG', 'True').lower() == 'true')
+    
+    # Check if the port is available
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.bind(('localhost', port))
+        s.close()
+    except socket.error:
+        print(f"Port {port} is in use. Try using:")
+        print(f"  python server.py --port={port+1}")
+        print(f"  # or")
+        print(f"  PORT={port+1} python server.py")
+        print(f"  # or")
+        print(f"  lsof -i :{port} | awk 'NR>1 {{print $2}}' | xargs kill -9 # to kill process using port {port}")
+        sys.exit(1)
+    
+    # Start the server
+    print(f"Server running at http://localhost:{port}")
+    app.run(host='0.0.0.0', port=port, debug=True)
 
 # Important: Export the Flask app for Vercel
 app
