@@ -1,2 +1,2 @@
-Last deployed: 2024-05-20
-Fixed: Vercel-specific API key validation using direct API calls, added diagnostics 
+Last deployed: 2024-05-21
+Fixed: Added full message generation capability to Vercel-compatible client 
