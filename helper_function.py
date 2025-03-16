@@ -1,60 +1,48 @@
 # Helper functions for server.py
 import anthropic
 import os
-import importlib
-import inspect
 
-# Updated to handle proxies issue in Vercel environment
 def create_anthropic_client(api_key):
     """
     Create an Anthropic client that is compatible with both local and Vercel environments.
-    This handles different versions of the Anthropic library and environment-specific issues.
+    This function uses a simpler approach that completely avoids the proxies parameter issue.
     """
-    # Check if running on Vercel
-    is_vercel = os.environ.get('VERCEL', False)
-    
+    if not api_key or not api_key.strip():
+        raise ValueError("API key cannot be empty")
+        
     try:
-        # Check if the Anthropic class is available
+        # For newer versions of the anthropic library
         if hasattr(anthropic, 'Anthropic'):
-            # Get init signature to check parameters
-            sig = inspect.signature(anthropic.Anthropic.__init__)
-            params = sig.parameters
-            
-            # Create a dict with only the parameters the constructor accepts
-            kwargs = {'api_key': api_key}
-            
-            # This is the key fix - remove 'proxies' if it would cause an error
-            if 'proxies' not in params:
-                # Create client without proxies parameter
-                return anthropic.Anthropic(**kwargs)
-            else:
-                # Create client with proxies parameter if supported
-                return anthropic.Anthropic(api_key=api_key)
+            # Create client with only the essential parameter (no proxies)
+            # Using a dictionary and **kwargs to avoid any parameter issues
+            kwargs = {"api_key": api_key}
+            return anthropic.Anthropic(**kwargs)
+        
+        # For older versions of the anthropic library
         elif hasattr(anthropic, 'Client'):
-            # Fall back to older Client class
-            sig = inspect.signature(anthropic.Client.__init__)
-            params = sig.parameters
-            
-            # Create a dict with only the parameters the constructor accepts
-            kwargs = {'api_key': api_key}
-            
-            # Remove 'proxies' if it would cause an error
-            if 'proxies' not in params:
-                # Create client without proxies parameter
-                return anthropic.Client(**kwargs)
-            else:
-                # Create client with proxies parameter if supported
-                return anthropic.Client(api_key=api_key)
+            # Create client with only the essential parameter (no proxies)
+            kwargs = {"api_key": api_key}
+            return anthropic.Client(**kwargs)
+        
+        # Last resort fallbacks
         else:
-            # Try to import directly if neither class is available as attribute
+            # Try to import classes directly
             try:
+                # Try newer class
                 from anthropic import Anthropic
                 return Anthropic(api_key=api_key)
-            except ImportError:
+            except (ImportError, AttributeError):
                 try:
+                    # Try older class
                     from anthropic import Client
                     return Client(api_key=api_key)
-                except ImportError:
-                    raise Exception("Could not find Anthropic or Client class")
+                except (ImportError, AttributeError):
+                    raise ImportError("Could not import Anthropic or Client class")
     except Exception as e:
-        raise Exception(f"Failed to create Anthropic client: {str(e)}") 
+        # Provide detailed error information
+        if "proxies" in str(e):
+            raise Exception(f"API client error: The Anthropic library version has a compatibility issue. Error: {str(e)}")
+        elif "auth" in str(e).lower() or "key" in str(e).lower() or "invalid" in str(e).lower():
+            raise Exception(f"API authentication failed: {str(e)}")
+        else:
+            raise Exception(f"Failed to create Anthropic client: {str(e)}") 

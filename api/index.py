@@ -35,13 +35,12 @@ else:
             response.headers.add('Access-Control-Max-Age', '3600')
             return response
         
-        # Call the original analyze_tokens function
+        # Get the data from the request
         try:
-            # Import necessary functions if they aren't already available
+            # Import necessary functions
             import base64
             from flask import jsonify, request
             
-            # Get the data from the request
             data = request.get_json()
             if not data:
                 return jsonify({"error": "No data provided"}), 400
@@ -52,22 +51,26 @@ else:
             
             if not content:
                 return jsonify({"error": "No content provided"}), 400
-            
-            # Simple word-based estimation (no API key required)
+                
+            # Simple word-based token estimation (no API key required)
+            # This is a rough estimation that will work across all environments
             word_count = len(content.split())
-            estimated_tokens = int(word_count * 1.3)
+            estimated_tokens = int(word_count * 1.3)  # Rough conversion from words to tokens
             
             # Calculate estimated cost (as of current pricing)
-            estimated_cost = (estimated_tokens / 1000000) * 3.0  # $3 per million tokens
+            # Claude 3.7 input cost is $3 per million tokens
+            estimated_cost = (estimated_tokens / 1000000) * 3.0
             
-            # Constant for Claude 3.7 context window
+            # Define total context window for Claude 3.7
             TOTAL_CONTEXT_WINDOW = 200000
             
+            # Return the estimated tokens and cost
             return jsonify({
                 'estimated_tokens': estimated_tokens,
                 'estimated_cost': round(estimated_cost, 6),
                 'max_safe_output_tokens': min(128000, TOTAL_CONTEXT_WINDOW - estimated_tokens - 5000)
             })
+            
         except Exception as e:
             import traceback
             traceback_str = traceback.format_exc()

@@ -1,2 +1,2 @@
-Last deployed: 2024-05-18
-Fixed: Anthropic API client proxies issue in helper_function.py 
+Last deployed: 2024-05-19
+Fixed: API key validation and proxies issues, updated Anthropic client to v0.33.0 

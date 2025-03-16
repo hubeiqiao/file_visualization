@@ -115,38 +115,66 @@ def process_file(file_path):
 def validate_key():
     api_key = request.json.get('api_key')
     
-    if not api_key:
+    if not api_key or not api_key.strip():
         return jsonify({'valid': False, 'message': 'API key is required'}), 400
+    
+    # Validate API key format (basic pattern check)
+    if not api_key.startswith(('sk-ant-', 'sk-')):
+        return jsonify({'valid': False, 'message': 'Invalid API key format. Key should start with sk-ant- or sk-'}), 400
     
     try:
         # Use our helper function to create a compatible client
         client = create_anthropic_client(api_key)
         
-        # Just check if we can access the models endpoint
+        # Try to make a minimal API call to verify the key
         try:
-            # Try the newer API style first
+            # Try different methods depending on what's available
             if hasattr(client, 'models') and hasattr(client.models, 'list'):
                 client.models.list()
             elif hasattr(client, 'get_models'):
-                # Fall back to older API style if needed
                 client.get_models()
             elif hasattr(client, 'count_tokens'):
-                # If neither models method is available, try count_tokens
                 client.count_tokens("Test message")
-            # If no methods work, we'll still assume the key is valid if client was created
+            # If none of these methods work, the constructor succeeded but we couldn't verify the key
+            # We'll assume it's valid since we can create a client
+                
+            return jsonify({'valid': True, 'message': 'API key is valid'})
                 
         except Exception as api_e:
-            # Only fail if this is an authentication error
-            if "auth" in str(api_e).lower() or "key" in str(api_e).lower() or "invalid" in str(api_e).lower():
-                return jsonify({'valid': False, 'message': f'API authentication failed: {str(api_e)}'}), 400
-                
-        return jsonify({'valid': True, 'message': 'API key is valid'})
+            error_str = str(api_e)
+            
+            # Check for specific authentication errors
+            if any(phrase in error_str.lower() for phrase in ['auth', 'key', 'invalid', '401', 'unauthorized']):
+                print(f"API authentication failed: {error_str}")
+                return jsonify({
+                    'valid': False, 
+                    'message': f'API authentication failed: {error_str}'
+                }), 400
+            else:
+                # For other errors, assume the key might be valid but there's an API issue
+                print(f"API call failed but key format is valid: {error_str}")
+                return jsonify({
+                    'valid': True,
+                    'message': 'API key format is valid, but API test call failed. The key may still work for generation.'
+                })
+    
     except Exception as e:
         import traceback
         error_traceback = traceback.format_exc()
-        error_msg = f"Invalid API key: {str(e)}"
-        print(f"API key validation error: {error_msg}\n{error_traceback}")
-        return jsonify({'valid': False, 'message': error_msg}), 400
+        error_str = str(e)
+        print(f"API key validation error: {error_str}\n{error_traceback}")
+        
+        # Check for specific error types and provide helpful messages
+        if "proxies" in error_str:
+            return jsonify({
+                'valid': False, 
+                'message': 'API client configuration error. Please try using a newer Anthropic API key format.'
+            }), 400
+        else:
+            return jsonify({
+                'valid': False, 
+                'message': f'Error validating API key: {error_str}'
+            }), 400
 
 @app.route('/api/process', methods=['POST'])
 def process_file():
