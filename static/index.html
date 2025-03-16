@@ -149,37 +149,35 @@
         }
     </style>
 </head>
-<body class="bg-white text-gray-900 min-h-screen flex flex-col transition-colors duration-200">
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col transition-colors duration-200">
     <!-- Header -->
-    <header class="header-gradient shadow-md">
-        <div class="container mx-auto px-4 py-10">
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg">
+        <div class="container mx-auto px-4 py-6">
             <div class="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left">
-                <h1 class="text-5xl font-bold text-white mb-4 flex items-center">
-                    <i class="fas fa-wand-magic-sparkles mr-4 animate-pulse-slow text-4xl"></i>
+                <h1 class="text-5xl font-bold text-white mb-4 flex items-center justify-center md:justify-start">
+                    <i class="fas fa-file-code text-yellow-300 mr-3"></i>
                     File Visualizer
                 </h1>
                 <div class="max-w-2xl md:text-right flex flex-col items-center md:items-end">
-                    <p class="text-blue-100 text-xl mb-3 whitespace-nowrap">
+                    <p class="text-blue-100 text-xl mb-3">
                         Transform your plain documents into stunning, interactive HTML visualizations
                     </p>
-                    <div class="bg-blue-800/50 rounded-lg p-3 mt-2 inline-flex items-center">
+                    <div class="bg-blue-700/50 rounded-lg p-3 mt-1 inline-flex items-center">
                         <div class="flex items-center text-white">
-                            <div class="mr-3 text-center relative">
+                            <div class="mr-2 text-center">
                                 <i class="fas fa-file-alt text-3xl text-gray-300"></i>
                                 <div class="text-xs mt-1">Plain Document</div>
-                                <div class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full opacity-75"></div>
                             </div>
                             <i class="fas fa-arrow-right mx-3 text-blue-300"></i>
                             <div class="mx-2 text-center relative">
-                                <i class="fas fa-magic text-2xl text-yellow-300 animate-pulse"></i>
-                                <div class="text-xs">Magic</div>
-                                <span class="absolute -top-1 -left-3 -right-3 h-8 bg-yellow-400/20 rounded-full blur-md"></span>
+                                <i class="fas fa-wand-magic-sparkles text-3xl text-yellow-300 animate-pulse"></i>
+                                <div class="absolute inset-0 rounded-full bg-blue-500/30 animate-ping" style="animation-duration: 3s;"></div>
+                                <div class="text-xs mt-1">Magic</div>
                             </div>
                             <i class="fas fa-arrow-right mx-3 text-blue-300"></i>
-                            <div class="ml-3 text-center relative">
+                            <div class="ml-2 text-center">
                                 <i class="fas fa-file-code text-3xl text-yellow-200"></i>
                                 <div class="text-xs mt-1">Interactive HTML</div>
-                                <div class="absolute -top-1 -left-1 w-4 h-4 bg-green-500 rounded-full opacity-75"></div>
                             </div>
                         </div>
                     </div>
@@ -189,10 +187,10 @@
     </header>
 
     <!-- Examples Section - Now before How to Use -->
-    <div class="bg-gradient-to-r from-primary-50 to-blue-50 py-12">
-        <div class="container mx-auto px-4">
-            <div class="bg-white rounded-lg shadow-lg p-8 mb-5">
-                <h2 class="text-3xl font-semibold mb-8 text-center">
+    <div class="bg-gradient-to-r from-primary-50 to-blue-50 py-14">
+        <div class="container mx-auto px-6">
+            <div class="bg-white rounded-lg shadow-lg p-10 mb-6">
+                <h2 class="text-3xl font-semibold mb-10 text-center">
                     <i class="fas fa-star text-primary-500 mr-2"></i>
                     See What's Possible
                 </h2>
@@ -234,129 +232,127 @@
         </div>
     </div>
 
-    <!-- Usage Instructions -->
-    <div class="bg-white py-12">
-        <div class="container mx-auto px-4">
-            <div class="bg-white rounded-lg shadow-lg p-8 mb-5">
-                <h2 class="text-3xl font-semibold mb-8 text-center">
-                    <i class="fas fa-info-circle text-primary-500 mr-2"></i>
-                    How to Use
-                </h2>
+    <!-- How to Use Section -->
+    <div class="bg-gray-50 py-14">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-semibold mb-12 text-center">
+                <i class="fas fa-book-open text-gray-700 mr-2"></i>
+                How to Use
+            </h2>
+            
+            <div class="step-container">
+                <!-- Step 1: API Key -->
+                <div class="step-card bg-purple-50 border border-purple-200">
+                    <div class="step-number bg-purple-500 text-white">1</div>
+                    <h3 class="text-xl font-medium mb-2 text-purple-700">Enter Your API Key</h3>
+                    <p class="text-gray-700 mb-2">
+                        This app is <strong>completely free</strong> to use, but requires an Anthropic API key.
+                    </p>
+                    <p class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 mb-2 font-medium">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                        <strong>Important:</strong> You'll only be charged by Anthropic for the API usage. Keep your API key confidential and never share it with others.
+                    </p>
+                    <div class="mt-auto">
+                        <details class="mt-2">
+                            <summary class="cursor-pointer text-purple-600 hover:underline">
+                                How to get an API key?
+                            </summary>
+                            <div class="pl-4 mt-2 text-sm">
+                                <ol class="list-decimal pl-4 space-y-1">
+                                    <li>Visit <a href="https://console.anthropic.com/" target="_blank" class="text-purple-600 hover:underline">Anthropic Console</a></li>
+                                    <li>Sign up or log in to your account</li>
+                                    <li>Navigate to "API Keys" section</li>
+                                    <li>Create a new API key (starts with "sk-ant-")</li>
+                                    <li>Copy the key (you'll only see it once!)</li>
+                                </ol>
+                            </div>
+                        </details>
+                    </div>
+                </div>
                 
-                <div class="step-container">
-                    <!-- Step 1: API Key -->
-                    <div class="step-card bg-primary-50 border border-primary-200">
-                        <div class="step-number bg-primary-500 text-white">1</div>
-                        <h3 class="text-lg font-medium mb-2 text-primary-700">Enter Your Anthropic API Key</h3>
-                        <p class="text-gray-700 mb-2">
-                            This app is <strong>completely free</strong> to use, but requires an Anthropic API key.
-                        </p>
-                        <p class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 mb-2 font-medium">
-                            <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
-                            <strong>Important:</strong> You'll only be charged by Anthropic for the API usage. Keep your API key confidential and never share it with others.
-                        </p>
-                        <div class="mt-auto">
-                            <details class="mt-2">
-                                <summary class="cursor-pointer text-primary-600 hover:underline">
-                                    How to get an API key?
-                                </summary>
-                                <div class="pl-4 mt-2 text-sm">
-                                    <ol class="list-decimal pl-4 space-y-1">
-                                        <li>Visit <a href="https://console.anthropic.com/" target="_blank" class="text-primary-600 hover:underline">Anthropic Console</a></li>
-                                        <li>Sign up or log in to your account</li>
-                                        <li>Navigate to "API Keys" section</li>
-                                        <li>Create a new API key (starts with "sk-ant-")</li>
-                                        <li>Copy the key (you'll only see it once!)</li>
-                                    </ol>
-                                </div>
-                            </details>
-                        </div>
+                <!-- Step 2: Upload content -->
+                <div class="step-card bg-blue-50 border border-blue-200">
+                    <div class="step-number bg-blue-500 text-white">2</div>
+                    <h3 class="text-xl font-medium mb-2 text-blue-700">Upload Your Content</h3>
+                    <p class="text-gray-700 mb-2">
+                        Upload a file or paste your text that you want to transform into a beautiful webpage.
+                    </p>
+                    <p class="text-gray-600 text-sm mb-2">
+                        Supported formats: PDF, DOCX, TXT, HTML, MD, CSV, JSON, and more.
+                    </p>
+                    <div class="mt-auto">
+                        <details class="mt-2">
+                            <summary class="cursor-pointer text-blue-600 hover:underline">
+                                Size limits and token calculation
+                            </summary>
+                            <div class="pl-4 mt-2 text-sm">
+                                <p>The application will automatically count the tokens in your content and estimate the input cost.</p>
+                                <ul class="list-disc pl-4 mt-1">
+                                    <li>Maximum input: 128K tokens (approx. 100 pages)</li>
+                                    <li>Cost: Approx. $3 per million input tokens</li>
+                                    <li>Typical generation: $0.20-$2.00 total</li>
+                                </ul>
+                            </div>
+                        </details>
                     </div>
-                    
-                    <!-- Step 2: Upload content -->
-                    <div class="step-card bg-blue-50 border border-blue-200">
-                        <div class="step-number bg-blue-500 text-white">2</div>
-                        <h3 class="text-lg font-medium mb-2 text-blue-700">Upload Your Content</h3>
-                        <p class="text-gray-700 mb-2">
-                            Upload a file or paste your text that you want to transform into a beautiful webpage.
-                        </p>
-                        <p class="text-gray-600 text-sm mb-2">
-                            Supported formats: PDF, DOCX, TXT, HTML, MD, CSV, JSON, and more.
-                        </p>
-                        <div class="mt-auto">
-                            <details class="mt-2">
-                                <summary class="cursor-pointer text-blue-600 hover:underline">
-                                    Size limits and token calculation
-                                </summary>
-                                <div class="pl-4 mt-2 text-sm">
-                                    <p>The application will automatically count the tokens in your content and estimate the input cost.</p>
-                                    <ul class="list-disc pl-4 mt-1">
-                                        <li>Maximum input: 128K tokens (approx. 100 pages)</li>
-                                        <li>Cost: Approx. $3 per million input tokens</li>
-                                        <li>Typical generation: $0.20-$2.00 total</li>
-                                    </ul>
-                                </div>
-                            </details>
-                        </div>
+                </div>
+                
+                <!-- Step 3: Customize -->
+                <div class="step-card bg-indigo-50 border border-indigo-200">
+                    <div class="step-number bg-indigo-500 text-white">3</div>
+                    <h3 class="text-xl font-medium mb-2 text-indigo-700">Customize Settings</h3>
+                    <p class="text-gray-700 mb-2">
+                        Add custom instructions like "Make it look professional" or "Use a dark theme with gold accents".
+                    </p>
+                    <div class="mt-auto">
+                        <details class="mt-2">
+                            <summary class="cursor-pointer text-indigo-600 hover:underline">
+                                Tips for customization
+                            </summary>
+                            <div class="pl-4 mt-2 text-sm">
+                                <p>In the "Additional Instructions" box:</p>
+                                <ul class="list-disc pl-4 mt-1">
+                                    <li>Request specific visual styles or layouts</li>
+                                    <li>Add links to images you want included</li>
+                                    <li>Suggest specific data visualizations</li>
+                                    <li>If not satisfied with the first result, add more specific requirements and regenerate</li>
+                                </ul>
+                            </div>
+                        </details>
                     </div>
-                    
-                    <!-- Step 3: Customize -->
-                    <div class="step-card bg-indigo-50 border border-indigo-200">
-                        <div class="step-number bg-indigo-500 text-white">3</div>
-                        <h3 class="text-lg font-medium mb-2 text-indigo-700">Customize Settings</h3>
-                        <p class="text-gray-700 mb-2">
-                            Add custom instructions like "Make it look professional" or "Use a dark theme with gold accents".
-                        </p>
-                        <div class="mt-auto">
-                            <details class="mt-2">
-                                <summary class="cursor-pointer text-indigo-600 hover:underline">
-                                    Tips for customization
-                                </summary>
-                                <div class="pl-4 mt-2 text-sm">
-                                    <p>In the "Additional Instructions" box:</p>
-                                    <ul class="list-disc pl-4 mt-1">
-                                        <li>Request specific visual styles or layouts</li>
-                                        <li>Add links to images you want included</li>
-                                        <li>Suggest specific data visualizations</li>
-                                        <li>If not satisfied with the first result, add more specific requirements and regenerate</li>
-                                    </ul>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-                    
-                    <!-- Step 4: Generate and Deploy -->
-                    <div class="step-card bg-green-50 border border-green-200">
-                        <div class="step-number bg-green-500 text-white">4</div>
-                        <h3 class="text-lg font-medium mb-2 text-green-700">Generate & Deploy</h3>
-                        <p class="text-gray-700 mb-2">
-                            Click "Generate" and wait while the magic happens on your document!
-                        </p>
-                        <p class="text-gray-600 text-sm mb-2">
-                            Generation takes 5-20 minutes depending on content size. <strong>Keep your internet connection stable during this process.</strong>
-                        </p>
-                        <div class="mt-auto">
-                            <details class="mt-2">
-                                <summary class="cursor-pointer text-green-600 hover:underline">
-                                    Deploying your HTML file
-                                </summary>
-                                <div class="pl-4 mt-2 text-sm">
-                                    <p>Once generated, you can:</p>
-                                    <ul class="list-disc pl-4 mt-1">
-                                        <li>Download the complete HTML file</li>
-                                        <li>Deploy it for free using:
-                                            <ul class="list-circle pl-4 mt-1">
-                                                <li><a href="https://github.io" target="_blank" class="text-green-600 hover:underline">GitHub Pages</a></li>
-                                                <li><a href="https://netlify.drop" target="_blank" class="text-green-600 hover:underline">Netlify Drop</a></li>
-                                                <li><a href="https://surge.sh" target="_blank" class="text-green-600 hover:underline">Surge.sh</a></li>
-                                                <li><a href="https://vercel.com" target="_blank" class="text-green-600 hover:underline">Vercel</a></li>
-                                            </ul>
-                                        </li>
-                                        <li>Share the link with anyone</li>
-                                    </ul>
-                                </div>
-                            </details>
-                        </div>
+                </div>
+                
+                <!-- Step 4: Generate and Deploy -->
+                <div class="step-card bg-green-50 border border-green-200">
+                    <div class="step-number bg-green-500 text-white">4</div>
+                    <h3 class="text-xl font-medium mb-2 text-green-700">Generate & Deploy</h3>
+                    <p class="text-gray-700 mb-2">
+                        Click "Generate" and watch as your document is transformed into beautiful HTML!
+                    </p>
+                    <p class="text-gray-600 text-sm mb-2">
+                        <i class="fas fa-wifi mr-1"></i> <strong>Important:</strong> Keep your internet connection stable during this process. Generation takes 5-20 minutes depending on content size.
+                    </p>
+                    <div class="mt-auto">
+                        <details class="mt-2">
+                            <summary class="cursor-pointer text-green-600 hover:underline">
+                                Deploying your HTML file
+                            </summary>
+                            <div class="pl-4 mt-2 text-sm">
+                                <p>Once generated, you can:</p>
+                                <ul class="list-disc pl-4 mt-1">
+                                    <li>Download the complete HTML file</li>
+                                    <li>Deploy it for free using:
+                                        <ul class="list-circle pl-4 mt-1">
+                                            <li><a href="https://github.io" target="_blank" class="text-green-600 hover:underline">GitHub Pages</a></li>
+                                            <li><a href="https://netlify.drop" target="_blank" class="text-green-600 hover:underline">Netlify Drop</a></li>
+                                            <li><a href="https://surge.sh" target="_blank" class="text-green-600 hover:underline">Surge.sh</a></li>
+                                            <li><a href="https://vercel.com" target="_blank" class="text-green-600 hover:underline">Vercel</a></li>
+                                        </ul>
+                                    </li>
+                                    <li>Share the link with anyone</li>
+                                </ul>
+                            </div>
+                        </details>
                     </div>
                 </div>
             </div>

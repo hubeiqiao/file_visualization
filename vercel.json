@@ -1,5 +1,12 @@
 {
   "version": 2,
+  "git": {
+    "deploymentEnabled": {
+      "production-ready": true,
+      "main": false,
+      "updated-ui": false
+    }
+  },
   "builds": [
     {
       "src": "api/index.py",
@@ -14,6 +21,11 @@
     {
       "src": "/static/(.*)",
       "dest": "/static/$1"
+    },
+    {
+      "src": "/api/analyze-tokens",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/api/index.py"
     },
     {
       "src": "/api/(.*)",
