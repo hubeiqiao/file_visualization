@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response, stream_with_context, send_from_directory
+from flask import Flask, request, jsonify, Response, stream_with_context, send_from_directory, send_file
 from flask_cors import CORS
 from helper_function import create_anthropic_client
 import anthropic
@@ -67,7 +67,7 @@ BACKOFF_FACTOR = 1.3  # Use 1.3 instead of 1.5 for more gradual increase
 
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    return send_file('index.html')
 
 @app.route('/<path:path>')
 def static_files(path):
