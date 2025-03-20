@@ -1,4 +1,4 @@
-# Claude 3.7 File Visualizer
+# Claude 3.7 File Visualizer (v0.2.0)
 
 A web application that uses Claude 3.7 to generate beautiful HTML visualizations from text files, PDFs, and Word documents.
 
@@ -9,6 +9,7 @@ A web application that uses Claude 3.7 to generate beautiful HTML visualizations
 - Live preview of the generated HTML
 - Copy HTML code or download as a file
 - Track token usage and cost
+- **New in v0.2.0**: Optimized for large content (100K+ tokens) with improved streaming
 
 ## Requirements
 
@@ -59,6 +60,20 @@ A web application that uses Claude 3.7 to generate beautiful HTML visualizations
 - **Backend**: Python, Flask
 - **Claude Settings**: Uses Claude 3.7 with thinking capabilities
 - **Libraries**: PyPDF2 for PDF processing, python-docx for Word documents
+- **Streaming**: Optimized incremental rendering for large outputs
+- **Memory Handling**: Efficient DOM updates to prevent browser crashes
+
+## Release Notes
+
+### v0.2.0 (March 2025)
+- Improved handling of large content (100K+ tokens)
+- Optimized streaming to prevent browser crashes
+- Reduced chunk sizes for better browser compatibility
+- Added incremental DOM updates for memory efficiency
+- More aggressive checkpointing for reliable recovery
+
+### v0.1.0 (March 2025)
+- Initial release
 
 ## Acknowledgments
 
