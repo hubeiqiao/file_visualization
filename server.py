@@ -77,6 +77,10 @@ def serve_app_js():
 def serve_error_handler():
     return send_from_directory('static', '529-handler.js')
 
+@app.route('/app.js')
+def serve_app_js():
+    return send_from_directory('static', 'app.js')
+
 @app.route('/<path:path>')
 def static_files(path):
     return send_from_directory('static', path)

@@ -11,6 +11,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/app.js",
+      "destination": "/static/app.js"
+    },
+    {
       "source": "/api/validate-key",
       "destination": "/api/validate-key.js"
     },
