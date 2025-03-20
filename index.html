@@ -483,76 +483,44 @@
                     </p>
                 </div>
 
-                <!-- Generation Parameters Section -->
-                <div id="advanced-options" class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg transition-all">
-                    <h3 class="text-lg font-semibold mb-4">Generation Options</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Temperature Control -->
-                        <div class="mb-4">
-                            <label for="temperature" class="block text-sm font-medium mb-1">
-                                <i class="fas fa-thermometer-half text-primary-600 mr-1"></i> Temperature: <span id="temperature-value">0.7</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <input type="range" id="temperature" name="temperature" min="0" max="1" step="0.1" value="0.7" 
-                                    class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                                <button id="reset-temp" class="text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
-                                    <i class="fas fa-undo"></i>
-                                </button>
+                <!-- Model Parameters -->
+                <div class="bg-white rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-sliders-h text-primary-500 mr-2"></i>Generation Settings
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Temperature -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="temperature" class="font-medium text-gray-900">Creativity Level: <span id="temperature-value" class="text-primary-600">1.0</span></label>
+                                <button id="temperature-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Controls creativity (0.0 = deterministic, 1.0 = more random)
-                            </p>
+                            <input type="range" id="temperature" min="0" max="1" step="0.1" value="1.0" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 mt-1">Lower values create more predictable, consistent results. Higher values allow more creativity and variation.</p>
                         </div>
                         
-                        <!-- Max Tokens Control -->
-                        <div class="mb-4">
-                            <label for="max-tokens" class="block text-sm font-medium mb-1">
-                                <i class="fas fa-expand-arrows-alt text-primary-600 mr-1"></i> Max Tokens: <span id="max-tokens-value">128000</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <input type="range" id="max-tokens" name="max-tokens" min="1000" max="128000" step="1000" value="128000" 
-                                    class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                                <button id="reset-max-tokens" class="text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
-                                    <i class="fas fa-undo"></i>
-                                </button>
+                        <!-- Max Tokens -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="max-tokens" class="font-medium text-gray-900">Output Length: <span id="max-tokens-value" class="text-primary-600">128000</span></label>
+                                <button id="max-tokens-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Maximum response length (128K is maximum supported by Claude 3.7)
-                            </p>
+                            <input type="range" id="max-tokens" min="1000" max="128000" step="1000" value="128000" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 mt-1">Controls how much content Claude can generate. Higher values allow for more extensive, detailed output.</p>
                         </div>
                         
-                        <!-- Thinking Budget Control -->
-                        <div class="mb-4">
-                            <label for="thinking-budget" class="block text-sm font-medium mb-1">
-                                <i class="fas fa-brain text-primary-600 mr-1"></i> Thinking Budget: <span id="thinking-budget-value">32000</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <input type="range" id="thinking-budget" name="thinking-budget" min="0" max="64000" step="1000" value="32000" 
-                                    class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                                <button id="reset-thinking-budget" class="text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
-                                    <i class="fas fa-undo"></i>
-                                </button>
+                        <!-- Thinking Budget -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="thinking-budget" class="font-medium text-gray-900">Thinking Depth: <span id="thinking-budget-value" class="text-primary-600">32000</span></label>
+                                <button id="thinking-budget-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Token budget for thinking (0 = disable thinking)
-                            </p>
-                        </div>
-                        
-                        <!-- Test Mode Switch -->
-                        <div class="mb-4">
-                            <label for="test-mode" class="flex items-center cursor-pointer">
-                                <div class="relative">
-                                    <input type="checkbox" id="test-mode" class="sr-only">
-                                    <div class="block bg-gray-300 dark:bg-gray-700 w-14 h-8 rounded-full"></div>
-                                    <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
-                                </div>
-                                <div class="ml-3">
-                                    <span class="text-sm font-medium">Test Mode</span>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                                        Generate test HTML with minimal API tokens
-                                    </p>
-                                </div>
-                            </label>
+                            <input type="range" id="thinking-budget" min="1024" max="128000" step="1024" value="32000" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 mt-1">Allocates how much "thinking" Claude can do before responding. Higher values allow deeper analysis of complex content.</p>
                         </div>
                     </div>
                 </div>
@@ -668,10 +636,9 @@
         </div>
     </footer>
 
-    <!-- Main Application JavaScript -->
-    <script src="/static/app.js"></script>
-    <!-- Special 529 Error Handler -->
-    <script src="/static/529-handler.js"></script>
+    <script src="app.js"></script>
+    <!-- Special handler for Anthropic 529 overloaded errors -->
+    <script src="static/529-handler.js"></script>
     <!-- Script to handle large HTML rendering and reconnection -->
     <script>
         // Store session data for reconnection
