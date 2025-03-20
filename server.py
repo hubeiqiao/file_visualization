@@ -69,6 +69,10 @@ BACKOFF_FACTOR = 1.3  # Use 1.3 instead of 1.5 for more gradual increase
 def index():
     return send_from_directory('static', 'index.html')
 
+@app.route('/app.js')
+def serve_app_js():
+    return send_from_directory('static', 'app.js')
+
 @app.route('/<path:path>')
 def static_files(path):
     return send_from_directory('static', path)
