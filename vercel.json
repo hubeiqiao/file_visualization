@@ -4,11 +4,11 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/static/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/(.*).html",
-      "destination": "/static/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/api/validate-key",
@@ -56,7 +56,7 @@
     },
     { 
       "source": "/(.*)",
-      "destination": "/static/index.html"
+      "destination": "/index.html"
     }
   ],
   "functions": {
