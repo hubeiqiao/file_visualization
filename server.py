@@ -1516,6 +1516,40 @@ def test_generate():
             "test_mode": True
         }), 200  # Return 200 for better client handling
 
+# Add the usage statistics API endpoint
+@app.route('/api/usage-stats', methods=['GET'])
+def get_usage_stats():
+    """
+    Returns the current usage statistics from the usage_stats.json file
+    """
+    try:
+        usage_file = "usage_stats.json"
+        if not os.path.exists(usage_file):
+            # If no stats file exists yet, return empty stats
+            return jsonify({
+                "total_tokens": 0,
+                "total_cost": 0.0,
+                "requests": [],
+                "env": "vercel" if os.environ.get("VERCEL") else "local"
+            })
+        
+        with open(usage_file, "r") as f:
+            stats = json.load(f)
+        
+        # Add environment info
+        stats["env"] = "vercel" if os.environ.get("VERCEL") else "local"
+        
+        return jsonify(stats)
+    except Exception as e:
+        app.logger.error(f"Error retrieving usage stats: {str(e)}")
+        return jsonify({
+            "error": f"Failed to retrieve usage statistics: {str(e)}",
+            "total_tokens": 0,
+            "total_cost": 0.0,
+            "requests": [],
+            "env": "vercel" if os.environ.get("VERCEL") else "local"
+        }), 500
+
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Start the File Visualizer server")

@@ -365,10 +365,41 @@ export default async function handler(req) {
                         // Final message completion
                         console.log('Message stop received');
                         
-                        // Send message complete event
-                        writeEvent('message_complete', {
-                          message: 'Content generation complete'
-                        });
+                        // Get actual usage from the API
+                        try {
+                          // Make a request to get the usage from the message ID
+                          const usageResponse = await fetch(`https://api.anthropic.com/v1/messages/${parsed.message.id}`, {
+                            method: 'GET',
+                            headers: {
+                              'x-api-key': apiKey,
+                              'anthropic-version': '2023-06-01'
+                            }
+                          });
+                          
+                          if (usageResponse.ok) {
+                            const usageData = await usageResponse.json();
+                            console.log('Got usage data from Anthropic API:', usageData.usage);
+                            
+                            // Send message complete event with actual usage
+                            writeEvent('message_complete', {
+                              message: 'Content generation complete',
+                              usage: {
+                                input_tokens: usageData.usage.input_tokens,
+                                output_tokens: usageData.usage.output_tokens,
+                                total_cost: (usageData.usage.input_tokens / 1000000) * 3.0 + 
+                                           (usageData.usage.output_tokens / 1000000) * 15.0
+                              }
+                            });
+                          } else {
+                            console.error('Failed to get usage data:', await usageResponse.text());
+                            // Fall back to estimation if API request fails
+                            estimateAndSendUsage();
+                          }
+                        } catch (usageErr) {
+                          console.error('Error getting usage data:', usageErr);
+                          // Fall back to estimation if API request fails
+                          estimateAndSendUsage();
+                        }
                         
                         // Mark as successful
                         success = true;
@@ -474,32 +505,38 @@ export default async function handler(req) {
             }
             
             // Calculate approximate token usage for analytics
-            const contentLength = content.length;
-            const outputLength = finalHtml.length;
-            // Rough token estimates based on character count (about 4 chars per token)
-            const inputTokens = Math.ceil(contentLength / 4);
-            const outputTokens = Math.ceil(outputLength / 4);
-            const totalCost = (inputTokens / 1000000) * 3.0 + (outputTokens / 1000000) * 15.0;
+            function estimateAndSendUsage() {
+              const contentLength = content.length;
+              const outputLength = htmlOutput.length;
+              // Rough token estimates based on character count (about 4 chars per token)
+              const inputTokens = Math.ceil(contentLength / 4);
+              const outputTokens = Math.ceil(outputLength / 4);
+              const totalCost = (inputTokens / 1000000) * 3.0 + (outputTokens / 1000000) * 15.0;
+              
+              // Include token usage in the event
+              const usage = {
+                input_tokens: inputTokens,
+                output_tokens: outputTokens,
+                total_cost: totalCost
+              };
+              
+              // Send message_complete event with usage statistics
+              writeEvent('message_complete', {
+                message: 'Content generation complete',
+                usage: usage
+              });
+              
+              console.log('Sent estimated usage stats:', usage);
+            }
             
-            // Include token usage in the event
-            const usage = {
-              input_tokens: inputTokens,
-              output_tokens: outputTokens,
-              total_cost: totalCost
-            };
+            // Use function defined above
+            estimateAndSendUsage();
             
             // Send complete content event with the full HTML
             writeEvent('content_complete', { 
               content: finalHtml,
               length: finalHtml.length,
-              chunks: chunkCount,
-              usage: usage
-            });
-            
-            // Send message_complete event with usage statistics
-            writeEvent('message_complete', {
-              message: 'Content generation complete',
-              usage: usage
+              chunks: chunkCount
             });
             
             console.log(`Content complete sent, length: ${finalHtml.length}`);
@@ -513,41 +550,25 @@ export default async function handler(req) {
   <title>Generated Visualization</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
-    h1 { color: #3b82f6; }
-    pre { background: #f5f5f5; padding: 1rem; border-radius: 0.5rem; overflow: auto; }
+    h1 { color: #dc2626; }
   </style>
 </head>
 <body>
-  <h1>Simple Content Visualization</h1>
-  <p>Generated at ${new Date().toISOString()}</p>
-  <h2>Your Content Preview:</h2>
-  <pre>${content.substring(0, 500)}${content.length > 500 ? '...' : ''}</pre>
+  <h1>Error Generating Visualization</h1>
+  <p>There was an error generating the visualization from the provided content.</p>
+  <p>Please try again or use a different API key.</p>
 </body>
 </html>`;
             
             // Calculate approximate token usage for analytics
-            const fallbackContentLength = content.length;
-            const fallbackOutputLength = fallbackHtml.length;
-            // Rough token estimates based on character count (about 4 chars per token)
-            const fallbackInputTokens = Math.ceil(fallbackContentLength / 4);
-            const fallbackOutputTokens = Math.ceil(fallbackOutputLength / 4);
-            const fallbackTotalCost = (fallbackInputTokens / 1000000) * 3.0 + (fallbackOutputTokens / 1000000) * 15.0;
+            estimateAndSendUsage();
             
-            // Include token usage in the event
-            const fallbackUsage = {
-              input_tokens: fallbackInputTokens,
-              output_tokens: fallbackOutputTokens,
-              total_cost: fallbackTotalCost
-            };
-            
+            // Send complete content event with the fallback HTML
             writeEvent('content_complete', { 
               content: fallbackHtml,
               length: fallbackHtml.length,
-              chunks: 0,
-              usage: fallbackUsage
+              chunks: chunkCount
             });
-            
-            console.log(`Fallback content sent, length: ${fallbackHtml.length}`);
           }
           
           // Complete the stream after sending all the data
@@ -568,7 +589,7 @@ export default async function handler(req) {
             error: `Stream processing error: ${error.message}` 
           });
           
-          // Even if there's an error, send a minimal HTML to the client
+          // Generate fallback HTML for error case
           const errorHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -577,40 +598,30 @@ export default async function handler(req) {
   <title>Error Visualization</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
-    h1 { color: #ef4444; }
-    pre { background: #f5f5f5; padding: 1rem; border-radius: 0.5rem; overflow: auto; }
+    h1 { color: #dc2626; }
+    .error { background: #fee2e2; padding: 1rem; border-radius: 0.5rem; }
   </style>
 </head>
 <body>
   <h1>Error Processing Request</h1>
-  <p>There was an error processing your request: ${error.message}</p>
-  <p>Generated at: ${new Date().toISOString()}</p>
-  <h2>Your Content Preview:</h2>
-  <pre>${content.substring(0, 500)}${content.length > 500 ? '...' : ''}</pre>
+  <div class="error">
+    <p>Error message: ${escape(error.message || 'Unknown error')}</p>
+  </div>
+  <p>Please try again or check your API key.</p>
 </body>
 </html>`;
-          
+
           // Calculate approximate token usage for analytics
-          const errorContentLength = content.length;
-          const errorOutputLength = errorHtml.length;
-          // Rough token estimates based on character count (about 4 chars per token)
-          const errorInputTokens = Math.ceil(errorContentLength / 4);
-          const errorOutputTokens = Math.ceil(errorOutputLength / 4);
-          const errorTotalCost = (errorInputTokens / 1000000) * 3.0 + (errorOutputTokens / 1000000) * 15.0;
+          estimateAndSendUsage();
           
-          // Include token usage in the event
-          const errorUsage = {
-            input_tokens: errorInputTokens,
-            output_tokens: errorOutputTokens,
-            total_cost: errorTotalCost
-          };
-          
+          // Send complete content event with the error HTML
           writeEvent('content_complete', { 
             content: errorHtml,
             length: errorHtml.length,
-            chunks: 0,
-            usage: errorUsage
+            error: true
           });
+          
+          safeEndStream();
         } finally {
           // Ensure timer is cleaned up
           if (keepaliveInterval) {
@@ -623,62 +634,49 @@ export default async function handler(req) {
             timestamp: Date.now() / 1000,
             success: success || false
           });
-          
-          // Safely close the controller
-          safeEndStream();
         }
-      } catch (e) {
-        console.error('Fatal error in handler:', e);
+      } catch (outerError) {
+        console.error('Fatal error in request handler:', outerError);
         
-        // Try to send a final error event
-        try {
-          writeEvent('error', { error: `Fatal error: ${e.message}` });
-          
-          // Send a minimal HTML even in case of fatal error
-          const fatalErrorHtml = `<!DOCTYPE html>
+        // Send error event
+        writeEvent('error', {
+          error: `Fatal error: ${outerError.message || 'Unknown error'}`,
+          stack: outerError.stack
+        });
+        
+        // Generate fatal error HTML
+        const fatalHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Error</title>
+  <title>Fatal Error</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
-    h1 { color: #ef4444; }
+    h1 { color: #dc2626; }
+    .error { background: #fee2e2; padding: 1rem; border-radius: 0.5rem; }
   </style>
 </head>
 <body>
   <h1>Fatal Error</h1>
-  <p>A fatal error occurred: ${e.message}</p>
-  <p>Generated at: ${new Date().toISOString()}</p>
+  <div class="error">
+    <p>A fatal error occurred while processing your request.</p>
+    <p>Error: ${escape(outerError.message || 'Unknown error')}</p>
+  </div>
+  <p>Please try again later.</p>
 </body>
 </html>`;
-          
-          // Calculate approximate token usage for analytics
-          const fatalContentLength = content ? content.length : 0;
-          const fatalOutputLength = fatalErrorHtml.length;
-          // Rough token estimates based on character count (about 4 chars per token)
-          const fatalInputTokens = Math.ceil(fatalContentLength / 4);
-          const fatalOutputTokens = Math.ceil(fatalOutputLength / 4);
-          const fatalTotalCost = (fatalInputTokens / 1000000) * 3.0 + (fatalOutputTokens / 1000000) * 15.0;
-          
-          // Include token usage in the event
-          const fatalUsage = {
-            input_tokens: fatalInputTokens,
-            output_tokens: fatalOutputTokens,
-            total_cost: fatalTotalCost
-          };
-          
-          writeEvent('content_complete', { 
-            content: fatalErrorHtml,
-            length: fatalErrorHtml.length,
-            chunks: 0,
-            usage: fatalUsage
-          });
-        } catch (_) {
-          console.error('Failed to send error event');
-        }
+
+        // Calculate approximate token usage for analytics
+        estimateAndSendUsage();
         
-        // Ensure the stream is closed properly
+        // Send complete content event with the fatal error HTML
+        writeEvent('content_complete', { 
+          content: fatalHtml,
+          length: fatalHtml.length,
+          fatal_error: true
+        });
+        
         safeEndStream();
       }
     }

@@ -27,6 +27,10 @@
       "dest": "/api/process-stream.js"
     },
     {
+      "src": "/api/usage-stats",
+      "dest": "/server.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.py"
     }
