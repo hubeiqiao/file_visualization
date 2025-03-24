@@ -264,6 +264,10 @@ export default async function handler(req) {
                 message: 'Connected to API, receiving response...'
               });
               
+              // Memory management variables
+              let htmlOutputChunks = []; // Store HTML chunks in array instead of a single string
+              const CHUNK_SIZE_THRESHOLD = 100000; // 100KB threshold for chunking large responses
+              
               // Process chunks in a try-catch block
               try {
                 // Process chunks
@@ -327,7 +331,17 @@ export default async function handler(req) {
                           parsed.delta && 
                           parsed.delta.type === 'text_delta') {
                         const textChunk = parsed.delta.text;
-                        htmlOutput += textChunk;
+                        
+                        // Instead of concatenating to a single string, store in chunks array
+                        htmlOutputChunks.push(textChunk);
+                        
+                        // Memory-optimized approach: only keep last N chunks in memory
+                        if (htmlOutputChunks.length > 1000) { // Keep last 1000 chunks max
+                          // Join and create a new chunk to maintain the overall content
+                          const combinedChunk = htmlOutputChunks.join('');
+                          htmlOutputChunks = [combinedChunk];
+                        }
+                        
                         chunkCount++;
                         
                         // Send chunk in content_block_delta format to match server.py
@@ -346,8 +360,9 @@ export default async function handler(req) {
                         });
                         
                         // Debug logging
-                        if (chunkCount % 10 === 0) {
-                          console.log(`Processed ${chunkCount} chunks, current length: ${htmlOutput.length}`);
+                        if (chunkCount % 50 === 0) {
+                          const totalLength = htmlOutputChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+                          console.log(`Processed ${chunkCount} chunks, current total length: ${totalLength}`);
                         }
                       } else if (parsed.type === 'thinking') {
                         // Pass thinking update to client
@@ -364,6 +379,10 @@ export default async function handler(req) {
                       } else if (parsed.type === 'message_stop') {
                         // Final message completion
                         console.log('Message stop received');
+                        
+                        // Combine chunks into final HTML only when needed
+                        htmlOutput = htmlOutputChunks.join('');
+                        htmlOutputChunks = []; // Clear chunks to free memory
                         
                         // Get actual usage from the API
                         try {
@@ -487,7 +506,7 @@ export default async function handler(req) {
             }
           }
           
-          // Process the HTML output before completing
+          // Process the HTML output before completing - breaking it into chunks for memory efficiency
           if (htmlOutput) {
             // Create a complete HTML document if it doesn't look like one already
             let finalHtml = htmlOutput;
@@ -534,14 +553,51 @@ export default async function handler(req) {
             // Use function defined above
             estimateAndSendUsage();
             
-            // Send complete content event with the full HTML
-            writeEvent('content_complete', { 
-              content: finalHtml,
-              length: finalHtml.length,
-              chunks: chunkCount
-            });
+            // For large HTML content, send it in chunks to avoid memory issues
+            const MAX_CHUNK_SIZE = 100000; // 100KB per chunk to avoid memory pressure
             
-            console.log(`Content complete sent, length: ${finalHtml.length}`);
+            if (finalHtml.length > MAX_CHUNK_SIZE) {
+              console.log(`Large HTML content detected (${finalHtml.length} bytes), splitting into chunks`);
+              
+              // First send a content_complete event with metadata but without the full content
+              writeEvent('content_complete', { 
+                length: finalHtml.length,
+                chunks: chunkCount,
+                chunked: true
+              });
+              
+              // Then send the content in chunks
+              for (let i = 0; i < finalHtml.length; i += MAX_CHUNK_SIZE) {
+                const chunk = finalHtml.substring(i, i + MAX_CHUNK_SIZE);
+                writeEvent('content_chunk', {
+                  chunk_index: Math.floor(i / MAX_CHUNK_SIZE),
+                  total_chunks: Math.ceil(finalHtml.length / MAX_CHUNK_SIZE),
+                  content: chunk,
+                  start_pos: i,
+                  end_pos: Math.min(i + MAX_CHUNK_SIZE, finalHtml.length)
+                });
+                
+                // Add a small delay between chunks to allow browser to process
+                await sleep(50); 
+              }
+              
+              // Signal end of chunked content
+              writeEvent('content_chunks_complete', {
+                total_chunks: Math.ceil(finalHtml.length / MAX_CHUNK_SIZE),
+                total_length: finalHtml.length
+              });
+              
+              console.log(`Sent HTML content in ${Math.ceil(finalHtml.length / MAX_CHUNK_SIZE)} chunks`);
+            } else {
+              // For smaller content, send it all at once as before
+              writeEvent('content_complete', { 
+                content: finalHtml,
+                length: finalHtml.length,
+                chunks: chunkCount
+              });
+              
+              console.log(`Content complete sent, length: ${finalHtml.length}`);
+            }
           } else {
             // Even if we don't have HTML output, generate a simple fallback
             const fallbackHtml = `<!DOCTYPE html>
@@ -684,7 +740,7 @@ export default async function handler(req) {
     }
   });
   
-  // Return the stream as the response
+  // Set response headers to prevent caching and enable streaming
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
@@ -692,7 +748,8 @@ export default async function handler(req) {
       'Connection': 'keep-alive',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'X-Accel-Buffering': 'no' // Disable proxy buffering
     }
   });
 }

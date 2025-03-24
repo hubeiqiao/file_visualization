@@ -1392,6 +1392,7 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
     }
 }
 
+// Update the updateHtmlPreview function to handle chunked content
 function updateHtmlPreview(html) {
     if (!html) return;
     
@@ -1460,13 +1461,54 @@ function updateHtmlPreview(html) {
             const iframe = document.getElementById('preview-iframe');
             if (iframe) {
                 try {
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    iframeDoc.open();
-                    iframeDoc.write(html);
-                    iframeDoc.close();
-                    console.log('Preview iframe updated successfully');
+                    // Use a more memory-efficient approach to update the iframe
+                    // First check if we need to initialize the iframe
+                    if (!iframe.hasAttribute('data-initialized')) {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        iframeDoc.open();
+                        iframeDoc.write(html);
+                        iframeDoc.close();
+                        iframe.setAttribute('data-initialized', 'true');
+                        console.log('Preview iframe initialized with content');
+                    } else {
+                        // For already initialized iframes, try to update only what's needed
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        
+                        // Parse the new HTML to get its parts
+                        const parser = new DOMParser();
+                        const parsedDoc = parser.parseFromString(html, 'text/html');
+                        
+                        // Replace just the body content instead of rewriting the entire document
+                        if (parsedDoc.body && iframeDoc.body) {
+                            // Clear existing body content
+                            iframeDoc.body.innerHTML = '';
+                            
+                            // Copy new body content
+                            Array.from(parsedDoc.body.childNodes).forEach(node => {
+                                iframeDoc.body.appendChild(iframeDoc.importNode(node, true));
+                            });
+                            
+                            console.log('Preview iframe body content updated');
+                        } else {
+                            // Fallback to full document replacement if needed
+                            iframeDoc.open();
+                            iframeDoc.write(html);
+                            iframeDoc.close();
+                            console.log('Preview iframe fully replaced with new content');
+                        }
+                    }
                 } catch (iframeError) {
                     console.error('Error updating iframe:', iframeError);
+                    
+                    // Fallback to direct replacement on error
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        iframeDoc.open();
+                        iframeDoc.write(html);
+                        iframeDoc.close();
+                    } catch (fallbackError) {
+                        console.error('Fallback iframe update also failed:', fallbackError);
+                    }
                 }
             } else {
                 console.error('Preview iframe element not found');
@@ -1475,6 +1517,583 @@ function updateHtmlPreview(html) {
     } catch (error) {
         console.error('Error updating HTML preview:', error);
         showToast('Error updating preview', 'error');
+    }
+}
+
+// Add a new function to handle chunked content streaming
+function processContentChunks() {
+    // Variables to store chunks state
+    let receivedChunks = {};
+    let totalChunks = 0;
+    let receivedLength = 0;
+    let totalLength = 0;
+    let isProcessingChunks = false;
+    let pendingChunks = [];
+    
+    // Return functions to handle chunks
+    return {
+        // Initialize chunked mode
+        initChunks: function(data) {
+            console.log('Initializing chunked content mode:', data);
+            receivedChunks = {};
+            totalChunks = data.total_chunks || 0;
+            totalLength = data.length || 0;
+            receivedLength = 0;
+            isProcessingChunks = true;
+            pendingChunks = [];
+            
+            // Update the processing status
+            setProcessingText(`Receiving chunked content (0/${totalChunks} chunks)`);
+            
+            return true;
+        },
+        
+        // Add a new chunk
+        addChunk: function(data) {
+            if (!isProcessingChunks) return false;
+            
+            // Add to pending chunks to process in order
+            pendingChunks.push(data);
+            
+            // Process chunks in order when possible
+            this.processNextChunk();
+            
+            return true;
+        },
+        
+        // Process next chunk from the queue
+        processNextChunk: function() {
+            if (pendingChunks.length === 0) return;
+            
+            // Look through pending chunks to find the next sequential one
+            const nextChunkIndex = Object.keys(receivedChunks).length;
+            const nextChunkPos = pendingChunks.findIndex(chunk => chunk.chunk_index === nextChunkIndex);
+            
+            if (nextChunkPos === -1) {
+                // Next sequential chunk not available yet
+                return;
+            }
+            
+            // Get and remove the chunk from pending
+            const data = pendingChunks.splice(nextChunkPos, 1)[0];
+            
+            // Store the chunk
+            receivedChunks[data.chunk_index] = data.content;
+            receivedLength += data.content.length;
+            
+            // Update processing status
+            const chunksReceived = Object.keys(receivedChunks).length;
+            setProcessingText(`Receiving chunked content (${chunksReceived}/${totalChunks} chunks - ${Math.round(receivedLength/totalLength*100)}%)`);
+            
+            // If we have all chunks, combine and finish
+            if (chunksReceived === totalChunks) {
+                console.log(`All ${totalChunks} chunks received, combining content...`);
+                this.completeChunks();
+            } else {
+                // Continue processing if more chunks are already in the queue
+                this.processNextChunk();
+            }
+        },
+        
+        // Complete the chunked content process
+        completeChunks: function() {
+            if (!isProcessingChunks) return;
+            
+            // Combine all chunks in the correct order
+            let finalHtml = '';
+            for (let i = 0; i < totalChunks; i++) {
+                if (receivedChunks[i]) {
+                    finalHtml += receivedChunks[i];
+                } else {
+                    console.error(`Missing chunk ${i} when completing chunks!`);
+                }
+            }
+            
+            console.log(`Combined ${totalChunks} chunks into final HTML of length ${finalHtml.length}`);
+            
+            // Set as the generated content
+            generatedContent = finalHtml;
+            state.generatedHtml = finalHtml;
+            
+            // Update the preview with the completed content
+            updateHtmlPreview(finalHtml);
+            updateHtmlDisplay();
+            
+            // Clean up
+            receivedChunks = {};
+            isProcessingChunks = false;
+            
+            return finalHtml;
+        },
+        
+        // Check if we're in chunked processing mode
+        isChunking: function() {
+            return isProcessingChunks;
+        }
+    };
+}
+
+// Create the content chunk processor
+const chunkProcessor = processContentChunks();
+
+// Add support for chunked content events in the stream processor
+async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, model, maxTokens, temperature, thinkingBudget) {
+    console.log("Starting HTML generation with streaming and reconnection support...");
+    
+    // Prepare state variables for streaming
+    let generatedContent = '';
+    let sessionId = '';
+    let reconnectAttempts = 0;
+    let lastKeepAliveTime = Date.now(); // Track last keepalive
+    const KEEPALIVE_TIMEOUT = 10000; // 10 seconds without keepalive would trigger reconnection
+    
+    // Add flags to track streaming state to prevent duplicate requests
+    let isGenerationCompleted = false;
+    let isCurrentlyReconnecting = false;
+    let activeStream = true; // Track if we have an active stream processing
+    
+    try {
+        // Show streaming status
+        setProcessingText('Connecting to Claude...');
+        
+        // Create a function to handle the streaming call
+        const processStreamChunk = async (isReconnect = false, lastChunkId = null) => {
+            // Prevent multiple concurrent reconnects
+            if (isCurrentlyReconnecting) {
+                console.log('Already reconnecting, ignoring duplicate request');
+                return;
+            }
+            
+            // Don't reconnect if generation is already completed
+            if (isGenerationCompleted) {
+                console.log('Generation already completed, ignoring reconnect request');
+                return;
+            }
+            
+            // Set the reconnecting flag to prevent concurrent reconnects
+            if (isReconnect) {
+                isCurrentlyReconnecting = true;
+            }
+            
+            console.log(`${isReconnect ? 'Reconnecting' : 'Starting'} stream${sessionId ? ' with session ID: ' + sessionId : ''}...`);
+            
+            // Display reconnection status if applicable
+            if (isReconnect) {
+                setProcessingText(`Reconnecting to continue generation... (attempt ${reconnectAttempts})`);
+            }
+            
+            // Create the request body
+            const requestBody = {
+                api_key: apiKey,
+                source: source,
+                format_prompt: formatPrompt,
+                model: model,
+                max_tokens: maxTokens,
+                temperature: temperature,
+                thinking_budget: thinkingBudget
+            };
+            
+            // Add file information for file uploads
+            if (state.activeTab === 'file' && state.file) {
+                console.log(`Adding file upload info: ${state.fileName} (${formatFileSize(state.file.size)})`);
+                requestBody.file_name = state.fileName;
+                requestBody.file_content = state.fileContent; // Use stored file content directly
+                
+                // Ensure file content is included in the source parameter too for compatibility
+                if (!requestBody.source || requestBody.source.trim() === '') {
+                    console.log('Setting source parameter to file content for compatibility');
+                    requestBody.source = state.fileContent;
+                }
+            }
+            
+            // Add session information for reconnections
+            if (sessionId) {
+                requestBody.session_id = sessionId;
+                requestBody.is_reconnect = true;
+                
+                if (lastChunkId) {
+                    requestBody.last_chunk_id = lastChunkId;
+                }
+            }
+            
+            try {
+                // Start the streaming request
+                console.log('Making fetch request to', `${API_URL}/api/process-stream`);
+                const response = await fetch(`${API_URL}/api/process-stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    
+                    // Special handling for timeout errors that might contain session information
+                    if ((response.status === 504 || response.status === 500) && 
+                        (errorText.includes('FUNCTION_INVOCATION_TIMEOUT') || errorText.includes('timed out'))) {
+                        console.log('Vercel timeout detected, will attempt reconnection');
+                        
+                        // Extract session ID if present in the error message
+                        const sessionMatch = errorText.match(/cle\d+::[a-z0-9]+-\d+-[a-z0-9]+/);
+                        if (sessionMatch && !sessionId) {
+                            sessionId = sessionMatch[0];
+                            console.log('Extracted session ID:', sessionId);
+                        }
+                        
+                        // Increment reconnect attempts and try again
+                        reconnectAttempts++;
+                        if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS && !isGenerationCompleted) {
+                            isCurrentlyReconnecting = false; // Reset reconnection flag
+                            await new Promise(resolve => setTimeout(resolve, RECONNECT_DELAY));
+                            return await processStreamChunk(true);
+                        } else {
+                            isCurrentlyReconnecting = false;
+                            throw new Error('Maximum reconnection attempts reached. Please try again later.');
+                        }
+                    }
+                    
+                    isCurrentlyReconnecting = false;
+                    throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
+                }
+                
+                // Reset reconnect attempts on successful connection
+                reconnectAttempts = 0;
+                isCurrentlyReconnecting = false;
+                
+                // Get a reader for the stream
+                const reader = response.body.getReader();
+                let decoder = new TextDecoder();
+                
+                // Setup keepalive monitoring
+                let isStreamActive = true;
+                let keepaliveMonitor = setInterval(() => {
+                    const now = Date.now();
+                    if (now - lastKeepAliveTime > KEEPALIVE_TIMEOUT && isStreamActive && activeStream && !isGenerationCompleted) {
+                        console.warn('No keepalive received for', (now - lastKeepAliveTime) / 1000, 'seconds. Reconnecting...');
+                        clearInterval(keepaliveMonitor);
+                        isStreamActive = false;
+                        
+                        // Force reader to stop
+                        reader.cancel('No keepalive received');
+                        
+                        // Only try to reconnect if we haven't completed
+                        if (!isGenerationCompleted) {
+                            reconnectAttempts++;
+                            if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
+                                processStreamChunk(true, lastChunkId).catch(console.error);
+                            } else {
+                                console.error('Max reconnect attempts reached after keepalive timeout');
+                                showToast('Connection lost. Please try again.', 'error');
+                                resetGenerationUI(false);
+                            }
+                        }
+                    }
+                }, 1000);
+                
+                // Process the stream
+                try {
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        
+                        if (done) {
+                            console.log('Stream complete');
+                            clearInterval(keepaliveMonitor);
+                            break;
+                        }
+                        
+                        // Decode the chunk
+                        const chunk = decoder.decode(value, { stream: true });
+                        console.log('Received chunk:', chunk.substring(0, 50) + '...');
+                        
+                        // Process the chunk - look for data: lines
+                        const lines = chunk.split('\n');
+                        
+                        for (const line of lines) {
+                            // Skip empty lines
+                            if (!line.trim()) continue;
+                            
+                            // Handle SSE format (data: {...})
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.substring(6));
+                                    
+                                    // Update the keepalive time for keepalive events
+                                    if (line.includes('event: keepalive')) {
+                                        lastKeepAliveTime = Date.now();
+                                        console.log('Received keepalive at', new Date().toISOString());
+                                        continue;
+                                    }
+                                    
+                                    // Handle thinking updates
+                                    if (data.type === 'thinking_update') {
+                                        if (data.thinking && data.thinking.content) {
+                                            setProcessingText(`Claude is thinking: ${data.thinking.content.substring(0, 100)}...`);
+                                        }
+                                        lastKeepAliveTime = Date.now(); // Count these as keepalives too
+                                        continue;
+                                    }
+                                    
+                                    // Handle new local streaming format (type: delta)
+                                    if (data.type === 'delta' && data.content) {
+                                        generatedContent += data.content;
+                                        updateHtmlPreview(generatedContent);
+                                        lastKeepAliveTime = Date.now(); // Count content as keepalive
+                                        continue;
+                                    }
+                                    
+                                    // Handle content block deltas (the actual generated text) - Vercel format
+                                    if (data.type === 'content_block_delta' && data.delta && data.delta.text) {
+                                        generatedContent += data.delta.text;
+                                        updateHtmlPreview(generatedContent);
+                                        lastKeepAliveTime = Date.now(); // Count content as keepalive
+                                        continue;
+                                    }
+                                    
+                                    // Handle chunked content from the server (new format for large responses)
+                                    if (data.type === 'content_complete' && data.chunked === true) {
+                                        console.log('Chunked content mode detected:', data);
+                                        chunkProcessor.initChunks(data);
+                                        lastKeepAliveTime = Date.now();
+                                        continue;
+                                    }
+                                    
+                                    // Handle content chunks
+                                    if (data.type === 'content_chunk') {
+                                        console.log(`Received content chunk ${data.chunk_index}/${data.total_chunks}`);
+                                        chunkProcessor.addChunk(data);
+                                        lastKeepAliveTime = Date.now();
+                                        continue;
+                                    }
+                                    
+                                    // Handle end of chunked content
+                                    if (data.type === 'content_chunks_complete') {
+                                        console.log('All content chunks received:', data);
+                                        const fullContent = chunkProcessor.completeChunks();
+                                        if (fullContent) {
+                                            generatedContent = fullContent;
+                                            state.generatedHtml = fullContent;
+                                        }
+                                        lastKeepAliveTime = Date.now();
+                                        continue;
+                                    }
+                                    
+                                    // Handle content_complete event which should include usage statistics
+                                    if (data.type === 'content_complete' && !data.chunked) {
+                                        console.log('Content complete event received');
+                                        
+                                        // Store the content but don't stop the timer yet
+                                        if (data.content) {
+                                            console.log(`HTML content received in content_complete (length: ${data.content.length})`);
+                                            generatedContent = data.content;
+                                            state.generatedHtml = data.content;
+                                            updateHtmlPreview(data.content);
+                                        }
+                                        
+                                        // Update usage statistics if available, but don't stop the timer
+                                        if (data.usage) {
+                                            console.log('Updating token stats from content_complete event:', data.usage);
+                                            updateTokenStats(data.usage);
+                                            
+                                            // Calculate cost if available
+                                            const totalCost = data.usage.total_cost || 
+                                                ((data.usage.input_tokens / 1000000) * 3.0 + 
+                                                 (data.usage.output_tokens / 1000000) * 15.0);
+                                            elements.totalCost.textContent = formatCostDisplay(totalCost);
+                                            
+                                            // Update storage with new usage stats
+                                            try {
+                                                // Get existing stats
+                                                const existingStats = JSON.parse(localStorage.getItem('fileVisualizerStats') || '{"totalRuns":0,"totalTokens":0,"totalCost":0}');
+                                                
+                                                // Update stats
+                                                existingStats.totalRuns = (existingStats.totalRuns || 0) + 1;
+                                                existingStats.totalTokens = (existingStats.totalTokens || 0) + 
+                                                    (data.usage.input_tokens + data.usage.output_tokens);
+                                                existingStats.totalCost = (existingStats.totalCost || 0) + totalCost;
+                                                
+                                                // Save updated stats
+                                                localStorage.setItem('fileVisualizerStats', JSON.stringify(existingStats));
+                                                
+                                                // Update UI if stats container exists
+                                                if (document.getElementById('total-runs')) {
+                                                    document.getElementById('total-runs').textContent = existingStats.totalRuns.toLocaleString();
+                                                }
+                                                if (document.getElementById('total-tokens')) {
+                                                    document.getElementById('total-tokens').textContent = existingStats.totalTokens.toLocaleString();
+                                                }
+                                                if (document.getElementById('total-cost')) {
+                                                    document.getElementById('total-cost').textContent = formatCostDisplay(existingStats.totalCost);
+                                                }
+                                            } catch (e) {
+                                                console.error('Error updating usage statistics:', e);
+                                            }
+                                        }
+                                        
+                                        // Do not mark as complete yet - wait for message_complete
+                                        lastKeepAliveTime = Date.now();
+                                        continue;
+                                    }
+                                    
+                                    // Save chunk ID for potential reconnection
+                                    if (data.chunk_id) {
+                                        lastChunkId = data.chunk_id;
+                                    }
+                                    
+                                    // Check for the local message_complete
+                                    if (data.type === 'end') {
+                                        console.log('End message received from local server');
+                                        // Store the generated HTML for later use
+                                        state.generatedHtml = generatedContent;
+                                        generatedHtml = generatedContent; // Update global variable too
+                                        
+                                        // Mark generation as completed to prevent further reconnects
+                                        isGenerationCompleted = true;
+                                        activeStream = false;
+                                        
+                                        // Final UI update
+                                        updateHtmlDisplay();
+                                        stopElapsedTimeCounter(); // Only stop the timer when the generation is actually complete
+                                        clearInterval(keepaliveMonitor);
+                                    }
+                                    
+                                    // Handle message complete from Vercel
+                                    if (data.type === 'message_complete') {
+                                        console.log('Processing usage stats from message_complete:', JSON.stringify(data.usage));
+                                        
+                                        // Mark generation as completed to prevent further reconnects
+                                        isGenerationCompleted = true;
+                                        activeStream = false;
+                                        
+                                        // If html is provided directly, use it
+                                        if (data.html) {
+                                            console.log(`HTML content received in message_complete (length: ${data.html.length})`);
+                                            generatedContent = data.html;
+                                        }
+                                        
+                                        // If we're in chunked mode, wait for chunks to complete
+                                        if (!chunkProcessor.isChunking()) {
+                                            // Ensure we store the generated HTML
+                                            state.generatedHtml = generatedContent;
+                                            generatedHtml = generatedContent; // Update global variable too
+                                            
+                                            // Final UI update
+                                            updateHtmlPreview(generatedContent);
+                                            updateHtmlDisplay();
+                                        }
+                                        
+                                        // Stop the timer now that the message is complete
+                                        stopElapsedTimeCounter();
+                                        clearInterval(keepaliveMonitor);
+                                        
+                                        // Update usage statistics
+                                        if (data.usage) {
+                                            updateTokenStats(data.usage);
+                                            
+                                            // Show time if available
+                                            if (data.usage.time_elapsed) {
+                                                elements.elapsedTime.textContent = formatTime(data.usage.time_elapsed);
+                                            }
+                                        } else {
+                                            console.warn('message_complete event received but no usage data found:', JSON.stringify(data));
+                                        }
+                                    }
+                                    
+                                    // Handle stream_end event
+                                    if (data.type === 'stream_end' || line.includes('event: stream_end')) {
+                                        console.log('Stream end event received');
+                                        isGenerationCompleted = true;
+                                        activeStream = false;
+                                    }
+                                    
+                                    // Handle html field if present separately
+                                    if (data.html && data.type !== 'message_complete') {
+                                        console.log(`HTML content received directly (length: ${data.html.length})`);
+                                        generatedContent = data.html;
+                                        state.generatedHtml = data.html;
+                                        updateHtmlPreview(generatedContent);
+                                        lastKeepAliveTime = Date.now(); // Count content as keepalive
+                                    }
+                                } catch (e) {
+                                    console.warn('Error parsing data line:', e, line);
+                                }
+                            }
+                        }
+                    }
+                } catch (streamError) {
+                    console.error('Error in stream processing:', streamError);
+                    clearInterval(keepaliveMonitor);
+                    
+                    // If the stream was deliberately cancelled for reconnection,
+                    // don't throw the error (the reconnection logic will handle it)
+                    if (streamError.message === 'No keepalive received') {
+                        return;
+                    }
+                    
+                    // For other errors, check if we need to reconnect
+                    if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS && !isGenerationCompleted) {
+                        reconnectAttempts++;
+                        await new Promise(resolve => setTimeout(resolve, RECONNECT_DELAY));
+                        return await processStreamChunk(true, lastChunkId);
+                    } else {
+                        throw streamError;
+                    }
+                }
+                
+                // Set the active stream flag to false when we're done processing
+                activeStream = false;
+                
+                // If we got here, the stream completed successfully
+                // Make sure to update the state's generatedHtml property
+                if (!isGenerationCompleted) {
+                    state.generatedHtml = generatedContent;
+                    isGenerationCompleted = true;
+                    
+                    // Update the HTML display and preview with the final content
+                    updateHtmlDisplay();
+                    updatePreview();
+                    
+                    // Show the results section
+                    showResultSection();
+                    
+                    // Complete the generation process
+                    stopProcessingAnimation();
+                    resetGenerationUI(true);
+                    showToast('Website generation complete!', 'success');
+                }
+                
+            } catch (error) {
+                // Reset the reconnecting flag
+                isCurrentlyReconnecting = false;
+                
+                // Check if this is a timeout error that we can recover from
+                if ((error.message.includes('FUNCTION_INVOCATION_TIMEOUT') || 
+                    error.message.includes('timed out') ||
+                    error.message.includes('Error: 504')) && 
+                    reconnectAttempts <= MAX_RECONNECT_ATTEMPTS && 
+                    !isGenerationCompleted) {
+                    console.log('Reconnecting due to timeout...');
+                    reconnectAttempts++;
+                    await new Promise(resolve => setTimeout(resolve, RECONNECT_DELAY));
+                    return await processStreamChunk(true, lastChunkId);
+                }
+                
+                // Otherwise, propagate the error
+                throw error;
+            }
+        };
+        
+        // Start the streaming process
+        activeStream = true;
+        await processStreamChunk();
+        
+    } catch (error) {
+        console.error('Error in generateHTMLStreamWithReconnection:', error);
+        showToast(`Error: ${error.message}`, 'error');
+        stopProcessingAnimation();
+        resetGenerationUI(false);
+        throw error; // Propagate the error
     }
 }
 
