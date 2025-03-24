@@ -899,6 +899,7 @@ function updateGenerateButtonState() {
 // Generate Website
 async function generateWebsite() {
     if (state.processing) {
+        console.log("Already processing, ignoring duplicate request");
         return;
     }
     
@@ -918,7 +919,7 @@ async function generateWebsite() {
         // Show the processing animation
         startProcessingAnimation();
         
-        // Start timing the generation
+        // Start timing the generation - ensure this is called before API requests
         startElapsedTimeCounter();
         
         // Get the text content
@@ -948,18 +949,14 @@ async function generateWebsite() {
         
         // Clear previous content and start animation
         updateHtmlDisplay();
-        elements.previewIframe.srcdoc = '';
+        if (elements.previewIframe) {
+            elements.previewIframe.srcdoc = '';
+        }
         
         // Reset output stats
         resetTokenStats();
         
-        // Start elapsed time counter
-        startElapsedTimeCounter();
-        
-        // Show processing animation
-        startProcessingAnimation();
-        
-        // Use regular generation with streaming
+        // Use regular generation with streaming - pass current requestId
         await generateHTMLStreamWithReconnection(
             apiKey, content, formatPrompt, 
             'claude-3-7-sonnet-20240307', maxTokens, 
@@ -976,13 +973,18 @@ async function generateWebsite() {
         console.error('Generation error:', error);
         showToast(`Error: ${error.message}`, 'error');
         resetGenerationUI();
+        stopElapsedTimeCounter(); // Make sure we stop the timer on error
+    } finally {
+        // Clean up state even if there were errors
+        state.processing = false;
     }
 }
 
+// Fix the reconnection logic to prevent multiple requests
 async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, model, maxTokens, temperature, thinkingBudget, requestId) {
     console.log(`Starting HTML generation with streaming and reconnection support (request ID: ${requestId})...`);
     
-    // Verify this is still the active request
+    // Verify this is still the active request - abort early if not
     if (activeRequestId !== requestId) {
         console.log(`Request ${requestId} is no longer active, new active request is ${activeRequestId}`);
         return;
@@ -994,11 +996,14 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
     let reconnectAttempts = 0;
     let lastKeepAliveTime = Date.now(); // Track last keepalive
     const KEEPALIVE_TIMEOUT = 10000; // 10 seconds without keepalive would trigger reconnection
+    const MAX_RECONNECT_ATTEMPTS = 3; // Limit reconnect attempts
+    const RECONNECT_DELAY = 2000; // Wait 2 seconds between reconnects
     
     // Add flags to track streaming state to prevent duplicate requests
     let isGenerationCompleted = false;
     let isCurrentlyReconnecting = false;
     let activeStream = true; // Track if we have an active stream processing
+    let isStreamingError = false; // Track if we've encountered an error that needs recovery
     
     try {
         // Show streaming status
@@ -1071,12 +1076,26 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                 }
             }
             
+            let abortController = null;
+            
             try {
                 // If this isn't the active request anymore, abort
                 if (activeRequestId !== requestId) {
                     console.log(`Request ${requestId} is no longer active before fetch, aborting`);
                     return;
                 }
+                
+                // Create abort controller for this request
+                abortController = new AbortController();
+                const signal = abortController.signal;
+                
+                // Add timeout for fetching - 30 seconds
+                const timeout = setTimeout(() => {
+                    console.log(`Request timeout after 30 seconds`);
+                    if (abortController) {
+                        abortController.abort('Timeout');
+                    }
+                }, 30000);
                 
                 // Start the streaming request
                 console.log('Making fetch request to', `${API_URL}/api/process-stream`);
@@ -1085,8 +1104,12 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify(requestBody),
+                    signal: signal
                 });
+                
+                // Clear timeout since request was successful
+                clearTimeout(timeout);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -1105,7 +1128,9 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                         
                         // Increment reconnect attempts and try again
                         reconnectAttempts++;
-                        if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS && !isGenerationCompleted && activeRequestId === requestId) {
+                        if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS && 
+                            !isGenerationCompleted && 
+                            activeRequestId === requestId) {
                             isCurrentlyReconnecting = false; // Reset reconnection flag
                             await new Promise(resolve => setTimeout(resolve, RECONNECT_DELAY));
                             return await processStreamChunk(true);
@@ -1113,6 +1138,14 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                             isCurrentlyReconnecting = false;
                             throw new Error('Maximum reconnection attempts reached. Please try again later.');
                         }
+                    }
+                    
+                    // Check for duplicate request detection from server
+                    if (errorText.includes('Duplicate request')) {
+                        console.log('Server detected duplicate request, stopping');
+                        isCurrentlyReconnecting = false;
+                        // Don't throw error, just stop processing this request
+                        return;
                     }
                     
                     isCurrentlyReconnecting = false;
@@ -1123,6 +1156,9 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                 reconnectAttempts = 0;
                 isCurrentlyReconnecting = false;
                 
+                // Reset streaming error flag
+                isStreamingError = false;
+                
                 // Get a reader for the stream
                 const reader = response.body.getReader();
                 let decoder = new TextDecoder();
@@ -1131,7 +1167,11 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                 let isStreamActive = true;
                 let keepaliveMonitor = setInterval(() => {
                     const now = Date.now();
-                    if (now - lastKeepAliveTime > KEEPALIVE_TIMEOUT && isStreamActive && activeStream && !isGenerationCompleted && activeRequestId === requestId) {
+                    if (now - lastKeepAliveTime > KEEPALIVE_TIMEOUT && 
+                        isStreamActive && 
+                        activeStream && 
+                        !isGenerationCompleted && 
+                        activeRequestId === requestId) {
                         console.warn('No keepalive received for', (now - lastKeepAliveTime) / 1000, 'seconds. Reconnecting...');
                         clearInterval(keepaliveMonitor);
                         isStreamActive = false;
@@ -1141,6 +1181,7 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                         
                         // Only try to reconnect if we haven't completed
                         if (!isGenerationCompleted && activeRequestId === requestId) {
+                            // Check we haven't hit max attempts
                             reconnectAttempts++;
                             if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
                                 processStreamChunk(true, lastChunkId).catch(console.error);
@@ -1148,6 +1189,7 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                                 console.error('Max reconnect attempts reached after keepalive timeout');
                                 showToast('Connection lost. Please try again.', 'error');
                                 resetGenerationUI(false);
+                                stopElapsedTimeCounter();
                             }
                         }
                     }
@@ -1220,7 +1262,7 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                                         continue;
                                     }
                                     
-                                    // Handle chunked content from the server (new format for large responses)
+                                    // Handle chunked content from the server (for large responses)
                                     if (data.type === 'content_complete' && data.chunked === true) {
                                         console.log('Chunked content mode detected:', data);
                                         chunkProcessor.initChunks(data);
@@ -1290,7 +1332,7 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                                         // Final UI update
                                         updateHtmlDisplay();
                                         
-                                        // Only now stop the timer - FIX: moved from earlier to ensure timer runs until complete
+                                        // Only now stop the timer - ensures timer runs until complete
                                         stopElapsedTimeCounter();
                                         clearInterval(keepaliveMonitor);
                                     }
@@ -1320,7 +1362,7 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                                             updateHtmlDisplay();
                                         }
                                         
-                                        // FIX: Moved stopElapsedTimeCounter() here to ensure timer runs until message_complete
+                                        // CRITICAL FIX: Only stop the timer after message_complete
                                         stopElapsedTimeCounter();
                                         clearInterval(keepaliveMonitor);
                                         
@@ -1353,8 +1395,16 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                                         updateHtmlPreview(generatedContent);
                                         lastKeepAliveTime = Date.now(); // Count content as keepalive
                                     }
+                                    
+                                    // Handle errors from the server
+                                    if (data.error) {
+                                        console.error('Server error:', data.error);
+                                        isStreamingError = true;
+                                        throw new Error(`Server error: ${data.error}`);
+                                    }
                                 } catch (e) {
                                     console.warn('Error parsing data line:', e, line);
+                                    // Don't set error flag for parse errors - these are often just partial chunks
                                 }
                             }
                         }
@@ -1365,15 +1415,27 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                     
                     // If the stream was deliberately cancelled for reconnection,
                     // don't throw the error (the reconnection logic will handle it)
-                    if (streamError.message === 'No keepalive received' || streamError.message === 'Request superseded') {
+                    if (streamError.message === 'No keepalive received' || 
+                        streamError.message === 'Request superseded' ||
+                        streamError.message === 'Timeout') {
+                        // Set flag for reconnection
+                        isStreamingError = true;
                         return;
                     }
                     
                     // For other errors, check if we need to reconnect
-                    if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS && !isGenerationCompleted && activeRequestId === requestId) {
+                    if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS && 
+                        !isGenerationCompleted && 
+                        activeRequestId === requestId && 
+                        !isStreamingError) {
+                        // Mark as error for reconnection
+                        isStreamingError = true;
                         reconnectAttempts++;
                         await new Promise(resolve => setTimeout(resolve, RECONNECT_DELAY));
                         return await processStreamChunk(true, lastChunkId);
+                    } else if (isStreamingError) {
+                        // Avoid duplicate reconnection for same error
+                        return;
                     } else {
                         throw streamError;
                     }
@@ -1400,7 +1462,7 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                     resetGenerationUI(true);
                     showToast('Website generation complete!', 'success');
                     
-                    // Only stop the timer now - final fix to ensure timer runs until complete
+                    // Only stop the timer at the very end, after all processing completes
                     stopElapsedTimeCounter();
                 }
                 
@@ -1408,10 +1470,14 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                 // Reset the reconnecting flag
                 isCurrentlyReconnecting = false;
                 
+                // Mark as error for potential reconnection
+                isStreamingError = true;
+                
                 // Check if this is a timeout error that we can recover from
                 if ((error.message.includes('FUNCTION_INVOCATION_TIMEOUT') || 
                     error.message.includes('timed out') ||
-                    error.message.includes('Error: 504')) && 
+                    error.message.includes('Error: 504') ||
+                    error.message.includes('Timeout')) && 
                     reconnectAttempts <= MAX_RECONNECT_ATTEMPTS && 
                     !isGenerationCompleted && 
                     activeRequestId === requestId) {
@@ -1428,17 +1494,22 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
         
         // Start the streaming process
         activeStream = true;
+        isStreamingError = false;
         await processStreamChunk();
         
     } catch (error) {
         console.error('Error in generateHTMLStreamWithReconnection:', error);
         showToast(`Error: ${error.message}`, 'error');
         stopProcessingAnimation();
+        resetGenerationUI(false);
         
         // Make sure to stop the timer in case of error
         stopElapsedTimeCounter();
         
         throw error; // Propagate the error
+    } finally {
+        // Reset processing state even if there was an error
+        state.processing = false;
     }
 }
 
@@ -2297,4 +2368,248 @@ function updateTokenStats(usage) {
     } catch (e) {
         console.error('Error updating usage statistics in localStorage:', e);
     }
-} 
+}
+
+// First, restore the updateHtmlPreview function that's causing the reference error
+function updateHtmlPreview(html) {
+    if (!html) return;
+    
+    try {
+        // For large content, use incremental iframe updates
+        const htmlLength = html.length;
+        console.log(`Updating HTML preview with content length: ${htmlLength}`);
+        
+        if (htmlLength > MAX_HTML_BUFFER_SIZE) {
+            // Only update the preview iframe in incremental mode for large content
+            console.log(`Large HTML detected (${formatFileSize(htmlLength)}), using incremental iframe update`);
+            
+            // Check if iframe exists
+            const iframe = document.getElementById('preview-iframe');
+            if (!iframe) {
+                console.error('Preview iframe not found');
+                return;
+            }
+            
+            // For very large content, we'll inject incrementally using document.write
+            if (!iframe.hasAttribute('data-initialized')) {
+                // Initialize the iframe with base HTML structure
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body></body></html>');
+                iframeDoc.close();
+                iframe.setAttribute('data-initialized', 'true');
+                iframe.setAttribute('data-content-length', '0');
+            }
+            
+            // Get the previous content length
+            const prevLength = parseInt(iframe.getAttribute('data-content-length') || '0');
+            
+            // Only inject the new content
+            if (htmlLength > prevLength) {
+                const newContent = html.substring(prevLength);
+                
+                try {
+                    // Append to body instead of rewriting everything
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // Create temporary div to parse HTML
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = newContent;
+                    
+                    // Extract new nodes and append them to iframe body
+                    Array.from(tempDiv.childNodes).forEach(node => {
+                        iframeDoc.body.appendChild(iframeDoc.importNode(node, true));
+                    });
+                    
+                    // Update the stored content length
+                    iframe.setAttribute('data-content-length', htmlLength.toString());
+                } catch (innerError) {
+                    console.error('Error appending to iframe:', innerError);
+                }
+            }
+        } else {
+            // For smaller content, use normal update method
+            if (elements.htmlOutput) {
+                elements.htmlOutput.value = html;
+            } else {
+                console.warn('HTML output element not found, but continuing with iframe update');
+            }
+            
+            // Update the preview iframe
+            const iframe = document.getElementById('preview-iframe');
+            if (iframe) {
+                try {
+                    // Use a more memory-efficient approach to update the iframe
+                    // First check if we need to initialize the iframe
+                    if (!iframe.hasAttribute('data-initialized')) {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        iframeDoc.open();
+                        iframeDoc.write(html);
+                        iframeDoc.close();
+                        iframe.setAttribute('data-initialized', 'true');
+                        console.log('Preview iframe initialized with content');
+                    } else {
+                        // For already initialized iframes, try to update only what's needed
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        
+                        // Parse the new HTML to get its parts
+                        const parser = new DOMParser();
+                        const parsedDoc = parser.parseFromString(html, 'text/html');
+                        
+                        // Replace just the body content instead of rewriting the entire document
+                        if (parsedDoc.body && iframeDoc.body) {
+                            // Clear existing body content
+                            iframeDoc.body.innerHTML = '';
+                            
+                            // Copy new body content
+                            Array.from(parsedDoc.body.childNodes).forEach(node => {
+                                iframeDoc.body.appendChild(iframeDoc.importNode(node, true));
+                            });
+                            
+                            console.log('Preview iframe body content updated');
+                        } else {
+                            // Fallback to full document replacement if needed
+                            iframeDoc.open();
+                            iframeDoc.write(html);
+                            iframeDoc.close();
+                            console.log('Preview iframe fully replaced with new content');
+                        }
+                    }
+                } catch (iframeError) {
+                    console.error('Error updating iframe:', iframeError);
+                    
+                    // Fallback to direct replacement on error
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        iframeDoc.open();
+                        iframeDoc.write(html);
+                        iframeDoc.close();
+                    } catch (fallbackError) {
+                        console.error('Fallback iframe update also failed:', fallbackError);
+                    }
+                }
+            } else {
+                console.error('Preview iframe element not found');
+            }
+        }
+    } catch (error) {
+        console.error('Error updating HTML preview:', error);
+        showToast('Error updating preview', 'error');
+    }
+}
+
+// Add a chunked content processor for handling large responses
+const processContentChunks = function() {
+    // Variables to store chunks state
+    let receivedChunks = {};
+    let totalChunks = 0;
+    let receivedLength = 0;
+    let totalLength = 0;
+    let isProcessingChunks = false;
+    let pendingChunks = [];
+    
+    // Return functions to handle chunks
+    return {
+        // Initialize chunked mode
+        initChunks: function(data) {
+            console.log('Initializing chunked content mode:', data);
+            receivedChunks = {};
+            totalChunks = data.total_chunks || 0;
+            totalLength = data.length || 0;
+            receivedLength = 0;
+            isProcessingChunks = true;
+            pendingChunks = [];
+            
+            // Update the processing status
+            setProcessingText(`Receiving chunked content (0/${totalChunks} chunks)`);
+            
+            return true;
+        },
+        
+        // Add a new chunk
+        addChunk: function(data) {
+            if (!isProcessingChunks) return false;
+            
+            // Add to pending chunks to process in order
+            pendingChunks.push(data);
+            
+            // Process chunks in order when possible
+            this.processNextChunk();
+            
+            return true;
+        },
+        
+        // Process next chunk from the queue
+        processNextChunk: function() {
+            if (pendingChunks.length === 0) return;
+            
+            // Look through pending chunks to find the next sequential one
+            const nextChunkIndex = Object.keys(receivedChunks).length;
+            const nextChunkPos = pendingChunks.findIndex(chunk => chunk.chunk_index === nextChunkIndex);
+            
+            if (nextChunkPos === -1) {
+                // Next sequential chunk not available yet
+                return;
+            }
+            
+            // Get and remove the chunk from pending
+            const data = pendingChunks.splice(nextChunkPos, 1)[0];
+            
+            // Store the chunk
+            receivedChunks[data.chunk_index] = data.content;
+            receivedLength += data.content.length;
+            
+            // Update processing status
+            const chunksReceived = Object.keys(receivedChunks).length;
+            setProcessingText(`Receiving chunked content (${chunksReceived}/${totalChunks} chunks - ${Math.round(receivedLength/totalLength*100)}%)`);
+            
+            // If we have all chunks, combine and finish
+            if (chunksReceived === totalChunks) {
+                console.log(`All ${totalChunks} chunks received, combining content...`);
+                this.completeChunks();
+            } else {
+                // Continue processing if more chunks are already in the queue
+                this.processNextChunk();
+            }
+        },
+        
+        // Complete the chunked content process
+        completeChunks: function() {
+            if (!isProcessingChunks) return null;
+            
+            // Combine all chunks in the correct order
+            let finalHtml = '';
+            for (let i = 0; i < totalChunks; i++) {
+                if (receivedChunks[i]) {
+                    finalHtml += receivedChunks[i];
+                } else {
+                    console.error(`Missing chunk ${i} when completing chunks!`);
+                }
+            }
+            
+            console.log(`Combined ${totalChunks} chunks into final HTML of length ${finalHtml.length}`);
+            
+            // Set as the generated content
+            generatedContent = finalHtml;
+            state.generatedHtml = finalHtml;
+            
+            // Update the preview with the completed content
+            updateHtmlPreview(finalHtml);
+            updateHtmlDisplay();
+            
+            // Clean up
+            receivedChunks = {};
+            isProcessingChunks = false;
+            
+            return finalHtml;
+        },
+        
+        // Check if we're in chunked processing mode
+        isChunking: function() {
+            return isProcessingChunks;
+        }
+    };
+};
+
+// Create the content chunk processor
+const chunkProcessor = processContentChunks();
