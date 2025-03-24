@@ -4,6 +4,9 @@ export const config = {
   regions: ['iad1'], // Force specific US region for more consistent performance
 };
 
+// Add a simple request tracking system
+const activeRequests = new Map();
+
 export default async function handler(req) {
   // Create a new ReadableStream with a controller to manage the flow
   const stream = new ReadableStream({
@@ -71,8 +74,17 @@ export default async function handler(req) {
         const temperature = body.temperature || 0.5;
         const formatPrompt = body.format_prompt || '';
         const testMode = body.test_mode === true;
+        const requestId = body.request_id || ''; // Get request ID for deduplication
         
-        console.log(`Request params: content length: ${content.length}, maxTokens: ${maxTokens}, temperature: ${temperature}, testMode: ${testMode}`);
+        console.log(`Request params: content length: ${content.length}, maxTokens: ${maxTokens}, temperature: ${temperature}, testMode: ${testMode}, requestId: ${requestId ? requestId.substring(0, 8) + '...' : 'none'}`);
+        
+        // Check for duplicate request with same requestId
+        if (requestId && activeRequests.has(requestId)) {
+          console.log(`Duplicate request detected with ID: ${requestId.substring(0, 8)}...`);
+          writeEvent('error', { error: 'Duplicate request - already in progress' });
+          safeEndStream();
+          return;
+        }
         
         if (!content) {
           console.error('Content is required but was empty');
@@ -91,6 +103,23 @@ export default async function handler(req) {
         // Generate messageId
         const messageId = crypto.randomUUID();
         console.log(`Generated message ID: ${messageId}`);
+        
+        // If we have a valid requestId, store it in active requests map
+        if (requestId) {
+          activeRequests.set(requestId, {
+            messageId,
+            startTime: Date.now()
+          });
+          console.log(`Registered request ID: ${requestId.substring(0, 8)}...`);
+          
+          // Set a cleanup timeout to prevent memory leaks (30 minutes)
+          setTimeout(() => {
+            if (activeRequests.has(requestId)) {
+              console.log(`Cleaning up request ID after timeout: ${requestId.substring(0, 8)}...`);
+              activeRequests.delete(requestId);
+            }
+          }, 30 * 60 * 1000);
+        }
         
         // Send start event immediately (crucial)
         writeEvent('stream_start', { message: 'Stream starting' });
@@ -406,7 +435,8 @@ export default async function handler(req) {
                                 input_tokens: usageData.usage.input_tokens,
                                 output_tokens: usageData.usage.output_tokens,
                                 total_cost: (usageData.usage.input_tokens / 1000000) * 3.0 + 
-                                           (usageData.usage.output_tokens / 1000000) * 15.0
+                                           (usageData.usage.output_tokens / 1000000) * 15.0,
+                                time_elapsed: Math.floor((Date.now() - startTime) / 1000)
                               }
                             };
                             console.log('Sending message_complete with usage payload:', JSON.stringify(usagePayload));
@@ -533,12 +563,14 @@ export default async function handler(req) {
               const inputTokens = Math.ceil(contentLength / 4);
               const outputTokens = Math.ceil(outputLength / 4);
               const totalCost = (inputTokens / 1000000) * 3.0 + (outputTokens / 1000000) * 15.0;
+              const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
               
               // Include token usage in the event
               const usage = {
                 input_tokens: inputTokens,
                 output_tokens: outputTokens,
-                total_cost: totalCost
+                total_cost: totalCost,
+                time_elapsed: elapsedTime
               };
               
               // Send message_complete event with usage statistics
@@ -684,6 +716,12 @@ export default async function handler(req) {
           // Ensure timer is cleaned up
           if (keepaliveInterval) {
             clearInterval(keepaliveInterval);
+          }
+          
+          // Clean up the request tracking if a requestId was provided
+          if (requestId && activeRequests.has(requestId)) {
+            console.log(`Cleaning up request ID: ${requestId.substring(0, 8)}...`);
+            activeRequests.delete(requestId);
           }
           
           // Always send a final event indicating the stream is done
