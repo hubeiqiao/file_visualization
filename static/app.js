@@ -1283,41 +1283,15 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                                         
                                         // Update usage statistics
                                         if (data.usage) {
+                                            console.log('Processing usage stats from message_complete:', JSON.stringify(data.usage));
                                             updateTokenStats(data.usage);
                                             
-                                            // Calculate cost if available
-                                            const totalCost = data.usage.total_cost || 
-                                                ((data.usage.input_tokens / 1000000) * 3.0 + 
-                                                 (data.usage.output_tokens / 1000000) * 15.0);
-                                            elements.totalCost.textContent = formatCostDisplay(totalCost);
-                                            
-                                            // Update storage with new usage stats
-                                            try {
-                                                // Get existing stats
-                                                const existingStats = JSON.parse(localStorage.getItem('fileVisualizerStats') || '{"totalRuns":0,"totalTokens":0,"totalCost":0}');
-                                                
-                                                // Update stats
-                                                existingStats.totalRuns = (existingStats.totalRuns || 0) + 1;
-                                                existingStats.totalTokens = (existingStats.totalTokens || 0) + 
-                                                    (data.usage.input_tokens + data.usage.output_tokens);
-                                                existingStats.totalCost = (existingStats.totalCost || 0) + totalCost;
-                                                
-                                                // Save updated stats
-                                                localStorage.setItem('fileVisualizerStats', JSON.stringify(existingStats));
-                                                
-                                                // Update UI if stats container exists
-                                                if (document.getElementById('total-runs')) {
-                                                    document.getElementById('total-runs').textContent = existingStats.totalRuns.toLocaleString();
-                                                }
-                                                if (document.getElementById('total-tokens')) {
-                                                    document.getElementById('total-tokens').textContent = existingStats.totalTokens.toLocaleString();
-                                                }
-                                                if (document.getElementById('total-cost')) {
-                                                    document.getElementById('total-cost').textContent = formatCostDisplay(existingStats.totalCost);
-                                                }
-                                            } catch (e) {
-                                                console.error('Error updating usage statistics:', e);
+                                            // Show time if available
+                                            if (data.usage.time_elapsed) {
+                                                elements.elapsedTime.textContent = formatTime(data.usage.time_elapsed);
                                             }
+                                        } else {
+                                            console.warn('message_complete event received but no usage data found:', JSON.stringify(data));
                                         }
                                     }
                                     
@@ -1649,12 +1623,15 @@ async function processWithStreaming(data) {
                         } else if (jsonData.type === 'message_complete') {
                             // Update UI
                             if (jsonData.usage) {
+                                console.log('Processing usage stats from message_complete:', JSON.stringify(jsonData.usage));
                                 updateTokenStats(jsonData.usage);
                                 
                                 // Show time if available
                                 if (jsonData.usage.time_elapsed) {
                                     elements.elapsedTime.textContent = formatTime(jsonData.usage.time_elapsed);
                                 }
+                            } else {
+                                console.warn('message_complete event received but no usage data found:', JSON.stringify(jsonData));
                             }
                             
                             // Update with final content if provided
@@ -2260,9 +2237,40 @@ function resetTokenStats() {
 
 // Update the UI with token usage data
 function updateTokenStats(usage) {
-    if (!usage) return;
+    console.log('Updating token stats with usage data:', JSON.stringify(usage));
+    if (!usage) {
+        console.warn('No usage data provided to updateTokenStats');
+        return;
+    }
     
+    // Check if the elements exist
+    if (!elements.inputTokens || !elements.outputTokens || !elements.totalCost) {
+        console.warn('Token stats elements not found in the DOM');
+        return;
+    }
+    
+    // Update token counts and costs
     elements.inputTokens.textContent = usage.input_tokens.toLocaleString();
     elements.outputTokens.textContent = usage.output_tokens.toLocaleString();
     elements.totalCost.textContent = formatCostDisplay(usage.total_cost);
+    
+    console.log(`Updated UI: input=${usage.input_tokens}, output=${usage.output_tokens}, cost=${usage.total_cost}`);
+    
+    // Update local storage stats
+    try {
+        // Get existing stats
+        const existingStats = JSON.parse(localStorage.getItem('fileVisualizerStats') || '{"totalRuns":0,"totalTokens":0,"totalCost":0}');
+        
+        // Update stats
+        existingStats.totalRuns = (existingStats.totalRuns || 0) + 1;
+        existingStats.totalTokens = (existingStats.totalTokens || 0) + 
+            (usage.input_tokens + usage.output_tokens);
+        existingStats.totalCost = (existingStats.totalCost || 0) + usage.total_cost;
+        
+        // Save updated stats
+        localStorage.setItem('fileVisualizerStats', JSON.stringify(existingStats));
+        console.log('Updated local storage stats:', JSON.stringify(existingStats));
+    } catch (e) {
+        console.error('Error updating usage statistics in localStorage:', e);
+    }
 } 
