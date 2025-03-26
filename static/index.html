@@ -155,12 +155,12 @@
         <div class="container mx-auto px-4 py-6">
             <div class="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left">
                 <h1 class="text-5xl font-bold text-white mb-4 flex items-center justify-center md:justify-start">
-                    <i class="fas fa-file-code text-yellow-300 mr-3"></i>
+                    <i class="fas fa-wand-magic-sparkles text-yellow-300 mr-3"></i>
                     File Visualizer
                 </h1>
                 <div class="max-w-2xl md:text-right flex flex-col items-center md:items-end">
                     <p class="text-blue-100 text-xl mb-3">
-                        Transform your plain documents into stunning, interactive HTML visualizations
+                        Transform your plain documents into stunning, interactive websites
                     </p>
                     <div class="bg-blue-700/50 rounded-lg p-3 mt-1 inline-flex items-center">
                         <div class="flex items-center text-white">
@@ -172,12 +172,11 @@
                             <div class="mx-2 text-center relative">
                                 <i class="fas fa-wand-magic-sparkles text-3xl text-yellow-300 animate-pulse"></i>
                                 <div class="absolute inset-0 rounded-full bg-blue-500/30 animate-ping" style="animation-duration: 3s;"></div>
-                                <div class="text-xs mt-1">Magic</div>
                             </div>
                             <i class="fas fa-arrow-right mx-3 text-blue-300"></i>
                             <div class="ml-2 text-center">
                                 <i class="fas fa-file-code text-3xl text-yellow-200"></i>
-                                <div class="text-xs mt-1">Interactive HTML</div>
+                                <div class="text-xs mt-1">Interactive Website</div>
                             </div>
                         </div>
                     </div>
@@ -187,16 +186,16 @@
     </header>
 
     <!-- Examples Section - Now before How to Use -->
-    <div class="bg-gradient-to-r from-primary-50 to-blue-50 py-14">
+    <div class="bg-gradient-to-r from-primary-50 to-blue-50 py-8">
         <div class="container mx-auto px-6">
-            <div class="bg-white rounded-lg shadow-lg p-10 mb-6">
-                <h2 class="text-3xl font-semibold mb-10 text-center">
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-4">
+                <h2 class="text-3xl font-semibold mb-6 text-center">
                     <i class="fas fa-star text-primary-500 mr-2"></i>
                     See What's Possible
                 </h2>
                 
                 <div class="example-grid">
-                    <div class="example-card bg-white shadow-lg hover:shadow-xl cursor-pointer" onclick="window.open('https://egkxhslu0z.yourware.so/', '_blank')">
+                    <div class="example-card bg-white shadow-lg hover:shadow-xl cursor-pointer" onclick="window.open('https://tim-literature-review-guide.pages.dev/', '_blank')">
                         <div class="bg-blue-500 h-48 flex items-center justify-center">
                             <i class="fas fa-book text-white text-7xl"></i>
                         </div>
@@ -209,13 +208,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="example-card bg-white shadow-lg hover:shadow-xl cursor-pointer" onclick="window.open('https://mk9wzcfz6q.yourware.so/', '_blank')">
+                    <div class="example-card bg-white shadow-lg hover:shadow-xl cursor-pointer" onclick="window.open('https://joe-hu.pages.dev/', '_blank')">
                         <div class="bg-green-500 h-48 flex items-center justify-center">
-                            <i class="fas fa-graduation-cap text-white text-7xl"></i>
+                            <i class="fas fa-user-tie text-white text-7xl"></i>
                         </div>
                         <div class="p-5">
-                            <h4 class="font-medium text-lg mb-2">Educational Training Material</h4>
-                            <p class="text-gray-600">Training material transcript converted into an elegant, branded learning experience with enhanced readability.</p>
+                            <h4 class="font-medium text-lg mb-2">Personal Resume</h4>
+                            <p class="text-gray-600">Professional portfolio showcasing skills, experience, and achievements in an elegant, interactive format.</p>
                             <div class="mt-3 text-green-600 flex items-center">
                                 <span>View Example</span>
                                 <i class="fas fa-external-link-alt ml-2"></i>
@@ -223,7 +222,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="text-center mt-8">
+                <div class="text-center mt-6">
                     <p class="text-2xl font-bold text-primary-600 bg-primary-50 py-3 px-6 rounded-full inline-block shadow-sm">
                         ✨ These visualizations were created with a single prompt using File Visualizer! ✨
                     </p>
@@ -246,11 +245,11 @@
                     <div class="step-number bg-purple-500 text-white">1</div>
                     <h3 class="text-xl font-medium mb-2 text-purple-700">Enter Your API Key</h3>
                     <p class="text-gray-700 mb-2">
-                        This app is <strong>completely free</strong> to use, but requires an Anthropic API key.
+                        This app is <strong>completely free</strong> to use, but requires an API key from either Google Gemini (free) or Anthropic Claude.
                     </p>
                     <p class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 mb-2 font-medium">
                         <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
-                        <strong>Important:</strong> You'll only be charged by Anthropic for the API usage. Keep your API key confidential and never share it with others.
+                        <strong>Important:</strong> You'll only be charged by Anthropic for their API usage. Google Gemini API is currently free. Your API key is stored locally and never shared.
                     </p>
                     <div class="mt-auto">
                         <details class="mt-2">
@@ -258,6 +257,16 @@
                                 How to get an API key?
                             </summary>
                             <div class="pl-4 mt-2 text-sm">
+                                <p class="font-semibold mb-1">For Google Gemini (Free):</p>
+                                <ol class="list-decimal pl-4 space-y-1">
+                                    <li>Visit <a href="https://ai.google.dev/" target="_blank" class="text-purple-600 hover:underline">Google AI Studio</a></li>
+                                    <li>Sign up or log in with your Google account</li>
+                                    <li>Click on "Get API key" or go to API keys section</li>
+                                    <li>Create a new API key</li>
+                                    <li>Copy the key</li>
+                                </ol>
+                                
+                                <p class="font-semibold mt-3 mb-1">For Anthropic Claude:</p>
                                 <ol class="list-decimal pl-4 space-y-1">
                                     <li>Visit <a href="https://console.anthropic.com/" target="_blank" class="text-purple-600 hover:underline">Anthropic Console</a></li>
                                     <li>Sign up or log in to your account</li>
@@ -273,12 +282,12 @@
                 <!-- Step 2: Upload content -->
                 <div class="step-card bg-blue-50 border border-blue-200">
                     <div class="step-number bg-blue-500 text-white">2</div>
-                    <h3 class="text-xl font-medium mb-2 text-blue-700">Upload Your Content</h3>
+                    <h3 class="text-xl font-medium mb-2 text-blue-700">Enter Your Content</h3>
                     <p class="text-gray-700 mb-2">
-                        Upload a file or paste your text that you want to transform into a beautiful webpage.
+                        Paste your text that you want to transform into a beautiful webpage. You can enter articles, documentation, reports, or any textual content.
                     </p>
                     <p class="text-gray-600 text-sm mb-2">
-                        Supported formats: PDF, DOCX, TXT, HTML, MD, CSV, JSON, and more.
+                        The application works best with structured text content like articles, reports, or documentation.
                     </p>
                     <div class="mt-auto">
                         <details class="mt-2">
@@ -327,44 +336,29 @@
                     <div class="step-number bg-green-500 text-white">4</div>
                     <h3 class="text-xl font-medium mb-2 text-green-700">Generate & Deploy</h3>
                     <p class="text-gray-700 mb-2">
-                        Click "Generate" and watch as your document is transformed into beautiful HTML!
+                        Click "Generate" and watch as your document is transformed into a beautiful website!
                     </p>
-                    
-                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 mb-4 relative shadow-md">
-                        <div class="flex items-center">
-                            <div class="text-yellow-500 rounded-full bg-yellow-200 p-1 mr-2">
-                                <i class="fas fa-exclamation-triangle text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold">Connection Stability Required</p>
-                                <p>Keep your internet connection stable during generation. Processing may take 5-20 minutes depending on content size.</p>
-                            </div>
-                        </div>
-                        <div class="mt-2 flex items-center">
-                            <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-yellow-500 h-2.5 rounded-full animate-pulse-slow" style="width: 100%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
+                    <p class="text-gray-600 text-sm mb-2">
+                        <i class="fas fa-wifi mr-1"></i> <strong>Important:</strong> Keep your internet connection stable during this process. Generation takes 5-20 minutes depending on content size.
+                    </p>
                     <div class="mt-auto">
                         <details class="mt-2">
                             <summary class="cursor-pointer text-green-600 hover:underline">
-                                Deploying your HTML file
+                                Deploying your website
                             </summary>
                             <div class="pl-4 mt-2 text-sm">
                                 <p>Once generated, you can:</p>
                                 <ul class="list-disc pl-4 mt-1">
-                                    <li>Download the complete HTML file</li>
-                                    <li>Deploy it for free using:
+                                    <li>Download the complete website file</li>
+                                    <li>Deploy it for free on any of these platforms:
                                         <ul class="list-circle pl-4 mt-1">
-                                            <li><a href="https://github.io" target="_blank" class="text-green-600 hover:underline">GitHub Pages</a></li>
-                                            <li><a href="https://netlify.drop" target="_blank" class="text-green-600 hover:underline">Netlify Drop</a></li>
-                                            <li><a href="https://surge.sh" target="_blank" class="text-green-600 hover:underline">Surge.sh</a></li>
-                                            <li><a href="https://vercel.com" target="_blank" class="text-green-600 hover:underline">Vercel</a></li>
+                                            <li><a href="https://pages.github.com" target="_blank" class="text-green-600 hover:underline">GitHub Pages</a> - Free hosting directly from your GitHub repository</li>
+                                            <li><a href="https://app.netlify.com/drop" target="_blank" class="text-green-600 hover:underline">Netlify Drop</a> - Simply drag and drop your HTML file</li>
+                                            <li><a href="https://surge.sh" target="_blank" class="text-green-600 hover:underline">Surge.sh</a> - Command-line publishing with one command</li>
+                                            <li><a href="https://vercel.com/new" target="_blank" class="text-green-600 hover:underline">Vercel</a> - Connect to your GitHub repository for automatic updates</li>
                                         </ul>
                                     </li>
-                                    <li>Share the link with anyone</li>
+                                    <li>Share the link with anyone - no coding knowledge required!</li>
                                 </ul>
                             </div>
                         </details>
@@ -382,14 +376,32 @@
                 <!-- API Key -->
                 <div id="api-key-section" class="bg-white rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
                     <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-key text-primary-500 mr-2"></i>Anthropic API Key
+                        <i class="fas fa-key text-primary-500 mr-2"></i>AI API Key
                     </h2>
+                    
+                    <!-- API Provider Selection -->
                     <div class="mb-4">
-                        <input type="password" id="api-key" placeholder="Enter your Anthropic API key" 
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select API Provider</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="api-provider" value="anthropic" class="form-radio h-4 w-4 text-primary-500">
+                                <span class="ml-2">Anthropic Claude</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="api-provider" value="gemini" class="form-radio h-4 w-4 text-primary-500" checked>
+                                <span class="ml-2">Google Gemini</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <input type="password" id="api-key" placeholder="Enter your API key" 
                             class="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
-                        <p class="text-sm text-gray-500 mt-2">
-                            Your API key is stored locally in your browser and never sent to our servers.
-                        </p>
+                        <div id="api-key-info" class="text-sm text-gray-500 mt-2">
+                            <p>Your API key is stored locally in your browser and never sent to our servers.</p>
+                            <p id="anthropic-info" class="mt-1">Anthropic Claude API key should start with 'sk-ant'.</p>
+                            <p id="gemini-info" class="mt-1 hidden">Google Gemini API key can be obtained from <a href="https://ai.google.dev/" target="_blank" class="text-primary-500 hover:underline">Google AI Studio</a>.</p>
+                        </div>
                     </div>
                     <button id="validate-key" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md transition-colors">
                         <i class="fas fa-check-circle mr-2"></i>Validate Key
@@ -402,41 +414,19 @@
                 <!-- File Upload / Text Input -->
                 <div class="bg-white rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
                     <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-file-upload text-primary-500 mr-2"></i>Input Source
+                        <i class="fas fa-font text-primary-500 mr-2"></i>Enter Your Text
                     </h2>
                     
                     <div class="mb-4">
-                        <div class="flex space-x-3 mb-4">
-                            <button id="file-tab" class="flex-1 py-2 px-4 rounded-md bg-primary-100 text-primary-700 font-medium">
-                                <i class="fas fa-file mr-2"></i>Upload File
-                            </button>
-                            <button id="text-tab" class="flex-1 py-2 px-4 rounded-md bg-gray-100 text-gray-700 font-medium">
-                                <i class="fas fa-keyboard mr-2"></i>Enter Text
-                            </button>
-                        </div>
-                        
-                        <!-- File Upload -->
-                        <div id="file-input" class="transition-all">
-                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-primary-500 transition-colors" id="drop-area">
-                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-                                <p class="mb-2">Drag & drop a file here, or <span class="text-primary-500">browse</span></p>
-                                <input type="file" id="file-upload" class="hidden" accept=".txt,.md,.json,.csv,.html,.js,.css,.py,.pdf,.doc,.docx">
-                                <p class="text-sm text-gray-500">Supported file types: txt, md, json, csv, html, js, css, py, pdf, doc, docx</p>
-                            </div>
-                            <div id="file-info" class="mt-3 hidden">
-                                <!-- Will be filled by JS when file is uploaded -->
-                            </div>
-                        </div>
-                        
-                        <!-- Text Input -->
-                        <div id="text-input" class="hidden transition-all">
-                            <textarea id="input-text" rows="6" placeholder="Enter or paste your text here..." 
+                        <!-- Text Input Only -->
+                        <div class="transition-all">
+                            <textarea id="input-text" rows="10" placeholder="Enter or paste your text here..." 
                                 class="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"></textarea>
                         </div>
                         
-                        <!-- Token Info - Moved outside both input types so it's visible for both -->
+                        <!-- Token Info -->
                         <div id="tokenInfo" class="mt-3">
-                            <!-- Will be filled by JS when file is uploaded or text is entered -->
+                            <!-- Will be filled by JS when text is entered -->
                         </div>
                     </div>
                 </div>
@@ -464,7 +454,7 @@
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label for="temperature" class="font-medium text-gray-900">Creativity Level: <span id="temperature-value" class="text-primary-600">1.0</span></label>
-                                <button id="temperature-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
+                                <button id="reset-temp" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
                             <input type="range" id="temperature" min="0" max="1" step="0.1" value="1.0" 
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
@@ -475,7 +465,7 @@
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label for="max-tokens" class="font-medium text-gray-900">Output Length: <span id="max-tokens-value" class="text-primary-600">128000</span></label>
-                                <button id="max-tokens-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
+                                <button id="reset-max-tokens" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
                             <input type="range" id="max-tokens" min="1000" max="128000" step="1000" value="128000" 
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
@@ -486,7 +476,7 @@
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label for="thinking-budget" class="font-medium text-gray-900">Thinking Depth: <span id="thinking-budget-value" class="text-primary-600">32000</span></label>
-                                <button id="thinking-budget-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
+                                <button id="reset-thinking-budget" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
                             <input type="range" id="thinking-budget" min="1024" max="128000" step="1024" value="32000" 
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
@@ -497,14 +487,6 @@
 
                 <!-- Generate Button -->
                 <div class="text-center">
-                    <!-- Connection stability warning -->
-                    <div class="bg-yellow-50 border border-yellow-300 rounded-md p-3 mb-4 shadow-sm">
-                        <div class="flex items-center">
-                            <i class="fas fa-wifi text-yellow-500 mr-2 text-lg"></i>
-                            <p class="text-yellow-700 font-medium">Please maintain a stable internet connection during generation (5-20 minutes).</p>
-                        </div>
-                    </div>
-                    
                     <button id="generate-btn" disabled class="w-full bg-gray-300 text-gray-500 px-6 py-3 rounded-md text-lg font-bold shadow-md transition-all cursor-not-allowed">
                         <i class="fas fa-magic mr-2"></i>Generate Visualization
                     </button>
@@ -538,7 +520,7 @@
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
                             <i class="fas fa-chart-line text-primary-500 mr-2"></i>Usage Statistics
                         </h2>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             <div class="p-3 bg-gray-100 rounded-lg">
                                 <p class="text-sm text-gray-500">Input Tokens</p>
                                 <p id="input-tokens" class="text-lg font-semibold">-</p>
@@ -548,17 +530,13 @@
                                 <p id="output-tokens" class="text-lg font-semibold">-</p>
                             </div>
                             <div class="p-3 bg-gray-100 rounded-lg">
-                                <p class="text-sm text-gray-500">Thinking Tokens</p>
-                                <p id="thinking-tokens" class="text-lg font-semibold">-</p>
-                            </div>
-                            <div class="p-3 bg-gray-100 rounded-lg">
                                 <p class="text-sm text-gray-500">Total Cost</p>
                                 <p id="total-cost" class="text-lg font-semibold">-</p>
                             </div>
                         </div>
                         <div class="mt-3 text-xs text-gray-500">
-                            <p>Pricing: Input - $3/million tokens, Output - $15/million tokens, Thinking - $3/million tokens</p>
-                            <p class="mt-1">Typical generations cost between $0.20-$2.00 depending on content size and complexity.</p>
+                            <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                            <span>This is an estimate based on the current model's pricing. Actual costs may vary.</span>
                         </div>
                     </div>
 
@@ -593,7 +571,9 @@
                                         </button>
                                     </div>
                                 </div>
-                                <pre id="html-output" class="language-html overflow-auto rounded-lg p-4 bg-gray-50"></pre>
+                                <div class="relative">
+                                    <pre id="raw-html-container" class="language-html rounded-lg p-4 bg-gray-800 text-white overflow-hidden" style="max-height: 500px; overflow-y: auto;"><code id="raw-html" class="language-html"></code></pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -603,17 +583,25 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white shadow-inner mt-8">
-        <div class="container mx-auto px-4 py-6 text-center">
-            <p class="text-gray-600">Powered by <a href="https://www.anthropic.com/claude" class="text-primary-500 hover:underline" target="_blank">Anthropic Claude 3.7</a> with thinking capabilities</p>
-            <p class="mt-2 text-gray-600">© 2025 - <span class="font-medium">File Visualizer</span> by <a href="https://www.linkedin.com/in/hubeiqiao/" class="text-primary-500 hover:underline" target="_blank">Joe Hu</a></p>
-            <div class="mt-4">
-                <a href="https://buy.stripe.com/6oEdTw8OQ86S0CYcMN" class="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors" target="_blank">
-                    <i class="fas fa-coffee mr-2"></i> Appreciate this magic? Buy me a coffee!
-                </a>
-            </div>
+    <footer class="bg-white dark:bg-gray-900 p-4 text-center text-gray-600 dark:text-gray-400 mt-8 border-t border-gray-200 dark:border-gray-800">
+        <div class="container mx-auto">
+            <p>
+                <span id="app-version" class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hidden">v0.4.5</span>
+                Built with 
+                <a href="https://www.anthropic.com/" class="text-primary-600 dark:text-primary-400 hover:underline font-semibold">Claude 3.7</a> 
+                &amp; 
+                <a href="https://ai.google.dev/" class="text-primary-600 dark:text-primary-400 hover:underline font-semibold">Gemini 2.5 Pro</a>
+                &bull; 
+                <a href="https://github.com/hubeiqiao/File-Visualizer" class="text-primary-600 dark:text-primary-400 hover:underline">GitHub Repo</a>
+            </p>
         </div>
     </footer>
+
+    <div class="processing-container" id="processingContainer">
+        <div class="processing-animation"></div>
+        <div class="processing-text" id="processingText">Processing...</div>
+        <div class="processing-note">Generation may take a few minutes. If using Vercel, the app will automatically reconnect if timeouts occur.</div>
+    </div>
 
     <script src="app.js"></script>
 </body>
