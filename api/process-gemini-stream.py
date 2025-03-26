@@ -329,4 +329,4 @@ Here is the content to transform into a website:
 
 @app.route('/', methods=['POST'])
 def process_gemini_stream():
-    return handler(request) 
+    return handler(request) # Modified for Vercel deployment

@@ -3147,4 +3147,4 @@ function updateApiProviderInfo(provider) {
             elements.apiKeyInput.placeholder = "Enter your Google Gemini API key";
         }
     }
-} 
+} // Modified for Vercel deployment
