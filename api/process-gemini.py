@@ -15,7 +15,8 @@ if parent_dir not in sys.path:
 from helper_function import create_gemini_client, GEMINI_AVAILABLE
 
 # Setting runtime configuration for Vercel Edge Functions
-# This allows longer execution time and avoids timeout issues
+# This enables longer execution time without timeout issues
+__VERCEL_EDGE_RUNTIME = True  # Explicit Edge Runtime flag for Vercel Edge Functions
 VERCEL_EDGE = True
 
 # Global constants for Gemini - Using exact model and parameters as specified
@@ -26,7 +27,7 @@ GEMINI_TOP_P = 0.95
 GEMINI_TOP_K = 64
 
 # GEMINI TEST BRANCH: This branch is for testing Gemini integration
-# Keep all the optimizations for Vercel while maintaining the exact model parameters
+# Keep all the optimizations for Vercel Edge Functions while maintaining the exact model parameters
 
 # Try to import DeadlineExceeded exception
 try:
@@ -70,6 +71,7 @@ class Handler(BaseHTTPRequestHandler):
             # Set response headers
             self.send_response(status_code)
             self.send_header('Content-Type', 'application/json')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -97,7 +99,7 @@ class Handler(BaseHTTPRequestHandler):
 def process_request(request_data):
     """
     Process a file using the Google Gemini API and return HTML.
-    Compatible with the reference implementation.
+    Compatible with the reference implementation and optimized for Edge Functions.
     """
     print("\n==== API PROCESS GEMINI REQUEST RECEIVED ====")
     
@@ -165,7 +167,7 @@ def process_request(request_data):
             print("Generating content with Gemini model using reference parameters")
             start_time = time.time()
             
-            # Generate content with reference parameters
+            # Generate content with reference parameters (no timeout parameter)
             response = model.generate_content(
                 contents,
                 generation_config=generation_config

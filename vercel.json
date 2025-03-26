@@ -18,7 +18,10 @@
       "config": {
         "runtime": "python3.9",
         "handler": "process-gemini.Handler",
-        "maxDuration": 60
+        "maxDuration": 60,
+        "environment": {
+          "EDGE": "1"
+        }
       }
     },
     {
@@ -27,7 +30,10 @@
       "config": {
         "runtime": "python3.9",
         "handler": "process-gemini-stream.Handler",
-        "maxDuration": 60
+        "maxDuration": 60,
+        "environment": {
+          "EDGE": "1"
+        }
       }
     }
   ],
@@ -39,15 +45,21 @@
     {
       "src": "/api/process-gemini",
       "methods": ["POST", "OPTIONS"],
-      "dest": "/api/process-gemini.py"
+      "dest": "/api/process-gemini.py",
+      "continue": true,
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate"
+      }
     },
     {
       "src": "/api/process-gemini-stream",
       "methods": ["POST", "OPTIONS"],
       "dest": "/api/process-gemini-stream.py",
+      "continue": true,
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Connection": "keep-alive",
+        "Transfer-Encoding": "chunked",
         "X-Accel-Buffering": "no"
       }
     },
@@ -58,6 +70,7 @@
   ],
   "env": {
     "PYTHONUNBUFFERED": "1",
-    "VERCEL": "1"
+    "VERCEL": "1",
+    "EDGE_CONFIG": "1"
   }
 } 

@@ -44,8 +44,8 @@ except ImportError:
         return GeminiClient()
 
 # Edge Function configuration - explicitly set runtime to edge
-# Setting runtime configuration for Vercel Edge Functions
-# This allows the function to stream responses indefinitely
+# This enables streaming responses without timeout issues
+__VERCEL_EDGE_RUNTIME = True  # Explicit Edge Runtime flag for Vercel Edge Functions
 VERCEL_EDGE = True
 
 # Keep the exact model and parameters as specified
@@ -56,7 +56,7 @@ GEMINI_TOP_P = 0.95
 GEMINI_TOP_K = 64
 
 # GEMINI TEST BRANCH: This branch is for testing Gemini integration with streaming
-# Optimized for Vercel without changing any model parameters
+# Optimized for Vercel Edge Functions without changing any model parameters
 
 # Indicate if Gemini is available
 try:
@@ -77,28 +77,44 @@ class Handler(BaseHTTPRequestHandler):
             request_body = self.rfile.read(content_length).decode('utf-8')
             data = json.loads(request_body)
             
-            # Process request
+            # Process request and get stream generator immediately
             response_data, status_code, stream_generator = process_stream_request(data)
             
             # Set response headers
             self.send_response(status_code)
             
-            # If it's a streaming response
+            # If we have a streaming response (most likely case)
             if stream_generator:
+                # Set proper headers for Server-Sent Events (SSE)
                 self.send_header('Content-Type', 'text/event-stream')
-                self.send_header('Cache-Control', 'no-cache')
+                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 self.send_header('Connection', 'keep-alive')
                 self.send_header('X-Accel-Buffering', 'no')
+                self.send_header('Transfer-Encoding', 'chunked')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.send_header('Access-Control-Allow-Headers', 'Content-Type')
                 self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
                 self.end_headers()
                 
+                # Send initial response immediately to prevent initial timeout
+                self.wfile.write(format_stream_event("stream_start", {"message": "Stream starting"}).encode('utf-8'))
+                self.wfile.flush()
+                
                 # Send the streaming response
-                for event in stream_generator:
-                    self.wfile.write(event.encode('utf-8'))
+                try:
+                    for event in stream_generator:
+                        self.wfile.write(event.encode('utf-8'))
+                        self.wfile.flush()  # Ensure data is sent immediately
+                except Exception as e:
+                    # Handle any streaming errors
+                    error_event = format_stream_event("error", {
+                        "error": f"Streaming error: {str(e)}",
+                        "details": traceback.format_exc()
+                    })
+                    self.wfile.write(error_event.encode('utf-8'))
+                    self.wfile.flush()
             else:
-                # Regular JSON response
+                # Regular JSON response for errors
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.send_header('Access-Control-Allow-Headers', 'Content-Type')
@@ -126,7 +142,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def process_stream_request(request_data):
     """
-    Process a streaming request using Gemini API with proper serverless handling
+    Process a streaming request using Gemini API with proper Edge Function handling
     Compatible with the reference implementation for streaming
     """
     try:
@@ -182,7 +198,7 @@ def process_stream_request(request_data):
         
         print(f"Prepared prompt for Gemini with length: {len(truncated_content)}")
         
-        # Define the streaming response generator - compatible with reference implementation
+        # Define the streaming response generator - optimized for Edge Functions
         def gemini_stream_generator():
             try:
                 # Send a starting event immediately to start the response
@@ -220,7 +236,7 @@ def process_stream_request(request_data):
                         
                         print("Starting streaming response generation")
                         
-                        # Start stream generation with reference parameters
+                        # Start stream generation with reference parameters - no timeout parameter
                         stream = model.generate_content(
                             contents,
                             generation_config=generation_config,
@@ -233,14 +249,15 @@ def process_stream_request(request_data):
                         has_sent_content = False
                         chunk_buffer = []
                         
-                        # Process the stream with periodic keepalives
+                        # Process the stream with more frequent keepalives to prevent timeouts
                         for chunk in stream:
                             # Extract text from chunk
                             chunk_text = chunk.text if hasattr(chunk, 'text') else ""
                             
-                            # Send keepalive every 5 seconds to maintain connection
+                            # Send intermittent keepalive messages to prevent timeout
+                            # Edge Functions require some activity every few seconds
                             current_time = time.time()
-                            if current_time - last_keepalive_time >= 5:
+                            if current_time - last_keepalive_time >= 3:  # Reduced from 5 to 3 seconds
                                 yield format_stream_event("keepalive", {"timestamp": current_time, "session_id": session_id})
                                 last_keepalive_time = current_time
                             
@@ -252,9 +269,9 @@ def process_stream_request(request_data):
                                 chunk_buffer.append(chunk_text)
                                 html_content += chunk_text
                                 
-                                # Yield periodically to maintain a responsive stream
+                                # Yield more frequently for Edge Functions
                                 current_time = time.time()
-                                if current_time - last_yield_time >= 0.25 or len(chunk_buffer) >= 5:
+                                if current_time - last_yield_time >= 0.2 or len(chunk_buffer) >= 3:  # More frequent updates
                                     # Send accumulated chunks
                                     combined_text = ''.join(chunk_buffer)
                                     yield format_stream_event("content", {
@@ -321,7 +338,7 @@ def process_stream_request(request_data):
                         if not html_content:
                             print("Stream failed, attempting synchronous generation")
                             
-                            # Try synchronous generation
+                            # Try synchronous generation with timeout
                             try:
                                 # Use same config as streamed version
                                 response = model.generate_content(
@@ -332,7 +349,7 @@ def process_stream_request(request_data):
                                 # Extract content
                                 if hasattr(response, 'text'):
                                     html_content = response.text
-                                elif hasattr(response, 'parts'):
+                                elif hasattr(response, 'parts') and response.parts:
                                     for part in response.parts:
                                         if hasattr(part, 'text'):
                                             html_content += part.text
