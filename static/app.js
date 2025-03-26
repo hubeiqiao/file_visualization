@@ -992,118 +992,106 @@ function updateGenerateButtonState() {
 
 // Generate Website
 async function generateWebsite() {
+    if (state.processing) {
+        console.log('Already processing, ignoring request');
+        return;
+    }
+    
     try {
-        if (state.processing) return;
-        
-        // Set processing state
+        // Update UI to show we're processing
         state.processing = true;
-        console.log("Generating website with:", `provider=${state.apiProvider}, maxTokens=${state.maxTokens}, temperature=${state.temperature}, thinkingBudget=${state.thinkingBudget}`);
-        
-        // Clear any previous content
-        state.generatedHtml = '';
-        
-        // Get content based on active tab
-        const source = getInputContent();
-        if (!source) {
-            showToast('Please enter some content or upload a file first.', 'error');
-            state.processing = false;
-            return;
-        }
-        
-        // Disable generate button during generation
-        if (elements.generateBtn) {
-            elements.generateBtn.disabled = true;
-            elements.generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
-        }
-        
-        // Disable inputs during generation
         disableInputsDuringGeneration(true);
-        
-        // Show the processing status
         startProcessingAnimation();
-        
-        // Start timing the generation
         startElapsedTimeCounter();
         
-        // Register scroll handler to track user scrolling during generation
-        const scrollHandler = () => {
-            // If the user scrolls during generation, we'll want to note that
-            console.log("User scrolled during generation");
-        };
+        // Reset token stats
+        resetTokenStats();
         
+        // Get the API key
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            throw new Error('Please enter your API key');
+        }
+        
+        // Get the source content
+        const source = getInputContent();
+        if (!source) {
+            throw new Error('Please enter some text or upload a file');
+        }
+        
+        // Get the parameters
+        const formatPrompt = ''; // No additional prompt
+        const maxTokens = state.activeProvider === 'gemini' ? parseInt(document.getElementById('maxTokens').value) : 0;
+        const temperature = parseFloat(document.getElementById('temperature').value);
+        const thinkingBudget = state.thinkingBudget || 8;  // Default to 8 seconds
+        
+        console.log(`API provider: ${state.activeProvider}`);
+        
+        // Based on the active provider, generate the website
+        let html = '';
+        
+        // Register scroll handler to warn user about scrolling during generation
+        const scrollHandler = () => {
+            console.log('User scrolled during generation');
+        };
         window.addEventListener('scroll', scrollHandler);
         
         try {
-            // Validate API key
-            const apiKey = getApiKey();
-            if (!apiKey) {
-                showToast('Please enter a valid API key', 'error');
-                resetGenerationUI();
-                window.removeEventListener('scroll', scrollHandler);
-                return;
-            }
-            
-            let result = '';
-            
-            // Get format prompt
-            const formatPrompt = elements.formatPrompt ? elements.formatPrompt.value : '';
-            
-            // Different generation methods based on the API provider
-            if (state.apiProvider === 'gemini') {
-                // For Gemini, first try the non-streaming method which seems more reliable
+            if (state.activeProvider === 'gemini') {
+                // First try the non-streaming method
                 try {
-                    console.log("Trying Gemini non-streaming method first");
-                    result = await generateGeminiHTML(
-                        apiKey,
-                        source,
-                        formatPrompt,
-                        state.maxTokens,
-                        state.temperature
-                    );
-                } catch (geminiError) {
-                    console.error("Non-streaming Gemini method failed:", geminiError);
+                    html = await generateGeminiHTML(apiKey, source, formatPrompt, maxTokens, temperature);
                     
-                    // Fall back to streaming method if the non-streaming method fails
-                    console.log("Falling back to Gemini streaming method");
-                    result = await generateGeminiHTMLStream(
-                        apiKey,
-                        source,
-                        formatPrompt,
-                        state.maxTokens,
-                        state.temperature
-                    );
+                    // If the non-streaming method returns null, fall back to streaming
+                    if (html === null) {
+                        console.log('Non-streaming Gemini method failed, falling back to streaming method');
+                        html = await generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens, temperature);
+                    }
+                } catch (error) {
+                    console.error('Non-streaming Gemini method failed:', error);
+                    
+                    // Fall back to streaming method
+                    console.log('Falling back to Gemini streaming method');
+                    html = await generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens, temperature);
                 }
+            } else if (state.activeProvider === 'claude') {
+                // Use the streaming method with reconnection support
+                html = await generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, state.activeModel, maxTokens, temperature, thinkingBudget);
             } else {
-                // For Claude/Anthropic, use streaming with reconnection support
-                result = await generateHTMLStreamWithReconnection(
-                    apiKey,
-                    source,
-                    formatPrompt,
-                    state.model,
-                    state.maxTokens,
-                    state.temperature,
-                    state.thinkingBudget
-                );
+                throw new Error(`Unknown API provider: ${state.activeProvider}`);
             }
             
-            if (result) {
+            // If we get here, generation was successful
+            if (html) {
+                console.log('Generation successful');
                 showResultSection();
-                resetGenerationUI(true); // Success = true
-            } else {
-                resetGenerationUI(false); // Success = false
             }
-            
         } catch (error) {
+            // Final error handling
             console.error('Generation error:', error);
-            showToast(`Error: ${error.message}`, 'error');
-            resetGenerationUI(false);
+            
+            // Show error to user
+            setProcessingText('Generation failed!');
+            showToast(error.message || 'Failed to generate website', 'error');
+            
+            // Reset state
+            state.processing = false;
+            disableInputsDuringGeneration(false);
         } finally {
+            // Clean up scroll handler
             window.removeEventListener('scroll', scrollHandler);
+            
+            // Stop timers
+            stopElapsedTimeCounter();
+            stopProcessingAnimation();
         }
     } catch (error) {
-        console.error('Unexpected error:', error);
-        showToast(`Unexpected error: ${error.message}`, 'error');
-        resetGenerationUI(false);
+        console.error('Error in generateWebsite:', error);
+        showToast(error.message || 'An error occurred', 'error');
+        state.processing = false;
+        disableInputsDuringGeneration(false);
+        stopElapsedTimeCounter();
+        stopProcessingAnimation();
     }
 }
 
@@ -1176,16 +1164,23 @@ async function generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens,
             requestBody.file_content = state.fileContent;
         }
         
-        // Start the streaming request
+        // Start the streaming request with retry logic
         console.log('Making fetch request to', `${API_URL}/api/process-gemini-stream`);
         const streamStartTime = Date.now();
-        const response = await fetch(`${API_URL}/api/process-gemini-stream`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
+        
+        // Use fetchWithRetry but with a longer timeout for streaming
+        const response = await fetchWithRetry(
+            `${API_URL}/api/process-gemini-stream`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
             },
-            body: JSON.stringify(requestBody)
-        });
+            1,  // 1 retry for streaming
+            30000  // 30 second timeout for initial response
+        );
         
         if (!response.ok) {
             const errorText = await response.text();
@@ -1270,9 +1265,9 @@ async function generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens,
                         const eventData = JSON.parse(line.substring(6));
                         
                         // Handle different event types
-                        if (eventData.type === 'content_block_delta') {
+                        if (eventData.type === 'content_block_delta' || eventData.type === 'content') {
                             // Add the text to our buffer
-                            const text = eventData.delta?.text || '';
+                            const text = eventData.delta?.text || eventData.chunk || '';
                             
                             if (text) {
                                 htmlBuffer += text;
@@ -1337,136 +1332,63 @@ async function generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens,
         const totalTime = (Date.now() - streamStartTime) / 1000;
         console.log(`Gemini stream processing completed in ${totalTime.toFixed(1)} seconds`);
         
-        // If we didn't receive any content, throw a specific error
-        if (!hasReceivedContent || !generatedContent.trim()) {
+        // Check if we have any content
+        if (!generatedContent) {
             throw new Error('No content received from Gemini API. Please try again or check your API key.');
         }
         
-        // Ensure the generated content is saved to state
-        state.generatedHtml = generatedContent;
-        
-        // Final UI updates
+        // Update the HTML display with the final content
         updateHtmlDisplay(generatedContent);
         updatePreview(generatedContent);
         
-        // If we don't have token statistics yet, estimate them
-        if (!elements.inputTokens?.textContent || elements.inputTokens.textContent === '0') {
-            // Estimate input tokens based on source length (1 token ≈ 3.5 characters)
-            const estimatedInputTokens = Math.max(1, Math.floor(source.length / 3.5));
-            const estimatedOutputTokens = Math.max(1, Math.floor(generatedContent.length / 3.5));
-            
-            // Update usage statistics with our estimates
-            updateUsageStatistics({
-                input_tokens: estimatedInputTokens,
-                output_tokens: estimatedOutputTokens
-            });
-            
-            console.log('Updated with estimated token counts:', estimatedInputTokens, estimatedOutputTokens);
-        }
+        // Set final state
+        state.generatedHtml = generatedContent;
         
-        // Complete generation
-        console.log('Generation complete with Gemini streaming');
+        // Update UI to show completion
         setProcessingText('Generation complete!');
         state.processing = false;
         stopElapsedTimeCounter();
-        
-        // Check if stopProcessingAnimation accepts a parameter (some versions may not)
-        if (typeof stopProcessingAnimation === 'function') {
-            if (stopProcessingAnimation.length > 0) {
-                stopProcessingAnimation(true); // true indicates success
-            } else {
-                stopProcessingAnimation(); // older version without success parameter
-            }
-        }
-        
+        stopProcessingAnimation();
         disableInputsDuringGeneration(false);
         
-        // Show completion toast
-        showToast('Website generated successfully!', 'success');
+        // Show success toast
+        showToast('Website generated successfully with streaming!', 'success');
         
         return generatedContent;
     } catch (error) {
         console.error('Error in Gemini streaming:', error);
         
-        // Check if we received any content before the error
-        if (generatedContent && generatedContent.trim().length > 100) { // Increased minimum content length
-            console.warn('Error occurred but significant content was received. Content length:', generatedContent.length);
-            console.log('Continuing with partial content...');
+        // If we have partial content, consider that a success
+        if (generatedContent) {
+            console.log('Despite error, we have generated content - proceeding with what we have');
             
-            // Final UI updates with the partial content we have
+            // Update the HTML display with what we have
             updateHtmlDisplay(generatedContent);
-            updatePreview(generatedContent); 
+            updatePreview(generatedContent);
             
-            // Complete generation
-            setProcessingText('Generation complete (with partial content)!');
+            // Set final state
+            state.generatedHtml = generatedContent;
+            
+            // Update UI to show completion
+            setProcessingText('Generation complete with partial content!');
             state.processing = false;
             stopElapsedTimeCounter();
-            
-            // Check if stopProcessingAnimation accepts a parameter
-            if (typeof stopProcessingAnimation === 'function') {
-                if (stopProcessingAnimation.length > 0) {
-                    stopProcessingAnimation(true); // Still consider it a success
-                } else {
-                    stopProcessingAnimation();
-                }
-            }
-            
+            stopProcessingAnimation();
             disableInputsDuringGeneration(false);
             
             // Show partial success toast
-            showToast('Website generated with partial content due to timeout', 'warning');
+            showToast('Website generated partially with streaming!', 'success');
             
             return generatedContent;
-        } else {
-            console.error('Gemini streaming error with no usable content:', error);
-            
-            // Complete generation but indicate failure
-            setProcessingText('Generation failed!');
-            state.processing = false;
-            stopElapsedTimeCounter();
-            
-            // Check if stopProcessingAnimation accepts a parameter
-            if (typeof stopProcessingAnimation === 'function') {
-                if (stopProcessingAnimation.length > 0) {
-                    stopProcessingAnimation(false); // false indicates failure
-                } else {
-                    stopProcessingAnimation();
-                }
-            }
-            
-            disableInputsDuringGeneration(false);
-            
-            // Show error toast
-            showToast(`Generation failed: ${error.message}`, 'error');
-            
-            // Try a fallback to non-streaming mode if this was a specific type of error
-            if (error.message.includes('No content received') || 
-                error.message.includes('timeout') || 
-                error.message.includes('stream') ||
-                error.message.includes('EOF')) {
-                console.log('Attempting fallback to non-streaming mode...');
-                showToast('Trying fallback non-streaming mode...', 'info');
-                
-                try {
-                    const fallbackContent = await generateGeminiHTML(apiKey, source, formatPrompt, maxTokens, temperature);
-                    if (fallbackContent && fallbackContent.trim()) {
-                        console.log('Fallback generation successful');
-                        return fallbackContent;
-                    }
-                } catch (fallbackError) {
-                    console.error('Fallback generation also failed:', fallbackError);
-                }
-            }
-            
-            throw error;
         }
+        
+        // Otherwise, throw the error to be handled by the caller
+        throw error;
     }
 }
 
 // Add non-streaming fallback for Gemini
 async function generateGeminiHTML(apiKey, source, formatPrompt, maxTokens, temperature) {
-    console.log("Starting Gemini HTML generation (non-streaming)...");
-    
     try {
         // Calculate approximate input tokens right away (1.3 tokens per word)
         const inputTokens = Math.max(1, Math.floor(source.split(' ').length * 1.3));
@@ -1496,12 +1418,18 @@ async function generateGeminiHTML(apiKey, source, formatPrompt, maxTokens, tempe
             requestBody.file_content = state.fileContent;
         }
         
-        // Make the non-streaming request
-        const response = await fetch(`${API_URL}/api/process-gemini`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
+        // Make the non-streaming request with retry logic
+        console.log('Making fetch request to', `${API_URL}/api/process-gemini`);
+        const response = await fetchWithRetry(
+            `${API_URL}/api/process-gemini`, 
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            },
+            2,  // 2 retries
+            55000  // 55 second timeout (just under Vercel's 60s limit)
+        );
         
         if (!response.ok) {
             const errorText = await response.text();
@@ -1553,6 +1481,16 @@ async function generateGeminiHTML(apiKey, source, formatPrompt, maxTokens, tempe
         return html;
     } catch (error) {
         console.error('Gemini generation error:', error);
+        
+        // Check if the error is related to a timeout
+        if (error.name === 'AbortError' || error.toString().includes('timeout') || 
+            (error.message && (error.message.includes('timeout') || error.message.includes('FUNCTION_INVOCATION_TIMEOUT')))) {
+            console.log('Request timed out, falling back to streaming mode');
+            
+            // Return null to indicate fallback to streaming should be used
+            return null;
+        }
+        
         throw error;
     }
 }

@@ -7,508 +7,496 @@ import sys
 import base64
 from http.server import BaseHTTPRequestHandler
 
-# Format function as a fallback in case import fails
-def format_stream_event(event_type, data=None):
-    """
-    Format data as a server-sent event (fallback implementation)
-    """
-    event = {"type": event_type}
-    
-    if data:
-        event.update(data)
-    
-    # Format as SSE
-    return f"event: {event_type}\ndata: {json.dumps(data if data else {})}\n\n"
+# Add the parent directory to sys.path
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
 
-# Try to import helper_function but provide fallbacks
+# Try to import helper functions
 try:
-    # Add the parent directory to sys.path if needed
-    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    if parent_dir not in sys.path:
-        sys.path.append(parent_dir)
-    
-    from helper_function import create_gemini_client
+    from helper_function import create_gemini_client, format_stream_event, GEMINI_AVAILABLE
 except ImportError:
-    # Define fallback create_gemini_client if import fails
+    # Define fallbacks if imports fail
     def create_gemini_client(api_key):
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        
-        class GeminiClient:
-            def __init__(self):
-                pass
-                
-            def get_model(self, model_name):
-                return genai.GenerativeModel(model_name)
-        
-        return GeminiClient()
+        return None
+    
+    def format_stream_event(event_type, data):
+        """Format an event for server-sent events (SSE)."""
+        return f"data: {json.dumps(data)}\n\n"
+    
+    GEMINI_AVAILABLE = False
 
-# Edge Function configuration - explicitly set runtime to edge
-# This enables streaming responses without timeout issues
-__VERCEL_EDGE_RUNTIME = True  # Explicit Edge Runtime flag for Vercel Edge Functions
-VERCEL_EDGE = True
+# Setting runtime configuration for Vercel Edge Functions
+__VERCEL_PYTHON_RUNTIME = "3.9"
+__VERCEL_HANDLER = "handler"
+__VERCEL_HANDLER_MEMORY = 1024
+__VERCEL_HANDLER_MAXDURATION = 60
 
-# Keep the exact model and parameters as specified
-GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Using exact model as requested
-GEMINI_MAX_OUTPUT_TOKENS = 65536  # Full token limit as specified
-GEMINI_TEMPERATURE = 1.0  # Exact temperature as specified
+# Global constants for Gemini
+GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"
+GEMINI_MAX_OUTPUT_TOKENS = 65536  # Full token limit
+GEMINI_TEMPERATURE = 1.0
 GEMINI_TOP_P = 0.95
 GEMINI_TOP_K = 64
 
-# GEMINI TEST BRANCH: This branch is for testing Gemini integration with streaming
-# Optimized for Vercel Edge Functions without changing any model parameters
+# System instruction for Gemini
+SYSTEM_INSTRUCTION = """You are an expert web developer. Transform the provided content into a beautiful, modern, responsive HTML webpage with CSS.
 
-# Indicate if Gemini is available
-try:
-    import google.generativeai as genai
-    GEMINI_AVAILABLE = True
-    print("Google Generative AI module is available")
-except ImportError:
-    GEMINI_AVAILABLE = False
-    print("Google Generative AI module is not installed")
+The HTML should:
+1. Use modern CSS and HTML5 features
+2. Be fully responsive and mobile-friendly
+3. Have an attractive, professional design
+4. Implement good accessibility practices
+5. Use semantic HTML elements properly
+6. Have a clean, consistent layout
+7. Not use any external JS libraries or CSS frameworks
+8. Include all CSS inline in a <style> tag
+9. Be complete and ready to render without external dependencies
+10. Include engaging visual elements and a cohesive color scheme
 
-# Create a handler class compatible with Vercel
-class Handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        try:
-            # Get content length
-            content_length = int(self.headers.get('Content-Length', 0))
-            # Read request body
-            request_body = self.rfile.read(content_length).decode('utf-8')
-            data = json.loads(request_body)
-            
-            # Process request and get stream generator immediately
-            response_data, status_code, stream_generator = process_stream_request(data)
-            
-            # Set response headers
-            self.send_response(status_code)
-            
-            # If we have a streaming response (most likely case)
-            if stream_generator:
-                # Set proper headers for Server-Sent Events (SSE)
-                self.send_header('Content-Type', 'text/event-stream')
-                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
-                self.send_header('Connection', 'keep-alive')
-                self.send_header('X-Accel-Buffering', 'no')
-                self.send_header('Transfer-Encoding', 'chunked')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-                self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                self.end_headers()
-                
-                # Send initial response immediately to prevent initial timeout
-                self.wfile.write(format_stream_event("stream_start", {"message": "Stream starting"}).encode('utf-8'))
-                self.wfile.flush()
-                
-                # Send the streaming response
-                try:
-                    for event in stream_generator:
-                        self.wfile.write(event.encode('utf-8'))
-                        self.wfile.flush()  # Ensure data is sent immediately
-                except Exception as e:
-                    # Handle any streaming errors
-                    error_event = format_stream_event("error", {
-                        "error": f"Streaming error: {str(e)}",
-                        "details": traceback.format_exc()
-                    })
-                    self.wfile.write(error_event.encode('utf-8'))
-                    self.wfile.flush()
-            else:
-                # Regular JSON response for errors
-                self.send_header('Content-Type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-                self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                self.end_headers()
-                
-                # Send the JSON response
-                self.wfile.write(json.dumps(response_data).encode('utf-8'))
-                
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                'error': f'Server error: {str(e)}',
-                'details': traceback.format_exc()
-            }).encode('utf-8'))
-    
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
+Make sure the HTML is valid, self-contained, and will render properly in modern browsers."""
 
 def process_stream_request(request_data):
     """
-    Process a streaming request using Gemini API with proper Edge Function handling
-    Compatible with the reference implementation for streaming
+    Process a file using the Google Gemini API and return streaming HTML.
     """
+    print("\n==== API PROCESS GEMINI STREAM REQUEST RECEIVED ====")
+    start_time = time.time()
+    session_id = str(uuid.uuid4())
+    print(f"Generated session ID: {session_id}")
+    
     try:
-        # Extract request data
-        data = request_data
-        api_key = data.get('api_key')
+        # Extract request parameters
+        api_key = request_data.get('api_key')
+        content = request_data.get('content')
+        source = request_data.get('source', '')
+        format_prompt = request_data.get('format_prompt', '')
+        max_tokens = int(request_data.get('max_tokens', GEMINI_MAX_OUTPUT_TOKENS))
+        temperature = float(request_data.get('temperature', GEMINI_TEMPERATURE))
         
-        # Check for both 'content' and 'source' parameters for compatibility
-        content = data.get('content', '')
-        if not content:
-            content = data.get('source', '')  # Fallback to 'source' if 'content' is empty
+        # Use source if content is not provided (for backward compatibility)
+        if not content and source:
+            content = source
+            
+        print(f"Processing Gemini request with max_tokens={max_tokens}, content_length={len(content) if content else 0}")
         
-        # If content is empty, return an error
-        if not content:
-            return {"error": "Source code or text is required"}, 400, None
-        
-        format_prompt = data.get('format_prompt', '')
-        
-        # Use exact parameters from reference implementation
-        max_tokens = GEMINI_MAX_OUTPUT_TOKENS
-        temperature = GEMINI_TEMPERATURE
-        
-        # Create a session ID
-        session_id = str(uuid.uuid4())
+        # Validate required fields
+        if not api_key or not content:
+            yield format_stream_event("error", {
+                "error": "API key and content are required",
+                "type": "error",
+                "session_id": session_id
+            })
+            return
         
         # Check if Gemini is available
         if not GEMINI_AVAILABLE:
-            error_msg = 'Google Generative AI package is not installed on the server.'
-            print(f"Error: {error_msg}")
-            return {
-                'error': error_msg,
-                'details': 'Please install the Google Generative AI package with "pip install google-generativeai"'
-            }, 500, None
+            yield format_stream_event("error", {
+                "error": "Google Generative AI package is not installed on the server",
+                "type": "error",
+                "session_id": session_id
+            })
+            return
         
         # Create Gemini client
-        try:
-            client = create_gemini_client(api_key)
-            print(f"Gemini client created successfully with API key: {api_key[:4]}...")
-        except Exception as e:
-            error_msg = f"API key validation failed: {str(e)}"
-            print(f"Error: {error_msg}")
-            return {
-                "success": False,
-                "error": error_msg
-            }, 401, None
+        client = create_gemini_client(api_key)
+        if not client:
+            yield format_stream_event("error", {
+                "error": "Failed to create Gemini client. Check your API key.",
+                "type": "error",
+                "session_id": session_id
+            })
+            return
         
-        # For compatibility with reference code, don't truncate too much
-        max_content_length = 100000
-        truncated_content = content[:max_content_length]
-        
+        # Prepare content
         if format_prompt:
-            truncated_content = f"{truncated_content}\n\n{format_prompt}"
+            content = f"{content}\n\n{format_prompt}"
         
-        print(f"Prepared prompt for Gemini with length: {len(truncated_content)}")
+        # Limit content length to avoid token limits
+        content_limit = 100000  # Approximately 30k tokens
+        if len(content) > content_limit:
+            print(f"Content exceeds limit, truncating from {len(content)} to {content_limit} chars")
+            content = content[:content_limit]
         
-        # Define the streaming response generator - optimized for Edge Functions
+        # Create the prompt
+        prompt = f"""
+{SYSTEM_INSTRUCTION}
+
+Here is the content to transform into a website:
+
+{content}
+"""
+        
+        # Send start event
+        yield format_stream_event("stream_start", {
+            "message": "Stream starting",
+            "session_id": session_id
+        })
+        
+        # Define the streaming response generator
         def gemini_stream_generator():
             try:
-                # Send a starting event immediately to start the response
-                yield format_stream_event("stream_start", {"message": "Stream starting", "session_id": session_id})
+                # Get the model
+                model = client.get_model(GEMINI_MODEL)
+                print(f"Successfully retrieved Gemini model: {GEMINI_MODEL}")
                 
-                # Send a keepalive message right away to establish the stream
-                yield format_stream_event("keepalive", {"message": "Connection established", "session_id": session_id})
+                # Configure generation parameters
+                generation_config = {
+                    "max_output_tokens": max_tokens,
+                    "temperature": temperature,
+                    "top_p": GEMINI_TOP_P,
+                    "top_k": GEMINI_TOP_K
+                }
                 
+                # Send status update
+                yield format_stream_event("status", {
+                    "message": "Model loaded, starting generation",
+                    "session_id": session_id
+                })
+                
+                # Keep track of chunks for keepalive purposes
+                last_chunk_time = time.time()
+                chunks_received = 0
+                accumulated_content = ""
+                
+                # Try streaming generation
                 try:
-                    # Get the model - using exact model from reference
-                    model = client.get_model(GEMINI_MODEL)
-                    print(f"Successfully retrieved Gemini model: {GEMINI_MODEL}")
+                    print("Starting streaming generation with Gemini")
                     
-                    # Configure generation parameters - using exact params from reference
-                    generation_config = {
-                        "max_output_tokens": max_tokens,
-                        "temperature": temperature,
-                        "top_p": GEMINI_TOP_P,
-                        "top_k": GEMINI_TOP_K,
-                        "response_mime_type": "text/plain"
-                    }
+                    # Generate content with streaming
+                    # Note: Removed timeout parameter as it's not supported and was causing errors
+                    response = model.generate_content(
+                        prompt,
+                        generation_config=generation_config,
+                        stream=True
+                    )
                     
-                    # Prepare content in the same structure as reference implementation
-                    html_content = ""
-                    start_time = time.time()
-                    
-                    try:
-                        # Create content in format matching reference implementation
-                        contents = [
-                            {
-                                "role": "user",
-                                "parts": [{"text": truncated_content}]
-                            }
-                        ]
+                    # Process the streaming response
+                    for chunk in response:
+                        # Update last chunk time
+                        current_time = time.time()
+                        chunks_received += 1
                         
-                        print("Starting streaming response generation")
+                        # Extract text from the chunk
+                        chunk_text = ""
+                        try:
+                            if hasattr(chunk, 'text'):
+                                chunk_text = chunk.text
+                            elif hasattr(chunk, 'parts') and chunk.parts:
+                                for part in chunk.parts:
+                                    if hasattr(part, 'text'):
+                                        chunk_text += part.text
+                        except Exception as chunk_error:
+                            print(f"Error extracting text from chunk: {str(chunk_error)}")
+                            continue
                         
-                        # Start stream generation with reference parameters - no timeout parameter
-                        stream = model.generate_content(
-                            contents,
-                            generation_config=generation_config,
-                            stream=True
-                        )
-                        
-                        # Track timing for keepalives
-                        last_keepalive_time = time.time()
-                        last_yield_time = time.time()
-                        has_sent_content = False
-                        chunk_buffer = []
-                        
-                        # Process the stream with more frequent keepalives to prevent timeouts
-                        for chunk in stream:
-                            # Extract text from chunk
-                            chunk_text = chunk.text if hasattr(chunk, 'text') else ""
+                        # Skip empty chunks
+                        if not chunk_text:
+                            continue
                             
-                            # Send intermittent keepalive messages to prevent timeout
-                            # Edge Functions require some activity every few seconds
-                            current_time = time.time()
-                            if current_time - last_keepalive_time >= 3:  # Reduced from 5 to 3 seconds
-                                yield format_stream_event("keepalive", {"timestamp": current_time, "session_id": session_id})
-                                last_keepalive_time = current_time
-                            
-                            if chunk_text:
-                                # Mark that we've received content
-                                has_sent_content = True
-                                
-                                # Accumulate text in buffer
-                                chunk_buffer.append(chunk_text)
-                                html_content += chunk_text
-                                
-                                # Yield more frequently for Edge Functions
-                                current_time = time.time()
-                                if current_time - last_yield_time >= 0.2 or len(chunk_buffer) >= 3:  # More frequent updates
-                                    # Send accumulated chunks
-                                    combined_text = ''.join(chunk_buffer)
-                                    yield format_stream_event("content", {
-                                        "chunk": combined_text,
-                                        "chunk_id": f"{session_id}_{len(html_content)}",
-                                        "session_id": session_id
-                                    })
-                                    
-                                    # Reset buffer and time
-                                    chunk_buffer = []
-                                    last_yield_time = current_time
-                                    last_keepalive_time = current_time
+                        # Add to accumulated content
+                        accumulated_content += chunk_text
                         
-                        # Send any remaining chunks
-                        if chunk_buffer:
-                            combined_text = ''.join(chunk_buffer)
-                            yield format_stream_event("content", {
-                                "chunk": combined_text,
-                                "chunk_id": f"{session_id}_final",
-                                "session_id": session_id
-                            })
-                            
-                        print(f"Stream completed, generated {len(html_content)} characters")
-                        
-                        # If no content was generated, provide fallback
-                        if not has_sent_content or not html_content:
-                            # Generate a simple fallback HTML
-                            fallback_html = f"""
-                            <!DOCTYPE html>
-                            <html lang="en">
-                            <head>
-                                <meta charset="UTF-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                <title>Content Visualization</title>
-                                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-                            </head>
-                            <body class="bg-gray-100 p-4">
-                                <div class="container mx-auto bg-white p-6 rounded shadow">
-                                    <h1 class="text-2xl font-bold mb-4">Content Visualization</h1>
-                                    <div class="prose">
-                                        <pre class="bg-gray-100 p-4 rounded overflow-auto">{truncated_content[:500]}...</pre>
-                                    </div>
-                                    <p class="mt-4 text-sm text-gray-500">Note: No content was generated from the API.</p>
-                                </div>
-                            </body>
-                            </html>
-                            """
-                            yield format_stream_event("content", {
-                                "chunk": fallback_html,
-                                "chunk_id": f"{session_id}_fallback",
-                                "session_id": session_id
-                            })
-                            html_content = fallback_html
-                            
-                    except Exception as stream_error:
-                        print(f"Streaming error: {str(stream_error)}")
-                        # Send error information in the stream
-                        yield format_stream_event("error", {
-                            "error": str(stream_error),
+                        # Send content chunk
+                        yield format_stream_event("content_block_delta", {
+                            "delta": {"text": chunk_text},
+                            "type": "content_block_delta",
                             "session_id": session_id
                         })
                         
-                        # If streaming fails, fall back to synchronous generation
-                        if not html_content:
-                            print("Stream failed, attempting synchronous generation")
-                            
-                            # Try synchronous generation with timeout
-                            try:
-                                # Use same config as streamed version
-                                response = model.generate_content(
-                                    contents,
-                                    generation_config=generation_config
-                                )
-                                
-                                # Extract content
-                                if hasattr(response, 'text'):
-                                    html_content = response.text
-                                elif hasattr(response, 'parts') and response.parts:
-                                    for part in response.parts:
-                                        if hasattr(part, 'text'):
-                                            html_content += part.text
-                                
-                                # Send the entire content
-                                if html_content:
-                                    yield format_stream_event("content", {
-                                        "chunk": html_content,
-                                        "chunk_id": f"{session_id}_complete",
-                                        "session_id": session_id
-                                    })
-                            except Exception as fallback_error:
-                                print(f"Fallback generation also failed: {str(fallback_error)}")
-                                # Generate a fallback HTML for complete failure
-                                fallback_html = f"""
-                                <!DOCTYPE html>
-                                <html lang="en">
-                                <head>
-                                    <meta charset="UTF-8">
-                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                    <title>Content Visualization</title>
-                                    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-                                </head>
-                                <body class="bg-gray-100 p-4">
-                                    <div class="container mx-auto bg-white p-6 rounded shadow">
-                                        <h1 class="text-2xl font-bold mb-4">Content Visualization</h1>
-                                        <div class="prose">
-                                            <pre class="bg-gray-100 p-4 rounded overflow-auto">{truncated_content[:500]}...</pre>
-                                        </div>
-                                        <p class="mt-4 text-sm text-gray-500">Error: API generation failed. Please try again.</p>
-                                    </div>
-                                </body>
-                                </html>
-                                """
-                                yield format_stream_event("content", {
-                                    "chunk": fallback_html,
-                                    "chunk_id": f"{session_id}_fallback",
-                                    "session_id": session_id
-                                })
-                                html_content = fallback_html
+                        # Send keepalive if needed (every 15 chunks or 5 seconds)
+                        if chunks_received % 15 == 0 or (current_time - last_chunk_time) > 5:
+                            last_chunk_time = current_time
+                            yield format_stream_event("keepalive", {
+                                "type": "keepalive",
+                                "session_id": session_id
+                            })
                     
-                    # Calculate approx stats
-                    end_time = time.time()
-                    generation_time = end_time - start_time
+                    # Completed successfully
+                    total_generation_time = time.time() - start_time
                     
-                    input_tokens = max(1, int(len(truncated_content.split()) * 1.3))
-                    output_tokens = max(1, int(len(html_content.split()) * 1.3))
-                    
-                    print(f"Generation completed in {generation_time:.2f}s")
+                    # Calculate approximate token usage
+                    input_tokens = max(1, int(len(prompt.split()) * 1.3))
+                    output_tokens = max(1, int(len(accumulated_content.split()) * 1.3))
                     
                     # Send completion event
-                    yield format_stream_event("content", {
+                    yield format_stream_event("message_complete", {
+                        "message": "Generation complete",
                         "type": "message_complete",
-                        "chunk_id": f"{session_id}_complete",
+                        "html": accumulated_content,
+                        "session_id": session_id,
                         "usage": {
                             "input_tokens": input_tokens,
                             "output_tokens": output_tokens,
                             "total_tokens": input_tokens + output_tokens,
-                            "total_cost": 0.0
-                        },
-                        "html": html_content,
-                        "session_id": session_id
+                            "processing_time": total_generation_time
+                        }
                     })
                     
-                except Exception as generation_error:
-                    print(f"Error generating content: {str(generation_error)}")
-                    traceback.print_exc()
+                    print(f"Streaming completed successfully in {total_generation_time:.2f}s")
+                    print(f"Generated content length: {len(accumulated_content)} chars")
+                    print(f"Estimated tokens: Input={input_tokens}, Output={output_tokens}")
                     
-                    # Generate fallback HTML for error case
-                    fallback_html = f"""
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Content Visualization</title>
-                        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-                    </head>
-                    <body class="bg-gray-100 p-4">
-                        <div class="container mx-auto bg-white p-6 rounded shadow">
-                            <h1 class="text-2xl font-bold mb-4">Content Visualization</h1>
-                            <div class="prose">
-                                <pre class="bg-gray-100 p-4 rounded overflow-auto">{truncated_content[:500]}...</pre>
-                            </div>
-                            <p class="mt-4 text-sm text-gray-500">Error: {str(generation_error)}</p>
-                        </div>
-                    </body>
-                    </html>
-                    """
+                except Exception as stream_error:
+                    print(f"Error during streaming: {str(stream_error)}")
+                    print(traceback.format_exc())
                     
-                    # Return fallback HTML in case of error
-                    yield format_stream_event("content", {
-                        "chunk": fallback_html,
-                        "chunk_id": f"{session_id}_error",
-                        "session_id": session_id,
-                        "error": str(generation_error)
-                    })
-                    
-                    # Send error event
-                    yield format_stream_event("error", {
-                        "error": str(generation_error),
-                        "session_id": session_id
-                    })
-                    
-            except Exception as e:
-                print(f"Stream generator error: {str(e)}")
-                traceback.print_exc()
-                
-                # Always ensure we send some response
+                    # If we have accumulated content, continue with it
+                    if accumulated_content:
+                        print(f"Using partial content from stream ({len(accumulated_content)} chars)")
+                        total_generation_time = time.time() - start_time
+                        
+                        # Calculate approximate token usage
+                        input_tokens = max(1, int(len(prompt.split()) * 1.3))
+                        output_tokens = max(1, int(len(accumulated_content.split()) * 1.3))
+                        
+                        # Send completion event with partial content
+                        yield format_stream_event("message_complete", {
+                            "message": "Generation partially complete",
+                            "type": "message_complete",
+                            "html": accumulated_content,
+                            "session_id": session_id,
+                            "usage": {
+                                "input_tokens": input_tokens,
+                                "output_tokens": output_tokens,
+                                "total_tokens": input_tokens + output_tokens,
+                                "processing_time": total_generation_time
+                            }
+                        })
+                    else:
+                        # Fallback to non-streaming as a last resort
+                        print("No content from streaming, trying non-streaming fallback")
+                        yield format_stream_event("status", {
+                            "message": "Trying non-streaming fallback",
+                            "session_id": session_id
+                        })
+                        
+                        try:
+                            # Generate content without streaming
+                            fallback_response = model.generate_content(
+                                prompt,
+                                generation_config=generation_config
+                            )
+                            
+                            # Extract content
+                            fallback_html = ""
+                            if hasattr(fallback_response, 'text'):
+                                fallback_html = fallback_response.text
+                            elif hasattr(fallback_response, 'parts') and fallback_response.parts:
+                                for part in fallback_response.parts:
+                                    if hasattr(part, 'text'):
+                                        fallback_html += part.text
+                            
+                            if fallback_html:
+                                total_generation_time = time.time() - start_time
+                                
+                                # Calculate approximate token usage
+                                input_tokens = max(1, int(len(prompt.split()) * 1.3))
+                                output_tokens = max(1, int(len(fallback_html.split()) * 1.3))
+                                
+                                # Send the fallback content
+                                yield format_stream_event("content", {
+                                    "chunk": fallback_html,
+                                    "type": "content",
+                                    "session_id": session_id
+                                })
+                                
+                                # Send completion event
+                                yield format_stream_event("message_complete", {
+                                    "message": "Generation complete (fallback)",
+                                    "type": "message_complete",
+                                    "html": fallback_html,
+                                    "session_id": session_id,
+                                    "usage": {
+                                        "input_tokens": input_tokens,
+                                        "output_tokens": output_tokens,
+                                        "total_tokens": input_tokens + output_tokens,
+                                        "processing_time": total_generation_time
+                                    }
+                                })
+                                
+                                print(f"Fallback generation completed in {total_generation_time:.2f}s")
+                                print(f"Fallback content length: {len(fallback_html)} chars")
+                            else:
+                                raise ValueError("No content from non-streaming fallback")
+                        except Exception as fallback_error:
+                            print(f"Fallback generation failed: {str(fallback_error)}")
+                            print(traceback.format_exc())
+                            yield format_stream_event("error", {
+                                "error": f"Generation failed: {str(fallback_error)}",
+                                "type": "error",
+                                "session_id": session_id
+                            })
+            except Exception as outer_error:
+                print(f"Outer error in Gemini stream generator: {str(outer_error)}")
+                print(traceback.format_exc())
                 yield format_stream_event("error", {
-                    "error": str(e),
+                    "error": f"Server error: {str(outer_error)}",
+                    "type": "error",
                     "session_id": session_id
                 })
         
-        # Return the generator for streaming
-        return None, 200, gemini_stream_generator()
-        
+        # Return the generator function to be used by the streaming response
+        return gemini_stream_generator()
     except Exception as e:
-        print(f"Handler error: {str(e)}")
-        traceback.print_exc()
-        return {
-            'error': f'Stream handler error: {str(e)}',
-            'details': traceback.format_exc()
-        }, 500, None
+        # Handle any exception that might occur outside the generator
+        print(f"Error in process_stream_request: {str(e)}")
+        print(traceback.format_exc())
+        yield format_stream_event("error", {
+            "error": f"Server error: {str(e)}",
+            "type": "error",
+            "session_id": session_id
+        })
 
-# For local Flask development, keep this code but don't expose it to Vercel
-if 'FLASK_APP' in os.environ or not os.environ.get('VERCEL'):
-    from flask import Flask, request, Response, stream_with_context, jsonify
+def handler(request):
+    """
+    Handler function for Vercel Edge Function
+    """
+    # Check for empty request
+    content_length = request.headers.get('Content-Length', '0')
+    if int(content_length) <= 0:
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps({
+                'error': 'Empty request body'
+            })
+        }
     
-    # Try to import app from server if in development mode
     try:
-        from server import app
+        # Parse the request body as JSON
+        request_body = request.get_data().decode('utf-8')
+        try:
+            request_data = json.loads(request_body)
+        except json.JSONDecodeError as e:
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'body': json.dumps({
+                    'error': f'Invalid JSON in request body: {str(e)}'
+                })
+            }
         
-        @app.route('/api/process-gemini-stream', methods=['POST'])
-        def process_gemini_stream_endpoint():
-            """Flask endpoint for streaming in development."""
+        # Validate request data format
+        if not isinstance(request_data, dict):
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'body': json.dumps({
+                    'error': 'Request data must be a JSON object'
+                })
+            }
+        
+        # Validate API key
+        api_key = request_data.get('api_key')
+        if not api_key or not isinstance(api_key, str) or len(api_key) < 10:
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'body': json.dumps({
+                    'error': 'Invalid API key'
+                })
+            }
+        
+        # Validate content or source
+        content = request_data.get('content')
+        source = request_data.get('source')
+        if (not content or not isinstance(content, str) or not content.strip()) and \
+           (not source or not isinstance(source, str) or not source.strip()):
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'body': json.dumps({
+                    'error': 'Content or source must be provided and must be a non-empty string'
+                })
+            }
+        
+        # Setup streaming response
+        def generate_stream():
+            for event in process_stream_request(request_data):
+                yield event
+        
+        # Return the streaming response
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no',  # Disable buffering for Nginx
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': generate_stream()
+        }
+    except Exception as e:
+        print(f"Error in handler: {str(e)}")
+        print(traceback.format_exc())
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps({
+                'error': f'Server error: {str(e)}',
+                'details': traceback.format_exc()
+            })
+        }
+
+# For local development using Flask
+# This will be ignored when deployed to Vercel
+try:
+    from flask import Flask, request, Response, stream_with_context
+    
+    app = Flask(__name__)
+    
+    @app.route('/api/process-gemini-stream', methods=['POST'])
+    def process_gemini_stream():
+        try:
+            # Check for empty request
+            content_length = request.headers.get('Content-Length', '0')
+            if int(content_length) <= 0:
+                return jsonify({
+                    'error': 'Empty request body'
+                }), 400
+            
+            # Parse request data
             try:
-                data = request.get_json()
-                response_data, status_code, stream_generator = process_stream_request(data)
-                
-                # If streaming response
-                if stream_generator:
-                    return Response(
-                        stream_with_context(stream_generator),
-                        mimetype='text/event-stream',
-                        headers={
-                            'Cache-Control': 'no-cache',
-                            'Connection': 'keep-alive',
-                            'Content-Type': 'text/event-stream',
-                            'X-Accel-Buffering': 'no'
-                        }
-                    )
-                else:
-                    # Return standard JSON response for errors
-                    return jsonify(response_data), status_code
+                request_data = request.get_json()
+                if not request_data:
+                    return jsonify({
+                        'error': 'Invalid or missing JSON data'
+                    }), 400
             except Exception as e:
                 return jsonify({
-                    'error': f'Server error: {str(e)}',
-                    'details': traceback.format_exc()
-                }), 500
-    except ImportError:
-        print("Warning: Could not import server.app, local development may not work properly")
+                    'error': f'Invalid request: {str(e)}'
+                }), 400
+            
+            # Stream the response
+            return Response(
+                stream_with_context(process_stream_request(request_data)),
+                mimetype='text/event-stream',
+                headers={
+                    'Cache-Control': 'no-cache',
+                    'X-Accel-Buffering': 'no',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            )
+        except Exception as e:
+            print(f"Error in Flask route: {str(e)}")
+            print(traceback.format_exc())
+            return jsonify({
+                'error': f"Unexpected error: {str(e)}",
+                'details': traceback.format_exc()
+            }), 500
+except ImportError:
+    print("Flask is not available, local development API will not be available")

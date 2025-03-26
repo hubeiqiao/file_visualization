@@ -11,23 +11,26 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-# Import helper functions but don't import server app
-from helper_function import create_gemini_client, GEMINI_AVAILABLE
+try:
+    from helper_function import create_gemini_client, GEMINI_AVAILABLE
+except ImportError:
+    # Define fallbacks if imports fail
+    def create_gemini_client(api_key):
+        return None
+    GEMINI_AVAILABLE = False
 
 # Setting runtime configuration for Vercel Edge Functions
-# This enables longer execution time without timeout issues
-__VERCEL_EDGE_RUNTIME = True  # Explicit Edge Runtime flag for Vercel Edge Functions
-VERCEL_EDGE = True
+__VERCEL_PYTHON_RUNTIME = "3.9"
+__VERCEL_HANDLER = "handler"
+__VERCEL_HANDLER_MEMORY = 1024
+__VERCEL_HANDLER_MAXDURATION = 60
 
-# Global constants for Gemini - Using exact model and parameters as specified
-GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Using exact model as requested
-GEMINI_MAX_OUTPUT_TOKENS = 65536  # Full token limit as specified
-GEMINI_TEMPERATURE = 1.0  # Exact temperature as specified
+# Global constants for Gemini
+GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"
+GEMINI_MAX_OUTPUT_TOKENS = 65536  # Full token limit
+GEMINI_TEMPERATURE = 1.0
 GEMINI_TOP_P = 0.95
 GEMINI_TOP_K = 64
-
-# GEMINI TEST BRANCH: This branch is for testing Gemini integration
-# Keep all the optimizations for Vercel Edge Functions while maintaining the exact model parameters
 
 # Try to import DeadlineExceeded exception
 try:
@@ -38,92 +41,50 @@ except ImportError:
         pass
 
 # System instruction for Gemini
-SYSTEM_INSTRUCTION = """You are a web developer tasked with turning content into a beautiful, responsive website. 
-Create valid, semantic HTML with embedded CSS (using Tailwind CSS) that transforms the provided content into a well-structured, modern-looking website.
+SYSTEM_INSTRUCTION = """You are an expert web developer. Transform the provided content into a beautiful, modern, responsive HTML webpage with CSS.
 
-Follow these guidelines:
-1. Use Tailwind CSS for styling (via CDN) and create a beautiful, responsive design
-2. Structure the content logically with appropriate HTML5 semantic elements
-3. Make the website responsive across all device sizes
-4. Include dark mode support with a toggle button
-5. For code blocks, use proper syntax highlighting
-6. Ensure accessibility by using appropriate ARIA attributes and semantics
-7. Add subtle animations where appropriate
-8. Include a navigation system if the content has distinct sections
-9. Avoid using external JavaScript libraries other than Tailwind
-10. Only generate HTML, CSS, and minimal JavaScript - no backend code or server setup
+The HTML should:
+1. Use modern CSS and HTML5 features
+2. Be fully responsive and mobile-friendly
+3. Have an attractive, professional design
+4. Implement good accessibility practices
+5. Use semantic HTML elements properly
+6. Have a clean, consistent layout
+7. Not use any external JS libraries or CSS frameworks
+8. Include all CSS inline in a <style> tag
+9. Be complete and ready to render without external dependencies
+10. Include engaging visual elements and a cohesive color scheme
 
-Return ONLY the complete HTML document with no explanations. The HTML should be ready to use as a standalone file."""
-
-# Create a handler class compatible with Vercel
-class Handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        try:
-            # Get content length
-            content_length = int(self.headers.get('Content-Length', 0))
-            # Read request body
-            request_body = self.rfile.read(content_length).decode('utf-8')
-            data = json.loads(request_body)
-            
-            # Process request
-            response_data, status_code = process_request(data)
-            
-            # Set response headers
-            self.send_response(status_code)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-            self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-            self.end_headers()
-            
-            # Send the JSON response
-            self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                'error': f'Server error: {str(e)}',
-                'details': traceback.format_exc()
-            }).encode('utf-8'))
-    
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
+Make sure the HTML is valid, self-contained, and will render properly in modern browsers."""
 
 def process_request(request_data):
     """
     Process a file using the Google Gemini API and return HTML.
-    Compatible with the reference implementation and optimized for Edge Functions.
     """
+    # Get the data from the request
     print("\n==== API PROCESS GEMINI REQUEST RECEIVED ====")
+    start_time = time.time()
     
     try:
-        data = request_data
-        
-        if not data:
-            return {"error": "No data provided"}, 400
-        
         # Extract the API key and content
-        api_key = data.get('api_key')
-        content = data.get('content')
-        format_prompt = data.get('format_prompt', '')
+        api_key = request_data.get('api_key')
+        content = request_data.get('content')
+        source = request_data.get('source', '')
+        format_prompt = request_data.get('format_prompt', '')
+        max_tokens = int(request_data.get('max_tokens', GEMINI_MAX_OUTPUT_TOKENS))
+        temperature = float(request_data.get('temperature', GEMINI_TEMPERATURE))
         
-        # Use exactly the parameters from the reference implementation
-        max_tokens = GEMINI_MAX_OUTPUT_TOKENS
-        temperature = GEMINI_TEMPERATURE
+        # Use source if content is not provided
+        if not content and source:
+            content = source
         
-        # Log request parameters (without sensitive data)
         print(f"Processing Gemini request with max_tokens={max_tokens}, content_length={len(content) if content else 0}")
         
         # Check if we have the required data
         if not api_key or not content:
-            return {'error': 'API key and content are required'}, 400
+            return {
+                'error': 'API key and content are required'
+            }, 400
         
         # Check if Gemini is available
         if not GEMINI_AVAILABLE:
@@ -132,157 +93,256 @@ def process_request(request_data):
             }, 500
         
         # Use our helper function to create a Gemini client
-        print(f"Creating Google Gemini client with API key: {api_key[:5]}...")
         client = create_gemini_client(api_key)
+        if not client:
+            return {
+                'error': 'Failed to create Gemini client. Check your API key.'
+            }, 400
         
-        # Get the model - use exactly the model from reference
+        # Prepare user message with content and additional prompt
+        user_content = content
+        if format_prompt:
+            user_content = f"{user_content}\n\n{format_prompt}"
+        
+        print("Creating Gemini model...")
+        
+        # Get the model
         model = client.get_model(GEMINI_MODEL)
         
-        # Configure generation parameters - use exactly the params from reference
+        # Configure generation parameters
         generation_config = {
             "max_output_tokens": max_tokens,
             "temperature": temperature,
             "top_p": GEMINI_TOP_P,
-            "top_k": GEMINI_TOP_K,
-            "response_mime_type": "text/plain"
+            "top_k": GEMINI_TOP_K
         }
         
-        # For compatibility with reference code, don't truncate too much
-        max_content_length = 100000
-        truncated_content = content[:max_content_length]
+        # Create the prompt
+        prompt = f"""
+{SYSTEM_INSTRUCTION}
+
+Here is the content to transform into a website:
+
+{user_content}
+"""
         
-        # Add format prompt if provided
-        if format_prompt:
-            truncated_content = f"{truncated_content}\n\n{format_prompt}"
-        
-        # Prepare content in format matching reference implementation
-        contents = [
-            {
-                "role": "user",
-                "parts": [{"text": truncated_content}]
-            }
-        ]
-        
+        # Generate content
         try:
-            print("Generating content with Gemini model using reference parameters")
-            start_time = time.time()
+            print("Generating content with Gemini (non-streaming)")
+            generation_start_time = time.time()
             
-            # Generate content with reference parameters (no timeout parameter)
+            # Important: Remove the timeout parameter as it's not supported
+            # and is causing the 504 Gateway Timeout errors
             response = model.generate_content(
-                contents,
+                prompt,
                 generation_config=generation_config
             )
             
-            # Extract the content
+            # Try to resolve the response first
             html_content = ""
-            if hasattr(response, 'text'):
-                html_content = response.text
-            elif hasattr(response, 'parts') and response.parts:
-                for part in response.parts:
-                    if hasattr(part, 'text'):
-                        html_content += part.text
+            try:
+                if hasattr(response, 'resolve'):
+                    resolved = response.resolve()
+                    if hasattr(resolved, 'text'):
+                        html_content = resolved.text
+                        print(f"Successfully resolved response: {len(html_content)} chars")
+                    elif hasattr(resolved, 'parts') and resolved.parts:
+                        html_content = resolved.parts[0].text
+                        print(f"Successfully resolved response through parts: {len(html_content)} chars")
+                elif hasattr(response, 'text'):
+                    html_content = response.text
+                    print(f"Got response.text directly: {len(html_content)} chars")
+                elif hasattr(response, 'parts') and response.parts:
+                    html_content = response.parts[0].text
+                    print(f"Got response from parts directly: {len(html_content)} chars")
+                elif hasattr(response, 'candidates') and response.candidates:
+                    candidate = response.candidates[0]
+                    if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                        html_content = candidate.content.parts[0].text
+                        print(f"Got response from candidates: {len(html_content)} chars")
+            except Exception as resolve_error:
+                print(f"Error resolving response: {str(resolve_error)}")
+                print(traceback.format_exc())
+            
+            # If no content was extracted, try a different approach
+            if not html_content:
+                try:
+                    # Try to get the text in different ways
+                    html_content = str(response)
+                    if html_content.startswith("<genai."):
+                        # This is just the object representation, not actual content
+                        html_content = ""
+                except Exception as str_error:
+                    print(f"Error converting response to string: {str(str_error)}")
+            
+            if not html_content:
+                return {
+                    'error': 'Failed to extract content from Gemini response'
+                }, 500
             
             # Get usage stats (approximate since Gemini doesn't provide exact token counts)
-            end_time = time.time()
-            generation_time = end_time - start_time
-            print(f"Generation completed in {generation_time:.2f} seconds")
-            
-            input_tokens = max(1, int(len(truncated_content.split()) * 1.3))
+            input_tokens = max(1, int(len(prompt.split()) * 1.3))
             output_tokens = max(1, int(len(html_content.split()) * 1.3))
             
+            # Calculate total time
+            total_time = time.time() - start_time
+            
             # Log response
-            print(f"Successfully generated content with Gemini. Input tokens: {input_tokens}, Output tokens: {output_tokens}")
+            print(f"Successfully generated HTML with Gemini in {total_time:.2f}s. Input tokens: {input_tokens}, Output tokens: {output_tokens}")
             
             # Return the response
             return {
                 'html': html_content,
                 'model': GEMINI_MODEL,
+                'processing_time': total_time,
                 'usage': {
                     'input_tokens': input_tokens,
                     'output_tokens': output_tokens,
                     'total_tokens': input_tokens + output_tokens,
-                    'total_cost': 0.0
+                    'total_cost': 0.0  # Gemini API is currently free
                 }
             }, 200
         
+        except DeadlineExceeded as e:
+            total_time = time.time() - start_time
+            error_message = f"Deadline exceeded after {total_time:.2f}s: {str(e)}"
+            print(f"Deadline exceeded in /api/process-gemini: {error_message}")
+            print(traceback.format_exc())
+            return {
+                'error': error_message,
+                'details': traceback.format_exc()
+            }, 504  # Return 504 Gateway Timeout status
         except Exception as e:
-            error_message = str(e)
+            total_time = time.time() - start_time
+            error_message = f"Error after {total_time:.2f}s: {str(e)}"
             print(f"Error in /api/process-gemini: {error_message}")
             print(traceback.format_exc())
-            
-            # Return a simple fallback HTML with the content 
-            fallback_html = f"""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Content Visualization</title>
-                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-            </head>
-            <body class="bg-gray-100 p-4">
-                <div class="container mx-auto bg-white p-6 rounded shadow">
-                    <h1 class="text-2xl font-bold mb-4">Content Visualization</h1>
-                    <div class="prose">
-                        <pre class="bg-gray-100 p-4 rounded overflow-auto">{truncated_content[:500]}...</pre>
-                    </div>
-                    <p class="mt-4 text-sm text-gray-500">Note: This is a fallback visualization. Error: {error_message}</p>
-                </div>
-            </body>
-            </html>
-            """
-            
             return {
-                'html': fallback_html,
-                'error': f'Server error: {error_message}',
+                'error': error_message,
                 'details': traceback.format_exc()
-            }, 200  # Return 200 with fallback HTML instead of 500
-    
-    except Exception as e:
-        error_message = str(e)
-        print(f"Error in /api/process-gemini: {error_message}")
+            }, 500
+    except Exception as outer_error:
+        print(f"Unexpected error in process_request: {str(outer_error)}")
         print(traceback.format_exc())
-        
-        # Create a minimal fallback HTML that doesn't require API processing
-        fallback_html = f"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Error - Content Visualization</title>
-            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-        </head>
-        <body class="bg-gray-100 p-4">
-            <div class="container mx-auto bg-white p-6 rounded shadow">
-                <h1 class="text-2xl font-bold mb-4 text-red-600">Server Error</h1>
-                <p class="text-gray-700">We encountered an error processing your request.</p>
-                <p class="mt-4 text-sm text-gray-500">Please try again with a smaller input or different content.</p>
-            </div>
-        </body>
-        </html>
-        """
-        
         return {
-            'html': fallback_html,
-            'error': f'Server error: {error_message}',
+            'error': f"Unexpected error: {str(outer_error)}",
             'details': traceback.format_exc()
-        }, 200  # Return 200 with fallback HTML instead of 500
+        }, 500
 
-# For local Flask development, keep this code but don't expose it to Vercel
-if 'FLASK_APP' in os.environ or not os.environ.get('VERCEL'):
-    from server import app
-    from flask import request, jsonify
+def handler(request):
+    """
+    Handler function for Vercel Edge Function
+    """
+    # Check for empty request
+    content_length = request.headers.get('Content-Length', '0')
+    if int(content_length) <= 0:
+        response_data = {
+            'error': 'Empty request body'
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps(response_data)
+        }
+    
+    try:
+        # Parse the request body as JSON
+        request_body = request.get_data().decode('utf-8')
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        response_data = {
+            'error': f'Invalid JSON in request body: {str(e)}'
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps(response_data)
+        }
+    
+    # Validate request data format
+    if not isinstance(request_data, dict):
+        response_data = {
+            'error': 'Request data must be a JSON object'
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps(response_data)
+        }
+    
+    # Validate API key
+    api_key = request_data.get('api_key')
+    if not api_key or not isinstance(api_key, str) or len(api_key) < 10:
+        response_data = {
+            'error': 'Invalid API key'
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps(response_data)
+        }
+    
+    # Validate content or source
+    content = request_data.get('content')
+    source = request_data.get('source')
+    if (not content or not isinstance(content, str) or not content.strip()) and \
+       (not source or not isinstance(source, str) or not source.strip()):
+        response_data = {
+            'error': 'Content or source must be provided and must be a non-empty string'
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps(response_data)
+        }
+    
+    # Validate format_prompt is a string if provided
+    format_prompt = request_data.get('format_prompt', '')
+    if format_prompt and not isinstance(format_prompt, str):
+        format_prompt = str(format_prompt)
+        request_data['format_prompt'] = format_prompt
+    
+    # Process the request
+    response_data, status_code = process_request(request_data)
+    
+    # Return the response
+    return {
+        'statusCode': status_code,
+        'headers': {
+            'Content-Type': 'application/json'
+        },
+        'body': json.dumps(response_data)
+    }
+
+# For local development using Flask
+# This will be ignored when deployed to Vercel
+try:
+    from flask import Flask, request, jsonify
+    
+    app = Flask(__name__)
     
     @app.route('/api/process-gemini', methods=['POST'])
-    def process_gemini_endpoint():
-        """Endpoint for local development with Flask."""
+    def process_gemini():
         try:
-            data = request.get_json()
-            response_data, status_code = process_request(data)
+            request_data = request.json
+            response_data, status_code = process_request(request_data)
             return jsonify(response_data), status_code
         except Exception as e:
+            print(f"Error in Flask route: {str(e)}")
+            print(traceback.format_exc())
             return jsonify({
-                'error': f'Server error: {str(e)}',
+                'error': f"Unexpected error: {str(e)}",
                 'details': traceback.format_exc()
             }), 500
+except ImportError:
+    print("Flask is not available, local development API will not be available")
