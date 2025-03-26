@@ -3,11 +3,11 @@
   "functions": {
     "server.py": {
       "memory": 1024,
-      "maxDuration": 90
+      "maxDuration": 60
     },
     "api/**/*.py": {
       "memory": 1024,
-      "maxDuration": 90
+      "maxDuration": 60
     }
   },
   "routes": [
