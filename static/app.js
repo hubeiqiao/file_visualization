@@ -1021,8 +1021,31 @@ async function generateWebsite() {
         
         // Get the parameters
         const formatPrompt = ''; // No additional prompt
-        const maxTokens = state.apiProvider === 'gemini' ? parseInt(document.getElementById('maxTokens').value) : 0;
-        const temperature = parseFloat(document.getElementById('temperature').value);
+        
+        // Safely get maxTokens with fallback to default
+        let maxTokens = 65536; // Default max tokens for Gemini
+        const maxTokensElement = document.getElementById('maxTokens');
+        if (state.apiProvider === 'gemini') {
+            if (maxTokensElement && maxTokensElement.value) {
+                maxTokens = parseInt(maxTokensElement.value);
+                console.log(`Using max tokens from input: ${maxTokens}`);
+            } else {
+                console.log(`MaxTokens element not found, using default: ${maxTokens}`);
+            }
+        } else {
+            maxTokens = 0; // Use 0 for non-Gemini providers
+        }
+        
+        // Safely get temperature with fallback to default
+        let temperature = 1.0; // Default temperature
+        const temperatureElement = document.getElementById('temperature');
+        if (temperatureElement && temperatureElement.value) {
+            temperature = parseFloat(temperatureElement.value);
+            console.log(`Using temperature from input: ${temperature}`);
+        } else {
+            console.log(`Temperature element not found, using default: ${temperature}`);
+        }
+        
         const thinkingBudget = state.thinkingBudget || 8;  // Default to 8 seconds
         
         console.log(`API provider: ${state.apiProvider}`);
