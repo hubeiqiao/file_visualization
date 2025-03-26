@@ -3,21 +3,20 @@ import sys
 import json
 import traceback
 import time
-import asyncio
 import base64
+from http.server import BaseHTTPRequestHandler
 
 # Add the parent directory to sys.path
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-from server import app
+# Import helper functions but don't import server app
 from helper_function import create_gemini_client, GEMINI_AVAILABLE
-from flask import Flask, request, jsonify
 
 # Setting runtime configuration for Vercel Edge Functions
 # This allows longer execution time and avoids timeout issues
-__VERCEL_EDGE_RUNTIME = True
+VERCEL_EDGE = True
 
 # Global constants for Gemini - Using exactly the specified model
 GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Using exact model as requested
@@ -56,19 +55,18 @@ Follow these guidelines:
 
 Return ONLY the complete HTML document with no explanations. The HTML should be ready to use as a standalone file."""
 
-def handler(request):
+def process_request(request_data):
     """
     Process a file using the Google Gemini API and return HTML.
     Optimized for Vercel Edge Functions.
     """
-    # Get the data from the request
     print("\n==== API PROCESS GEMINI REQUEST RECEIVED ====")
     
     try:
-        data = request.get_json()
+        data = request_data
         
         if not data:
-            return jsonify({"error": "No data provided"}), 400
+            return {"error": "No data provided"}, 400
         
         # Extract the API key and content
         api_key = data.get('api_key')
@@ -84,13 +82,13 @@ def handler(request):
         
         # Check if we have the required data
         if not api_key or not content:
-            return jsonify({'error': 'API key and content are required'}), 400
+            return {'error': 'API key and content are required'}, 400
         
         # Check if Gemini is available
         if not GEMINI_AVAILABLE:
-            return jsonify({
+            return {
                 'error': 'Google Generative AI package is not installed on the server.'
-            }), 500
+            }, 500
         
         # Use our helper function to create a Gemini client
         client = create_gemini_client(api_key)
@@ -214,7 +212,7 @@ def handler(request):
             print(f"Successfully generated content with Gemini. Input tokens: {input_tokens}, Output tokens: {output_tokens}")
             
             # Return the response
-            return jsonify({
+            return {
                 'html': html_content,
                 'model': GEMINI_MODEL,
                 'usage': {
@@ -223,7 +221,7 @@ def handler(request):
                     'total_tokens': input_tokens + output_tokens,
                     'total_cost': 0.0
                 }
-            })
+            }, 200
         
         except DeadlineExceeded as e:
             error_message = str(e)
@@ -258,7 +256,7 @@ def handler(request):
                 
                 if fallback_html:
                     print("Successfully generated content with fallback parameters")
-                    return jsonify({
+                    return {
                         'html': fallback_html,
                         'model': GEMINI_MODEL,
                         'warning': 'Generated with reduced parameters due to timeout',
@@ -268,7 +266,7 @@ def handler(request):
                             'total_tokens': int(len(truncated_content.split()) * 1.3) + int(len(fallback_html.split()) * 1.3),
                             'total_cost': 0.0
                         }
-                    })
+                    }, 200
             except Exception as fallback_error:
                 print(f"Fallback generation also failed: {str(fallback_error)}")
                 # Continue to return the default fallback HTML
@@ -295,7 +293,7 @@ def handler(request):
             </html>
             """
             
-            return jsonify({
+            return {
                 'html': fallback_html,
                 'model': 'fallback',
                 'error': 'The Gemini API request took too long to complete. Fallback visualization provided.',
@@ -305,26 +303,79 @@ def handler(request):
                     'total_tokens': len(truncated_content.split()),
                     'total_cost': 0.0
                 }
-            })
+            }, 200
             
         except Exception as e:
             error_message = str(e)
             print(f"Error in /api/process-gemini: {error_message}")
             print(traceback.format_exc())
-            return jsonify({
+            return {
                 'error': f'Server error: {error_message}',
                 'details': traceback.format_exc()
-            }), 500
+            }, 500
     
     except Exception as e:
         error_message = str(e)
         print(f"Error in /api/process-gemini: {error_message}")
         print(traceback.format_exc())
-        return jsonify({
+        return {
             'error': f'Server error: {error_message}',
             'details': traceback.format_exc()
-        }), 500
+        }, 500
 
-@app.route('/', methods=['POST'])
-def process_gemini_endpoint():
-    return handler(request)
+# Define handler for Vercel
+def handler(request):
+    """Handler for Vercel Edge Function."""
+    try:
+        # Parse JSON from the request body
+        request_body = request.body.decode('utf-8')
+        data = json.loads(request_body)
+        
+        # Process the request
+        response_data, status_code = process_request(data)
+        
+        # Return the response as JSON
+        return {
+            'statusCode': status_code,
+            'body': json.dumps(response_data),
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS'
+            }
+        }
+    except Exception as e:
+        print(f"Handler error: {str(e)}")
+        traceback.print_exc()
+        return {
+            'statusCode': 500,
+            'body': json.dumps({
+                'error': f'Server error: {str(e)}',
+                'details': traceback.format_exc()
+            }),
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS'
+            }
+        }
+
+# For local Flask development, keep this code but don't expose it to Vercel
+if 'FLASK_APP' in os.environ or not os.environ.get('VERCEL'):
+    from server import app
+    from flask import request, jsonify
+    
+    @app.route('/api/process-gemini', methods=['POST'])
+    def process_gemini_endpoint():
+        """Endpoint for local development with Flask."""
+        try:
+            data = request.get_json()
+            response_data, status_code = process_request(data)
+            return jsonify(response_data), status_code
+        except Exception as e:
+            return jsonify({
+                'error': f'Server error: {str(e)}',
+                'details': traceback.format_exc()
+            }), 500

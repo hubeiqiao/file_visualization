@@ -13,11 +13,17 @@
       "use": "@vercel/static"
     },
     {
-      "src": "api/**/*.py",
+      "src": "api/process-gemini.py",
       "use": "@vercel/python",
       "config": {
-        "maxDuration": 60,
-        "runtime": "edge"
+        "runtime": "python3.9"
+      }
+    },
+    {
+      "src": "api/process-gemini-stream.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.9"
       }
     }
   ],
@@ -28,19 +34,16 @@
     },
     {
       "src": "/api/process-gemini",
-      "dest": "/api/process-gemini.py",
-      "headers": {
-        "Connection": "keep-alive",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "X-Accel-Buffering": "no"
-      }
+      "methods": ["POST"],
+      "dest": "/api/process-gemini.py"
     },
     {
       "src": "/api/process-gemini-stream",
+      "methods": ["POST"],
       "dest": "/api/process-gemini-stream.py",
       "headers": {
-        "Connection": "keep-alive",
         "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Connection": "keep-alive",
         "X-Accel-Buffering": "no"
       }
     },
@@ -50,6 +53,7 @@
     }
   ],
   "env": {
-    "PYTHONUNBUFFERED": "1"
+    "PYTHONUNBUFFERED": "1",
+    "VERCEL": "1"
   }
 } 

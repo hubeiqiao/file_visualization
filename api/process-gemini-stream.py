@@ -1,34 +1,52 @@
-from flask import request, jsonify, Response, stream_with_context
 import json
 import time
 import uuid
 import traceback
 import os
 import base64
+from http.server import BaseHTTPRequestHandler
 
-from server import app
-try:
-    from helper_function import create_gemini_client, format_stream_event
-except ImportError:
-    # Fallback implementation if the function can't be imported
-    from helper_function import create_gemini_client
+# Format function as a fallback in case import fails
+def format_stream_event(event_type, data=None):
+    """
+    Format data as a server-sent event (fallback implementation)
+    """
+    event = {"type": event_type}
     
-    def format_stream_event(event_type, data=None):
-        """
-        Format data as a server-sent event (fallback implementation)
-        """
-        event = {"type": event_type}
+    if data:
+        event.update(data)
+    
+    # Format as SSE
+    return f"event: {event_type}\ndata: {json.dumps(data if data else {})}\n\n"
+
+# Try to import helper_function but provide fallbacks
+try:
+    # Add the parent directory to sys.path if needed
+    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    if parent_dir not in sys.path:
+        import sys
+        sys.path.append(parent_dir)
+    
+    from helper_function import create_gemini_client
+except ImportError:
+    # Define fallback create_gemini_client if import fails
+    def create_gemini_client(api_key):
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
         
-        if data:
-            event.update(data)
+        class GeminiClient:
+            def __init__(self):
+                pass
+                
+            def get_model(self, model_name):
+                return genai.GenerativeModel(model_name)
         
-        # Format as SSE
-        return f"event: {event_type}\ndata: {json.dumps(data if data else {})}\n\n"
+        return GeminiClient()
 
 # Edge Function configuration - explicitly set runtime to edge
 # Setting runtime configuration for Vercel Edge Functions
 # This allows the function to stream responses indefinitely
-__VERCEL_EDGE_RUNTIME = True
+VERCEL_EDGE = True
 
 # Keep the exact model and parameters as specified
 GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Using exact model as requested
@@ -49,13 +67,13 @@ except ImportError:
     GEMINI_AVAILABLE = False
     print("Google Generative AI module is not installed")
 
-def handler(request):
+def process_stream_request(request_data):
     """
     Process a streaming request using Gemini API with proper serverless handling
     """
     try:
         # Extract request data
-        data = request.get_json()
+        data = request_data
         api_key = data.get('api_key')
         
         # Check for both 'content' and 'source' parameters for compatibility
@@ -65,7 +83,7 @@ def handler(request):
         
         # If content is empty, return an error
         if not content:
-            return jsonify({"success": False, "error": "Source code or text is required"}), 400
+            return {"error": "Source code or text is required"}, 400, None
         
         format_prompt = data.get('format_prompt', '')
         
@@ -80,10 +98,10 @@ def handler(request):
         if not GEMINI_AVAILABLE:
             error_msg = 'Google Generative AI package is not installed on the server.'
             print(f"Error: {error_msg}")
-            return jsonify({
+            return {
                 'error': error_msg,
                 'details': 'Please install the Google Generative AI package with "pip install google-generativeai"'
-            }), 500
+            }, 500, None
         
         # Create Gemini client
         try:
@@ -92,10 +110,10 @@ def handler(request):
         except Exception as e:
             error_msg = f"API key validation failed: {str(e)}"
             print(f"Error: {error_msg}")
-            return jsonify({
+            return {
                 "success": False,
                 "error": error_msg
-            })
+            }, 401, None
         
         # Prepare content - for Vercel, reduce content size more aggressively for Edge Functions
         # This helps ensure the initial response happens quickly
@@ -385,29 +403,113 @@ def handler(request):
                     "session_id": session_id
                 })
         
-        # Return streaming response with proper headers for SSE
-        response = Response(
-            stream_with_context(gemini_stream_generator()),
-            mimetype='text/event-stream',
-            headers={
-                'Cache-Control': 'no-cache',
-                'Connection': 'keep-alive',
-                'Content-Type': 'text/event-stream',
-                'X-Accel-Buffering': 'no',  # Disable Nginx buffering if present
-                'Transfer-Encoding': 'chunked'  # Ensure chunked encoding
-            }
-        )
-        
-        return response
+        # Return the generator for streaming
+        return None, 200, gemini_stream_generator()
         
     except Exception as e:
         print(f"Handler error: {str(e)}")
         traceback.print_exc()
-        return jsonify({
+        return {
             'error': f'Stream handler error: {str(e)}',
             'details': traceback.format_exc()
-        }), 500
+        }, 500, None
 
-@app.route('/', methods=['POST'])
-def process_gemini_stream_endpoint():  # Changed function name to avoid conflict
-    return handler(request)
+# Handler for Vercel Serverless/Edge Function
+def handler(request):
+    """Vercel Edge Function handler for streaming responses."""
+    try:
+        # Parse the request body
+        request_body = request.body.decode('utf-8')
+        data = json.loads(request_body)
+        
+        # Process the stream request
+        response_data, status_code, stream_generator = process_stream_request(data)
+        
+        # If streaming response
+        if stream_generator:
+            # Generate the event stream
+            event_stream = ""
+            for event in stream_generator:
+                event_stream += event
+                
+            # Return the response with SSE headers
+            return {
+                'statusCode': status_code,
+                'body': event_stream,
+                'headers': {
+                    'Content-Type': 'text/event-stream',
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                    'X-Accel-Buffering': 'no',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+                }
+            }
+        else:
+            # Return standard JSON response for errors
+            return {
+                'statusCode': status_code,
+                'body': json.dumps(response_data),
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+                }
+            }
+    except Exception as e:
+        print(f"Handler error: {str(e)}")
+        traceback.print_exc()
+        return {
+            'statusCode': 500,
+            'body': json.dumps({
+                'error': f'Server error: {str(e)}',
+                'details': traceback.format_exc()
+            }),
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS'
+            }
+        }
+
+# For local Flask development, keep this code but don't expose it to Vercel
+if 'FLASK_APP' in os.environ or not os.environ.get('VERCEL'):
+    import sys
+    from flask import Flask, request, Response, stream_with_context, jsonify
+    
+    # Try to import app from server if in development mode
+    try:
+        from server import app
+        
+        @app.route('/api/process-gemini-stream', methods=['POST'])
+        def process_gemini_stream_endpoint():
+            """Flask endpoint for streaming in development."""
+            try:
+                data = request.get_json()
+                response_data, status_code, stream_generator = process_stream_request(data)
+                
+                # If streaming response
+                if stream_generator:
+                    return Response(
+                        stream_with_context(stream_generator),
+                        mimetype='text/event-stream',
+                        headers={
+                            'Cache-Control': 'no-cache',
+                            'Connection': 'keep-alive',
+                            'Content-Type': 'text/event-stream',
+                            'X-Accel-Buffering': 'no'
+                        }
+                    )
+                else:
+                    # Return standard JSON response for errors
+                    return jsonify(response_data), status_code
+            except Exception as e:
+                return jsonify({
+                    'error': f'Server error: {str(e)}',
+                    'details': traceback.format_exc()
+                }), 500
+    except ImportError:
+        print("Warning: Could not import server.app, local development may not work properly")
