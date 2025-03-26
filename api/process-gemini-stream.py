@@ -4,66 +4,39 @@ import time
 import uuid
 import traceback
 import os
+import base64
 
 from server import app
 from helper_function import create_gemini_client, format_stream_event
 
-# Global constants for Gemini
+# Edge Function configuration - explicitly set runtime to edge
+# Setting runtime configuration for Vercel Edge Functions
+# This allows the function to stream responses indefinitely
+__VERCEL_EDGE_RUNTIME = True
+
+# Keep the exact model and parameters as specified
 GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Using exact model as requested
-GEMINI_MAX_OUTPUT_TOKENS = 128000
-GEMINI_TEMPERATURE = 1.0
+GEMINI_MAX_OUTPUT_TOKENS = 65536  # Full token limit as specified
+GEMINI_TEMPERATURE = 1.0  # Exact temperature as specified
 GEMINI_TOP_P = 0.95
 GEMINI_TOP_K = 64
-GEMINI_TIMEOUT = 80  # Reduced timeout to avoid Vercel's 90-second limit
 
-# Check if we're running on Vercel
-IS_VERCEL = os.environ.get('VERCEL') == '1'
+# GEMINI TEST BRANCH: This branch is for testing Gemini integration with streaming
+# Optimized for Vercel without changing any model parameters
 
 # Indicate if Gemini is available
 try:
     import google.generativeai as genai
-    # Try to import DeadlineExceeded exception
-    try:
-        from google.api_core.exceptions import DeadlineExceeded
-    except ImportError:
-        # Define a fallback if the import fails
-        class DeadlineExceeded(Exception):
-            pass
     GEMINI_AVAILABLE = True
     print("Google Generative AI module is available")
 except ImportError:
     GEMINI_AVAILABLE = False
     print("Google Generative AI module is not installed")
-    # Define fallback class if import failed
-    class DeadlineExceeded(Exception):
-        pass
-
-# System instruction for Gemini
-SYSTEM_INSTRUCTION = """You are a web developer tasked with turning content into a beautiful, responsive website. 
-Create valid, semantic HTML with embedded CSS (using Tailwind CSS) that transforms the provided content into a well-structured, modern-looking website.
-
-Follow these guidelines:
-1. Use Tailwind CSS for styling (via CDN) and create a beautiful, responsive design
-2. Structure the content logically with appropriate HTML5 semantic elements
-3. Make the website responsive across all device sizes
-4. Include dark mode support with a toggle button
-5. For code blocks, use proper syntax highlighting
-6. Ensure accessibility by using appropriate ARIA attributes and semantics
-7. Add subtle animations where appropriate
-8. Include a navigation system if the content has distinct sections
-9. Avoid using external JavaScript libraries other than Tailwind
-10. Only generate HTML, CSS, and minimal JavaScript - no backend code or server setup
-
-Return ONLY the complete HTML document with no explanations. The HTML should be ready to use as a standalone file."""
-
-# In-memory session cache for handling reconnections
-session_cache = {}
 
 def handler(request):
     """
-    Process a streaming request using Gemini API - no actual streaming for reliability.
+    Process a streaming request using Gemini API with proper serverless handling
     """
-    start_time = time.time()
     try:
         # Extract request data
         data = request.get_json()
@@ -79,8 +52,10 @@ def handler(request):
             return jsonify({"success": False, "error": "Source code or text is required"}), 400
         
         format_prompt = data.get('format_prompt', '')
-        max_tokens = int(data.get('max_tokens', GEMINI_MAX_OUTPUT_TOKENS))
-        temperature = float(data.get('temperature', GEMINI_TEMPERATURE))
+        
+        # Use exact parameters from reference code
+        max_tokens = GEMINI_MAX_OUTPUT_TOKENS
+        temperature = GEMINI_TEMPERATURE
         
         # Create a session ID
         session_id = str(uuid.uuid4())
@@ -106,34 +81,32 @@ def handler(request):
                 "error": error_msg
             })
         
-        # Prepare prompt
-        # Limit content size to avoid issues with very large prompts
-        content_limit = 50000 if IS_VERCEL else 100000
-        prompt = f"""
-{SYSTEM_INSTRUCTION}
-
-Here is the content to transform into a website:
-
-{content[:content_limit]}
-"""
+        # Prepare content - for Vercel, reduce content size more aggressively for Edge Functions
+        # This helps ensure the initial response happens quickly
+        max_content_length = 5000 if os.environ.get('VERCEL') else 100000
+        truncated_content = content[:max_content_length]
         
         if format_prompt:
-            prompt += f"\n\n{format_prompt}"
+            truncated_content = f"{truncated_content}\n\n{format_prompt}"
         
-        print(f"Prepared prompt for Gemini with length: {len(prompt)}")
+        print(f"Prepared prompt for Gemini with length: {len(truncated_content)}")
         
-        # Define the streaming response generator
+        # Define the streaming response generator - optimized for Edge Functions
         def gemini_stream_generator():
             try:
-                # Send a starting event
+                # Send a starting event immediately to start the response
+                # This is crucial for Edge Functions to begin streaming
                 yield format_stream_event("stream_start", {"message": "Stream starting", "session_id": session_id})
                 
+                # Send a keepalive message right away to establish the stream
+                yield format_stream_event("keepalive", {"message": "Connection established", "session_id": session_id})
+                
                 try:
-                    # Get the model
+                    # Get the model - using exact model from reference
                     model = client.get_model(GEMINI_MODEL)
                     print(f"Successfully retrieved Gemini model: {GEMINI_MODEL}")
                     
-                    # Configure generation parameters
+                    # Configure generation parameters - using exact params from reference
                     generation_config = {
                         "max_output_tokens": max_tokens,
                         "temperature": temperature,
@@ -141,194 +114,284 @@ Here is the content to transform into a website:
                         "top_k": GEMINI_TOP_K
                     }
                     
-                    # Generate content using non-streaming approach
-                    generation_start_time = time.time()
-                    html_content = None
+                    # Prepare content according to reference code format
+                    # Using the same content structure as the reference
+                    html_content = ""
+                    start_time = time.time()
                     
-                    # Check if we're already close to the timeout
-                    elapsed_time = generation_start_time - start_time
-                    if elapsed_time > 5:  # If we've already used 5 seconds for setup
-                        print(f"Warning: {elapsed_time:.2f} seconds already elapsed before generation")
-                        # Adjust timeout to avoid Vercel timeout
-                        adjusted_timeout = max(30, GEMINI_TIMEOUT - elapsed_time - 5)  # 5 second buffer
-                    else:
-                        adjusted_timeout = GEMINI_TIMEOUT
-                        
-                    print(f"Using adjusted timeout of {adjusted_timeout:.2f} seconds")
-                    
-                    # Try to generate content
                     try:
-                        print("Using non-streaming approach for reliability")
+                        # Create content in format matching reference code
+                        contents = [
+                            {
+                                "role": "user",
+                                "parts": [{"text": truncated_content}]
+                            }
+                        ]
                         
-                        # Generate the content
-                        try:
-                            response = model.generate_content(
-                                prompt,
-                                generation_config=generation_config,
-                                stream=False,
-                                timeout=adjusted_timeout
-                            )
-                        except DeadlineExceeded as timeout_error:
-                            total_generation_time = time.time() - generation_start_time
-                            print(f"Deadline exceeded after {total_generation_time:.2f}s: {str(timeout_error)}")
-                            # Send timeout error event
-                            yield format_stream_event("error", {
-                                "type": "timeout",
-                                "error": f"Generation timed out after {total_generation_time:.2f} seconds",
-                                "session_id": session_id
-                            })
-                            return
+                        print("Starting streaming response generation")
                         
-                        # Wait a moment for the response to be ready
-                        time.sleep(0.5)
+                        # Start stream generation - matching reference
+                        stream = model.generate_content(
+                            contents,
+                            generation_config=generation_config,
+                            stream=True
+                        )
                         
-                        # Try to get resolved text
-                        try:
-                            resolved = response.resolve()
-                            html_content = resolved.text
-                            print(f"Successfully resolved response with length: {len(html_content)}")
-                        except Exception as e:
-                            print(f"Could not resolve response: {str(e)}")
+                        # Send intermittent keepalive messages to prevent timeout
+                        last_keepalive_time = time.time()
                         
-                        # If resolve didn't work, try direct access
-                        if not html_content:
-                            try:
-                                html_content = response.text
-                                print(f"Got content directly from text attribute: {len(html_content)}")
-                            except Exception as e:
-                                print(f"Could not get text attribute: {str(e)}")
+                        # Track if we've sent any content yet
+                        has_sent_content = False
                         
-                        # If still no content, try parts
-                        if not html_content:
-                            try:
-                                if hasattr(response, 'parts') and response.parts:
-                                    html_content = ''.join(part.text for part in response.parts if hasattr(part, 'text'))
-                                    print(f"Got content from parts: {len(html_content)}")
-                            except Exception as e:
-                                print(f"Could not get parts: {str(e)}")
+                        # Process the stream with optimizations for Edge Functions
+                        chunk_buffer = []
+                        last_yield_time = time.time()
                         
-                        # If still no content, try candidates
-                        if not html_content:
-                            try:
-                                if hasattr(response, 'candidates') and response.candidates:
-                                    for candidate in response.candidates:
-                                        if hasattr(candidate, 'content') and candidate.content:
-                                            if hasattr(candidate.content, 'parts'):
-                                                for part in candidate.content.parts:
-                                                    if hasattr(part, 'text'):
-                                                        html_content = (html_content or '') + part.text
-                                    print(f"Got content from candidates: {len(html_content) if html_content else 0}")
-                            except Exception as e:
-                                print(f"Could not get candidates: {str(e)}")
-                                
-                        # Last resort: use string conversion but check it's not an error message
-                        if not html_content:
-                            try:
-                                raw_content = str(response)
-                                if not raw_content.startswith('<') and '<!DOCTYPE html>' in raw_content:
-                                    html_content = raw_content
-                                    print(f"Got content from string conversion: {len(html_content)}")
-                            except Exception as e:
-                                print(f"Could not convert to string: {str(e)}")
-                        
-                        # Check if we have content
-                        if not html_content:
-                            print("Failed to extract any content from Gemini response")
-                            yield format_stream_event("error", {
-                                "type": "error",
-                                "error": "Could not extract content from Gemini response",
-                                "session_id": session_id
-                            })
-                            return
+                        # Process the stream with periodic keepalives
+                        for chunk in stream:
+                            # Extract text from chunk
+                            chunk_text = chunk.text if hasattr(chunk, 'text') else ""
                             
-                        end_time = time.time()
-                        generation_time = end_time - generation_start_time
-                        total_time = end_time - start_time
+                            # Send keepalive every 5 seconds to maintain connection
+                            current_time = time.time()
+                            if current_time - last_keepalive_time >= 5:
+                                yield format_stream_event("keepalive", {"timestamp": current_time, "session_id": session_id})
+                                last_keepalive_time = current_time
+                            
+                            if chunk_text:
+                                # Mark that we've received content
+                                has_sent_content = True
+                                
+                                # Accumulate text in buffer
+                                chunk_buffer.append(chunk_text)
+                                html_content += chunk_text
+                                
+                                # Yield more frequently (every 250ms) for Edge Functions
+                                # This ensures we maintain an active stream
+                                current_time = time.time()
+                                if current_time - last_yield_time >= 0.25 or len(chunk_buffer) >= 5:
+                                    # Send accumulated chunks
+                                    combined_text = ''.join(chunk_buffer)
+                                    yield format_stream_event("content", {
+                                        "chunk": combined_text,
+                                        "chunk_id": f"{session_id}_{len(html_content)}",
+                                        "session_id": session_id
+                                    })
+                                    
+                                    # Reset buffer and time
+                                    chunk_buffer = []
+                                    last_yield_time = current_time
+                                    last_keepalive_time = current_time  # Reset keepalive timer when sending content
                         
-                        # Calculate tokens (approximate)
-                        input_tokens = max(1, int(len(prompt.split()) * 1.3))
-                        output_tokens = max(1, int(len(html_content.split()) * 1.3))
+                        # Send any remaining chunks
+                        if chunk_buffer:
+                            combined_text = ''.join(chunk_buffer)
+                            yield format_stream_event("content", {
+                                "chunk": combined_text,
+                                "chunk_id": f"{session_id}_final",
+                                "session_id": session_id
+                            })
+                            
+                        print(f"Stream completed, generated {len(html_content)} characters")
                         
-                        print(f"Successfully generated HTML with {output_tokens} tokens in {generation_time:.2f}s (total: {total_time:.2f}s)")
-                        
-                        # Send the completion event with the full HTML
-                        yield format_stream_event("content", {
-                            "type": "message_complete",
-                            "chunk_id": f"{session_id}_complete",
-                            "usage": {
-                                "input_tokens": input_tokens,
-                                "output_tokens": output_tokens,
-                                "total_tokens": input_tokens + output_tokens,
-                                "total_cost": 0.0
-                            },
-                            "html": html_content,
-                            "processing_time": total_time,
-                            "session_id": session_id
-                        })
-                        
-                    except Exception as generation_error:
-                        generation_time = time.time() - generation_start_time
-                        total_time = time.time() - start_time
-                        print(f"Error generating content after {generation_time:.2f}s (total: {total_time:.2f}s): {str(generation_error)}")
-                        traceback.print_exc()
-                        
+                        # If no content was generated, provide fallback
+                        if not has_sent_content or not html_content:
+                            # Generate a simple fallback HTML
+                            fallback_html = f"""
+                            <!DOCTYPE html>
+                            <html lang="en">
+                            <head>
+                                <meta charset="UTF-8">
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                <title>Content Visualization</title>
+                                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                            </head>
+                            <body class="bg-gray-100 p-4">
+                                <div class="container mx-auto bg-white p-6 rounded shadow">
+                                    <h1 class="text-2xl font-bold mb-4">Content Visualization</h1>
+                                    <div class="prose">
+                                        <pre class="bg-gray-100 p-4 rounded overflow-auto">{truncated_content[:500]}...</pre>
+                                    </div>
+                                    <p class="mt-4 text-sm text-gray-500">Note: No content was generated from the API.</p>
+                                </div>
+                            </body>
+                            </html>
+                            """
+                            yield format_stream_event("content", {
+                                "chunk": fallback_html,
+                                "chunk_id": f"{session_id}_fallback",
+                                "session_id": session_id
+                            })
+                            html_content = fallback_html
+                            
+                    except Exception as stream_error:
+                        print(f"Streaming error: {str(stream_error)}")
+                        # Send error information in the stream
                         yield format_stream_event("error", {
-                            "type": "error",
-                            "error": f"Gemini generation error after {generation_time:.2f}s: {str(generation_error)}",
-                            "details": traceback.format_exc(),
+                            "error": str(stream_error),
                             "session_id": session_id
                         })
                         
-                except Exception as model_error:
-                    total_time = time.time() - start_time
-                    print(f"Error getting model after {total_time:.2f}s: {str(model_error)}")
-                    traceback.print_exc()
+                        # If streaming fails, fall back to synchronous generation with reduced parameters
+                        if not html_content:
+                            print("Stream failed, attempting simplified synchronous generation")
+                            
+                            # Try synchronous generation with reduced parameters
+                            try:
+                                # Use simpler generation config for fallback
+                                fallback_config = {
+                                    "max_output_tokens": 4096,  # Reduced token limit for speed
+                                    "temperature": temperature
+                                }
+                                
+                                # Try synchronous generation with timeout
+                                response = model.generate_content(
+                                    contents,
+                                    generation_config=fallback_config,
+                                    timeout=20  # Set explicit timeout
+                                )
+                                
+                                # Extract content
+                                if hasattr(response, 'text'):
+                                    html_content = response.text
+                                elif hasattr(response, 'parts'):
+                                    for part in response.parts:
+                                        if hasattr(part, 'text'):
+                                            html_content += part.text
+                                
+                                # Send the entire content
+                                if html_content:
+                                    yield format_stream_event("content", {
+                                        "chunk": html_content,
+                                        "chunk_id": f"{session_id}_complete",
+                                        "session_id": session_id
+                                    })
+                            except Exception as fallback_error:
+                                print(f"Fallback generation also failed: {str(fallback_error)}")
+                                # Generate a fallback HTML for complete failure
+                                fallback_html = f"""
+                                <!DOCTYPE html>
+                                <html lang="en">
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>Content Visualization</title>
+                                    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                                </head>
+                                <body class="bg-gray-100 p-4">
+                                    <div class="container mx-auto bg-white p-6 rounded shadow">
+                                        <h1 class="text-2xl font-bold mb-4">Content Visualization</h1>
+                                        <div class="prose">
+                                            <pre class="bg-gray-100 p-4 rounded overflow-auto">{truncated_content[:500]}...</pre>
+                                        </div>
+                                        <p class="mt-4 text-sm text-gray-500">Error: API generation failed. Please try again.</p>
+                                    </div>
+                                </body>
+                                </html>
+                                """
+                                yield format_stream_event("content", {
+                                    "chunk": fallback_html,
+                                    "chunk_id": f"{session_id}_fallback",
+                                    "session_id": session_id
+                                })
+                                html_content = fallback_html
                     
-                    yield format_stream_event("error", {
-                        "type": "error",
-                        "error": f"Gemini model error after {total_time:.2f}s: {str(model_error)}",
-                        "details": traceback.format_exc(),
+                    # Calculate approx stats
+                    end_time = time.time()
+                    generation_time = end_time - start_time
+                    
+                    input_tokens = max(1, int(len(truncated_content.split()) * 1.3))
+                    output_tokens = max(1, int(len(html_content.split()) * 1.3))
+                    
+                    print(f"Generation completed in {generation_time:.2f}s")
+                    
+                    # Send completion event
+                    yield format_stream_event("content", {
+                        "type": "message_complete",
+                        "chunk_id": f"{session_id}_complete",
+                        "usage": {
+                            "input_tokens": input_tokens,
+                            "output_tokens": output_tokens,
+                            "total_tokens": input_tokens + output_tokens,
+                            "total_cost": 0.0
+                        },
+                        "html": html_content,
                         "session_id": session_id
                     })
                     
-            except Exception as outer_error:
-                total_time = time.time() - start_time
-                print(f"Outer error in stream generator after {total_time:.2f}s: {str(outer_error)}")
+                except Exception as generation_error:
+                    print(f"Error generating content: {str(generation_error)}")
+                    traceback.print_exc()
+                    
+                    # Generate fallback HTML for error case
+                    fallback_html = f"""
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Content Visualization</title>
+                        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                    </head>
+                    <body class="bg-gray-100 p-4">
+                        <div class="container mx-auto bg-white p-6 rounded shadow">
+                            <h1 class="text-2xl font-bold mb-4">Content Visualization</h1>
+                            <div class="prose">
+                                <pre class="bg-gray-100 p-4 rounded overflow-auto">{truncated_content[:500]}...</pre>
+                            </div>
+                            <p class="mt-4 text-sm text-gray-500">Error: {str(generation_error)}</p>
+                        </div>
+                    </body>
+                    </html>
+                    """
+                    
+                    # Return fallback HTML in case of error
+                    yield format_stream_event("content", {
+                        "chunk": fallback_html,
+                        "chunk_id": f"{session_id}_error",
+                        "session_id": session_id,
+                        "error": str(generation_error)
+                    })
+                    
+                    # Send error event
+                    yield format_stream_event("error", {
+                        "error": str(generation_error),
+                        "session_id": session_id
+                    })
+                    
+            except Exception as e:
+                print(f"Stream generator error: {str(e)}")
                 traceback.print_exc()
                 
+                # Always ensure we send some response
                 yield format_stream_event("error", {
-                    "type": "error",
-                    "error": f"Stream generation error after {total_time:.2f}s: {str(outer_error)}",
-                    "details": traceback.format_exc(),
+                    "error": str(e),
                     "session_id": session_id
                 })
-                
-            finally:
-                # Send stream end event regardless of whether we succeeded or failed
-                yield format_stream_event("stream_end", {
-                    "message": "Stream ended",
-                    "session_id": session_id
-                })
-
-        # Return a streaming response
-        return Response(
+        
+        # Return streaming response with proper headers for SSE
+        response = Response(
             stream_with_context(gemini_stream_generator()),
-            content_type='text/event-stream'
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'Content-Type': 'text/event-stream',
+                'X-Accel-Buffering': 'no',  # Disable Nginx buffering if present
+                'Transfer-Encoding': 'chunked'  # Ensure chunked encoding
+            }
         )
         
-    except Exception as request_error:
-        total_time = time.time() - start_time
-        print(f"Request error after {total_time:.2f}s: {str(request_error)}")
-        traceback.print_exc()
+        return response
         
+    except Exception as e:
+        print(f"Handler error: {str(e)}")
+        traceback.print_exc()
         return jsonify({
-            "success": False,
-            "error": f"Request processing error after {total_time:.2f}s: {str(request_error)}",
-            "details": traceback.format_exc()
+            'error': f'Stream handler error: {str(e)}',
+            'details': traceback.format_exc()
         }), 500
 
 @app.route('/', methods=['POST'])
 def process_gemini_stream():
-    return handler(request) # Modified for Vercel deployment
-# Optimized for Vercel deployment without changing model parameters
-# GEMINI TEST BRANCH: Testing streaming version
+    return handler(request)

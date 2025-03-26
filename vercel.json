@@ -16,7 +16,8 @@
       "src": "api/**/*.py",
       "use": "@vercel/python",
       "config": {
-        "maxDuration": 60
+        "maxDuration": 60,
+        "runtime": "edge"
       }
     }
   ],
@@ -24,6 +25,24 @@
     {
       "src": "/static/(.*)",
       "dest": "/static/$1"
+    },
+    {
+      "src": "/api/process-gemini",
+      "dest": "/api/process-gemini.py",
+      "headers": {
+        "Connection": "keep-alive",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "X-Accel-Buffering": "no"
+      }
+    },
+    {
+      "src": "/api/process-gemini-stream",
+      "dest": "/api/process-gemini-stream.py",
+      "headers": {
+        "Connection": "keep-alive",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "X-Accel-Buffering": "no"
+      }
     },
     {
       "src": "/(.*)",
