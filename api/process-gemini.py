@@ -24,7 +24,6 @@ GEMINI_MAX_OUTPUT_TOKENS = 65536  # Full token limit as specified
 GEMINI_TEMPERATURE = 1.0  # Exact temperature as specified
 GEMINI_TOP_P = 0.95
 GEMINI_TOP_K = 64
-GEMINI_TIMEOUT = 25  # Optimized timeout for Edge Functions
 
 # GEMINI TEST BRANCH: This branch is for testing Gemini integration
 # Keep all the optimizations for Vercel while maintaining the exact model parameters
@@ -176,8 +175,7 @@ def process_request(request_data):
                 generation_config={
                     "max_output_tokens": 100,
                     "temperature": 0.2
-                },
-                timeout=5
+                }
             )
             
             # Initialize result to include a loading message
@@ -220,15 +218,13 @@ def process_request(request_data):
                 
                 response = model.generate_content(
                     contents,
-                    generation_config=edge_config,
-                    timeout=GEMINI_TIMEOUT
+                    generation_config=edge_config
                 )
             else:
                 # For local environment, use the full configuration
                 response = model.generate_content(
                     contents,
-                    generation_config=generation_config,
-                    timeout=GEMINI_TIMEOUT
+                    generation_config=generation_config
                 )
             
             # Extract the content
@@ -281,8 +277,7 @@ def process_request(request_data):
                 
                 fallback_response = model.generate_content(
                     contents,
-                    generation_config=fallback_config,
-                    timeout=15  # Shorter timeout
+                    generation_config=fallback_config
                 )
                 
                 # Extract content from fallback

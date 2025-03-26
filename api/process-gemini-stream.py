@@ -338,8 +338,7 @@ def process_stream_request(request_data):
                                 # Try synchronous generation with timeout
                                 response = model.generate_content(
                                     contents,
-                                    generation_config=fallback_config,
-                                    timeout=20  # Set explicit timeout
+                                    generation_config=fallback_config
                                 )
                                 
                                 # Extract content
