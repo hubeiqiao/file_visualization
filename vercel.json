@@ -31,6 +31,16 @@
       }
     }
   ],
+  "functions": {
+    "api/process-gemini.py": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "api/process-gemini-stream.py": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
   "routes": [
     {
       "src": "/static/(.*)",

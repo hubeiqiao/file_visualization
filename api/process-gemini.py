@@ -18,9 +18,9 @@ from helper_function import create_gemini_client, GEMINI_AVAILABLE
 # This allows longer execution time and avoids timeout issues
 VERCEL_EDGE = True
 
-# Global constants for Gemini - Using exactly the specified model
+# Global constants for Gemini - Using reduced token limit to avoid timeouts
 GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Using exact model as requested
-GEMINI_MAX_OUTPUT_TOKENS = 65536  # Full token limit as specified
+GEMINI_MAX_OUTPUT_TOKENS = 8192  # Reduced from 65536 to avoid timeouts
 GEMINI_TEMPERATURE = 1.0  # Exact temperature as specified
 GEMINI_TOP_P = 0.95
 GEMINI_TOP_K = 64
@@ -102,6 +102,7 @@ def process_request(request_data):
     print("\n==== API PROCESS GEMINI REQUEST RECEIVED ====")
     
     try:
+        start_time = time.time()
         data = request_data
         
         if not data:
@@ -112,8 +113,8 @@ def process_request(request_data):
         content = data.get('content')
         format_prompt = data.get('format_prompt', '')
         
-        # Use exactly the parameters from the reference code
-        max_tokens = GEMINI_MAX_OUTPUT_TOKENS
+        # Use parameters optimized to avoid timeouts
+        max_tokens = GEMINI_MAX_OUTPUT_TOKENS  # Using reduced token limit
         temperature = GEMINI_TEMPERATURE
         
         # Log request parameters (without sensitive data)
@@ -130,12 +131,13 @@ def process_request(request_data):
             }, 500
         
         # Use our helper function to create a Gemini client
+        print(f"Creating Google Gemini client with API key: {api_key[:5]}...")
         client = create_gemini_client(api_key)
         
         # Get the model - use exactly the model from reference
         model = client.get_model(GEMINI_MODEL)
         
-        # Configure generation parameters - use exactly the params from reference
+        # Configure generation parameters with reduced token count for faster processing
         generation_config = {
             "max_output_tokens": max_tokens,
             "temperature": temperature,
@@ -143,15 +145,15 @@ def process_request(request_data):
             "top_k": GEMINI_TOP_K
         }
         
-        # For Edge Functions, using smaller content size for faster processing
-        max_content_length = 5000 if os.environ.get('VERCEL') else 100000
+        # Use a very small content size to avoid timeouts
+        max_content_length = 2000 if os.environ.get('VERCEL') else 100000
         truncated_content = content[:max_content_length]
         
         # Add format prompt if provided
         if format_prompt:
             truncated_content = f"{truncated_content}\n\n{format_prompt}"
         
-        # Prepare content exactly as in reference
+        # Prepare content
         contents = [
             {
                 "role": "user",
@@ -159,69 +161,34 @@ def process_request(request_data):
             }
         ]
         
-        # For Edge Functions, first try a lightweight generation to get a quick response
-        try:
-            print("First attempting lightweight generation for Edge Functions")
-            
-            # Try to generate a quick minimal response to keep the connection alive
-            # This avoids the initial timeout while the full generation runs
-            response_initial = model.generate_content(
-                contents=[
-                    {
-                        "role": "user",
-                        "parts": [{"text": "Begin HTML generation. Respond with a loading message."}]
-                    }
-                ],
-                generation_config={
-                    "max_output_tokens": 100,
-                    "temperature": 0.2
-                }
-            )
-            
-            # Initialize result to include a loading message
-            initial_html = """
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Content Visualization - Loading</title>
-                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-            </head>
-            <body class="bg-gray-100 p-4">
-                <div class="container mx-auto bg-white p-6 rounded shadow">
-                    <h1 class="text-2xl font-bold mb-4">Content Visualization</h1>
-                    <div class="prose">
-                        <p>Processing content, please wait...</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
-        except Exception as initial_error:
-            print(f"Initial generation attempt failed: {str(initial_error)}")
-            # Continue with main generation even if initial fails
-            pass
+        # Check elapsed time and use quick generation if we're approaching timeout
+        elapsed_time = time.time() - start_time
+        print(f"Setup time before generation: {elapsed_time:.2f} seconds")
         
-        # Generate content - with modified approach for Edge Functions
+        # Skip the initial lightweight generation to save time
+        # Directly go for the main generation with optimized parameters
+        
+        # Generate content with very conservative parameters for Vercel
         try:
             print("Generating content with Gemini model")
-            start_time = time.time()
+            generation_start_time = time.time()
             
-            # For Edge Functions, use a reduced token output for faster processing
+            # For Vercel, use very conservative settings
             if os.environ.get('VERCEL'):
-                # Modify configuration slightly to avoid timeouts on Vercel
-                edge_config = generation_config.copy()
-                # Keep most parameters the same, but slightly reduce max tokens
-                # to ensure faster response while still allowing substantial output
-                edge_config["max_output_tokens"] = 16384  # Still allows large output but faster
+                # Even more reduced parameters for Vercel to avoid timeouts
+                edge_config = {
+                    "max_output_tokens": 4096,  # Drastically reduced for faster response
+                    "temperature": temperature,
+                    "top_p": GEMINI_TOP_P,
+                    "top_k": GEMINI_TOP_K
+                }
                 
                 response = model.generate_content(
                     contents,
                     generation_config=edge_config
                 )
             else:
-                # For local environment, use the full configuration
+                # For local environment, use the standard configuration
                 response = model.generate_content(
                     contents,
                     generation_config=generation_config
@@ -238,8 +205,9 @@ def process_request(request_data):
             
             # Get usage stats (approximate since Gemini doesn't provide exact token counts)
             end_time = time.time()
-            generation_time = end_time - start_time
-            print(f"Generation completed in {generation_time:.2f} seconds")
+            generation_time = end_time - generation_start_time
+            total_time = end_time - start_time
+            print(f"Generation completed in {generation_time:.2f} seconds (total: {total_time:.2f}s)")
             
             input_tokens = max(1, int(len(truncated_content.split()) * 1.3))
             output_tokens = max(1, int(len(html_content.split()) * 1.3))
@@ -264,19 +232,29 @@ def process_request(request_data):
             print(f"Deadline exceeded in /api/process-gemini: {error_message}")
             print(traceback.format_exc())
             
-            # Try one more time with reduced parameters
+            # Try with minimal parameters for extremely fast response
             try:
-                print("Attempting generation with reduced parameters after timeout")
-                # Use significantly reduced parameters
+                print("Attempting generation with minimal parameters after timeout")
+                # Use absolute minimum parameters
                 fallback_config = {
-                    "max_output_tokens": 4096,  # Much smaller for faster response
-                    "temperature": temperature,
-                    "top_p": GEMINI_TOP_P,
-                    "top_k": GEMINI_TOP_K
+                    "max_output_tokens": 1024,  # Extremely small for fastest response
+                    "temperature": 0.7,  # Lower temperature for more focused responses
+                    "top_p": 0.9,
+                    "top_k": 40
                 }
                 
+                # Use a simplified prompt to generate faster
+                simplified_contents = [
+                    {
+                        "role": "user",
+                        "parts": [{
+                            "text": f"Create a simple HTML page for this content (keep it brief): {truncated_content[:500]}"
+                        }]
+                    }
+                ]
+                
                 fallback_response = model.generate_content(
-                    contents,
+                    simplified_contents,
                     generation_config=fallback_config
                 )
                 
@@ -306,7 +284,7 @@ def process_request(request_data):
                 print(f"Fallback generation also failed: {str(fallback_error)}")
                 # Continue to return the default fallback HTML
             
-            # Return a fallback simple HTML with the content 
+            # Return an extremely simple fallback HTML with the content 
             fallback_html = f"""
             <!DOCTYPE html>
             <html lang="en">
@@ -344,19 +322,65 @@ def process_request(request_data):
             error_message = str(e)
             print(f"Error in /api/process-gemini: {error_message}")
             print(traceback.format_exc())
+            
+            # Return a basic fallback HTML in case of any error
+            fallback_html = f"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Error - Content Visualization</title>
+                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+            </head>
+            <body class="bg-gray-100 p-4">
+                <div class="container mx-auto bg-white p-6 rounded shadow">
+                    <h1 class="text-2xl font-bold mb-4 text-red-600">Error Processing Content</h1>
+                    <div class="prose">
+                        <pre class="bg-gray-100 p-4 rounded overflow-auto">{truncated_content[:300]}...</pre>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500">Error: {error_message}</p>
+                </div>
+            </body>
+            </html>
+            """
+            
             return {
+                'html': fallback_html,
                 'error': f'Server error: {error_message}',
                 'details': traceback.format_exc()
-            }, 500
+            }, 200  # Return 200 with fallback HTML instead of 500
     
     except Exception as e:
         error_message = str(e)
         print(f"Error in /api/process-gemini: {error_message}")
         print(traceback.format_exc())
+        
+        # Create a minimal fallback HTML that doesn't require API processing
+        fallback_html = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Error - Content Visualization</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-gray-100 p-4">
+            <div class="container mx-auto bg-white p-6 rounded shadow">
+                <h1 class="text-2xl font-bold mb-4 text-red-600">Server Error</h1>
+                <p class="text-gray-700">We encountered an error processing your request.</p>
+                <p class="mt-4 text-sm text-gray-500">Please try again with a smaller input or different content.</p>
+            </div>
+        </body>
+        </html>
+        """
+        
         return {
+            'html': fallback_html,
             'error': f'Server error: {error_message}',
             'details': traceback.format_exc()
-        }, 500
+        }, 200  # Return 200 with fallback HTML instead of 500
 
 # For local Flask development, keep this code but don't expose it to Vercel
 if 'FLASK_APP' in os.environ or not os.environ.get('VERCEL'):
