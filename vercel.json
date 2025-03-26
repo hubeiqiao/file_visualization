@@ -1,11 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "server.py": {
-      "memory": 1024,
-      "maxDuration": 60
-    },
-    "api/**/*.py": {
+    "api/*.py": {
       "memory": 1024,
       "maxDuration": 60
     }
@@ -17,7 +13,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/server.py"
+      "dest": "/api/index.py"
     }
   ],
   "env": {
