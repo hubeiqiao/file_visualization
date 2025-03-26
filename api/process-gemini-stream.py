@@ -3,6 +3,7 @@ import time
 import uuid
 import traceback
 import os
+import sys
 import base64
 from http.server import BaseHTTPRequestHandler
 
@@ -24,7 +25,6 @@ try:
     # Add the parent directory to sys.path if needed
     parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     if parent_dir not in sys.path:
-        import sys
         sys.path.append(parent_dir)
     
     from helper_function import create_gemini_client
@@ -66,6 +66,63 @@ try:
 except ImportError:
     GEMINI_AVAILABLE = False
     print("Google Generative AI module is not installed")
+
+# Create a handler class compatible with Vercel
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        try:
+            # Get content length
+            content_length = int(self.headers.get('Content-Length', 0))
+            # Read request body
+            request_body = self.rfile.read(content_length).decode('utf-8')
+            data = json.loads(request_body)
+            
+            # Process request
+            response_data, status_code, stream_generator = process_stream_request(data)
+            
+            # Set response headers
+            self.send_response(status_code)
+            
+            # If it's a streaming response
+            if stream_generator:
+                self.send_header('Content-Type', 'text/event-stream')
+                self.send_header('Cache-Control', 'no-cache')
+                self.send_header('Connection', 'keep-alive')
+                self.send_header('X-Accel-Buffering', 'no')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+                self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+                self.end_headers()
+                
+                # Send the streaming response
+                for event in stream_generator:
+                    self.wfile.write(event.encode('utf-8'))
+            else:
+                # Regular JSON response
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+                self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+                self.end_headers()
+                
+                # Send the JSON response
+                self.wfile.write(json.dumps(response_data).encode('utf-8'))
+                
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'error': f'Server error: {str(e)}',
+                'details': traceback.format_exc()
+            }).encode('utf-8'))
+    
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
 
 def process_stream_request(request_data):
     """
@@ -414,70 +471,8 @@ def process_stream_request(request_data):
             'details': traceback.format_exc()
         }, 500, None
 
-# Handler for Vercel Serverless/Edge Function
-def handler(request):
-    """Vercel Edge Function handler for streaming responses."""
-    try:
-        # Parse the request body
-        request_body = request.body.decode('utf-8')
-        data = json.loads(request_body)
-        
-        # Process the stream request
-        response_data, status_code, stream_generator = process_stream_request(data)
-        
-        # If streaming response
-        if stream_generator:
-            # Generate the event stream
-            event_stream = ""
-            for event in stream_generator:
-                event_stream += event
-                
-            # Return the response with SSE headers
-            return {
-                'statusCode': status_code,
-                'body': event_stream,
-                'headers': {
-                    'Content-Type': 'text/event-stream',
-                    'Cache-Control': 'no-cache',
-                    'Connection': 'keep-alive',
-                    'X-Accel-Buffering': 'no',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS'
-                }
-            }
-        else:
-            # Return standard JSON response for errors
-            return {
-                'statusCode': status_code,
-                'body': json.dumps(response_data),
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS'
-                }
-            }
-    except Exception as e:
-        print(f"Handler error: {str(e)}")
-        traceback.print_exc()
-        return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'error': f'Server error: {str(e)}',
-                'details': traceback.format_exc()
-            }),
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS'
-            }
-        }
-
 # For local Flask development, keep this code but don't expose it to Vercel
 if 'FLASK_APP' in os.environ or not os.environ.get('VERCEL'):
-    import sys
     from flask import Flask, request, Response, stream_with_context, jsonify
     
     # Try to import app from server if in development mode

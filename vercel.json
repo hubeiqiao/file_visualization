@@ -16,14 +16,18 @@
       "src": "api/process-gemini.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9"
+        "runtime": "python3.9",
+        "handler": "process-gemini.Handler",
+        "maxDuration": 60
       }
     },
     {
       "src": "api/process-gemini-stream.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9"
+        "runtime": "python3.9",
+        "handler": "process-gemini-stream.Handler",
+        "maxDuration": 60
       }
     }
   ],
@@ -34,12 +38,12 @@
     },
     {
       "src": "/api/process-gemini",
-      "methods": ["POST"],
+      "methods": ["POST", "OPTIONS"],
       "dest": "/api/process-gemini.py"
     },
     {
       "src": "/api/process-gemini-stream",
-      "methods": ["POST"],
+      "methods": ["POST", "OPTIONS"],
       "dest": "/api/process-gemini-stream.py",
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate",

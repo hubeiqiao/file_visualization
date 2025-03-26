@@ -55,6 +55,46 @@ Follow these guidelines:
 
 Return ONLY the complete HTML document with no explanations. The HTML should be ready to use as a standalone file."""
 
+# Create a handler class compatible with Vercel
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        try:
+            # Get content length
+            content_length = int(self.headers.get('Content-Length', 0))
+            # Read request body
+            request_body = self.rfile.read(content_length).decode('utf-8')
+            data = json.loads(request_body)
+            
+            # Process request
+            response_data, status_code = process_request(data)
+            
+            # Set response headers
+            self.send_response(status_code)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+            self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            self.end_headers()
+            
+            # Send the JSON response
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'error': f'Server error: {str(e)}',
+                'details': traceback.format_exc()
+            }).encode('utf-8'))
+    
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
 def process_request(request_data):
     """
     Process a file using the Google Gemini API and return HTML.
@@ -322,45 +362,6 @@ def process_request(request_data):
             'error': f'Server error: {error_message}',
             'details': traceback.format_exc()
         }, 500
-
-# Define handler for Vercel
-def handler(request):
-    """Handler for Vercel Edge Function."""
-    try:
-        # Parse JSON from the request body
-        request_body = request.body.decode('utf-8')
-        data = json.loads(request_body)
-        
-        # Process the request
-        response_data, status_code = process_request(data)
-        
-        # Return the response as JSON
-        return {
-            'statusCode': status_code,
-            'body': json.dumps(response_data),
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS'
-            }
-        }
-    except Exception as e:
-        print(f"Handler error: {str(e)}")
-        traceback.print_exc()
-        return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'error': f'Server error: {str(e)}',
-                'details': traceback.format_exc()
-            }),
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS'
-            }
-        }
 
 # For local Flask development, keep this code but don't expose it to Vercel
 if 'FLASK_APP' in os.environ or not os.environ.get('VERCEL'):
