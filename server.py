@@ -3,6 +3,18 @@ try:
     import sys
     import os
     import traceback
+    import argparse
+    import logging
+    
+    # Setup logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler('server.log')
+        ]
+    )
     
     # Print Python version and environment info for debugging
     print(f"Python version: {sys.version}")
@@ -24,6 +36,7 @@ try:
         import json
         import base64
         from flask_cors import CORS
+        from werkzeug.serving import run_simple
         print("Basic modules imported successfully")
     except ImportError as e:
         print(f"Error importing basic modules: {e}")
@@ -426,16 +439,62 @@ def get_usage_stats():
 def serve_app_js():
     return send_from_directory('static', 'app.js', mimetype='application/javascript')
 
-# Run with enhanced settings for larger content
-run_simple(
-    args.host, 
-    port, 
-    app, 
-    use_reloader=not args.no_reload,
-    use_debugger=args.debug,
-    threaded=True,
-    passthrough_errors=args.debug
-)
+# Helper function to validate API keys
+def is_valid_api_key(api_key):
+    """Validate API key format"""
+    # Simple check for basic format
+    if not api_key or len(api_key) < 8:
+        return False
+    return True
+
+def extract_content(content):
+    """Extract content from the request"""
+    # Simple implementation for now
+    return content, "text"
+
+def estimate_tokens(text):
+    """Estimate token count for the content"""
+    # Simple estimate - about 4 characters per token
+    return max(1, len(text) // 4)
+
+# Only run the server if executed directly (not on Vercel)
+if __name__ == "__main__":
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Run the file visualization server")
+    parser.add_argument("--host", default="0.0.0.0", help="Host to run the server on")
+    parser.add_argument("--port", type=int, default=5011, help="Port to run the server on")
+    parser.add_argument("--debug", action="store_true", help="Run in debug mode")
+    parser.add_argument("--no-reload", action="store_true", help="Disable auto-reload")
+    
+    args = parser.parse_args()
+    
+    # Find an available port if the specified one is in use
+    port = args.port
+    while True:
+        try:
+            # Test if port is available
+            import socket
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind((args.host, port))
+            s.close()
+            break
+        except socket.error:
+            print(f"Port {port} is in use, trying {port+1}...")
+            port += 1
+    
+    print(f"==== File Visualizer running at http://localhost:{port} ====")
+    print(f"Visit http://localhost:{port} in your browser to use the application.")
+    
+    # Run with enhanced settings for larger content
+    run_simple(
+        args.host, 
+        port, 
+        app, 
+        use_reloader=not args.no_reload,
+        use_debugger=args.debug,
+        threaded=True,
+        passthrough_errors=args.debug
+    )
 
 # Important: Export the Flask app for Vercel
 application = app 

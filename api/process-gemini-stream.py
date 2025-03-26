@@ -3,6 +3,7 @@ import json
 import time
 import uuid
 import traceback
+import os
 
 from server import app
 from helper_function import create_gemini_client, format_stream_event
@@ -13,15 +14,29 @@ GEMINI_MAX_OUTPUT_TOKENS = 128000
 GEMINI_TEMPERATURE = 1.0
 GEMINI_TOP_P = 0.95
 GEMINI_TOP_K = 64
+GEMINI_TIMEOUT = 80  # Reduced timeout to avoid Vercel's 90-second limit
+
+# Check if we're running on Vercel
+IS_VERCEL = os.environ.get('VERCEL') == '1'
 
 # Indicate if Gemini is available
 try:
     import google.generativeai as genai
+    # Try to import DeadlineExceeded exception
+    try:
+        from google.api_core.exceptions import DeadlineExceeded
+    except ImportError:
+        # Define a fallback if the import fails
+        class DeadlineExceeded(Exception):
+            pass
     GEMINI_AVAILABLE = True
     print("Google Generative AI module is available")
 except ImportError:
     GEMINI_AVAILABLE = False
     print("Google Generative AI module is not installed")
+    # Define fallback class if import failed
+    class DeadlineExceeded(Exception):
+        pass
 
 # System instruction for Gemini
 SYSTEM_INSTRUCTION = """You are a web developer tasked with turning content into a beautiful, responsive website. 
@@ -48,6 +63,7 @@ def handler(request):
     """
     Process a streaming request using Gemini API - no actual streaming for reliability.
     """
+    start_time = time.time()
     try:
         # Extract request data
         data = request.get_json()
@@ -91,12 +107,14 @@ def handler(request):
             })
         
         # Prepare prompt
+        # Limit content size to avoid issues with very large prompts
+        content_limit = 50000 if IS_VERCEL else 100000
         prompt = f"""
 {SYSTEM_INSTRUCTION}
 
 Here is the content to transform into a website:
 
-{content[:100000]}
+{content[:content_limit]}
 """
         
         if format_prompt:
@@ -124,19 +142,42 @@ Here is the content to transform into a website:
                     }
                     
                     # Generate content using non-streaming approach
-                    start_time = time.time()
+                    generation_start_time = time.time()
                     html_content = None
+                    
+                    # Check if we're already close to the timeout
+                    elapsed_time = generation_start_time - start_time
+                    if elapsed_time > 5:  # If we've already used 5 seconds for setup
+                        print(f"Warning: {elapsed_time:.2f} seconds already elapsed before generation")
+                        # Adjust timeout to avoid Vercel timeout
+                        adjusted_timeout = max(30, GEMINI_TIMEOUT - elapsed_time - 5)  # 5 second buffer
+                    else:
+                        adjusted_timeout = GEMINI_TIMEOUT
+                        
+                    print(f"Using adjusted timeout of {adjusted_timeout:.2f} seconds")
                     
                     # Try to generate content
                     try:
                         print("Using non-streaming approach for reliability")
                         
                         # Generate the content
-                        response = model.generate_content(
-                            prompt,
-                            generation_config=generation_config,
-                            stream=False
-                        )
+                        try:
+                            response = model.generate_content(
+                                prompt,
+                                generation_config=generation_config,
+                                stream=False,
+                                timeout=adjusted_timeout
+                            )
+                        except DeadlineExceeded as timeout_error:
+                            total_generation_time = time.time() - generation_start_time
+                            print(f"Deadline exceeded after {total_generation_time:.2f}s: {str(timeout_error)}")
+                            # Send timeout error event
+                            yield format_stream_event("error", {
+                                "type": "timeout",
+                                "error": f"Generation timed out after {total_generation_time:.2f} seconds",
+                                "session_id": session_id
+                            })
+                            return
                         
                         # Wait a moment for the response to be ready
                         time.sleep(0.5)
@@ -201,13 +242,14 @@ Here is the content to transform into a website:
                             return
                             
                         end_time = time.time()
-                        generation_time = end_time - start_time
+                        generation_time = end_time - generation_start_time
+                        total_time = end_time - start_time
                         
                         # Calculate tokens (approximate)
                         input_tokens = max(1, int(len(prompt.split()) * 1.3))
                         output_tokens = max(1, int(len(html_content.split()) * 1.3))
                         
-                        print(f"Successfully generated HTML with {output_tokens} tokens in {generation_time:.2f}s")
+                        print(f"Successfully generated HTML with {output_tokens} tokens in {generation_time:.2f}s (total: {total_time:.2f}s)")
                         
                         # Send the completion event with the full HTML
                         yield format_stream_event("content", {
@@ -220,57 +262,68 @@ Here is the content to transform into a website:
                                 "total_cost": 0.0
                             },
                             "html": html_content,
+                            "processing_time": total_time,
                             "session_id": session_id
                         })
                         
                     except Exception as generation_error:
-                        print(f"Error generating content: {str(generation_error)}")
+                        generation_time = time.time() - generation_start_time
+                        total_time = time.time() - start_time
+                        print(f"Error generating content after {generation_time:.2f}s (total: {total_time:.2f}s): {str(generation_error)}")
                         traceback.print_exc()
                         
                         yield format_stream_event("error", {
                             "type": "error",
-                            "error": f"Gemini generation error: {str(generation_error)}",
+                            "error": f"Gemini generation error after {generation_time:.2f}s: {str(generation_error)}",
                             "details": traceback.format_exc(),
                             "session_id": session_id
                         })
                         
                 except Exception as model_error:
-                    print(f"Error getting model: {str(model_error)}")
+                    total_time = time.time() - start_time
+                    print(f"Error getting model after {total_time:.2f}s: {str(model_error)}")
                     traceback.print_exc()
                     
                     yield format_stream_event("error", {
                         "type": "error",
-                        "error": f"Gemini model error: {str(model_error)}",
+                        "error": f"Gemini model error after {total_time:.2f}s: {str(model_error)}",
                         "details": traceback.format_exc(),
                         "session_id": session_id
                     })
                     
             except Exception as outer_error:
-                print(f"Outer error in stream generator: {str(outer_error)}")
+                total_time = time.time() - start_time
+                print(f"Outer error in stream generator after {total_time:.2f}s: {str(outer_error)}")
                 traceback.print_exc()
                 
                 yield format_stream_event("error", {
                     "type": "error",
-                    "error": f"Server error: {str(outer_error)}",
+                    "error": f"Stream generation error after {total_time:.2f}s: {str(outer_error)}",
                     "details": traceback.format_exc(),
                     "session_id": session_id
                 })
-        
-        # Return the stream response
+                
+            finally:
+                # Send stream end event regardless of whether we succeeded or failed
+                yield format_stream_event("stream_end", {
+                    "message": "Stream ended",
+                    "session_id": session_id
+                })
+
+        # Return a streaming response
         return Response(
             stream_with_context(gemini_stream_generator()),
             content_type='text/event-stream'
         )
         
     except Exception as request_error:
-        # Handle errors in the outer request handler
-        error_message = str(request_error)
-        print(f"Error in request handler: {error_message}")
+        total_time = time.time() - start_time
+        print(f"Request error after {total_time:.2f}s: {str(request_error)}")
         traceback.print_exc()
         
         return jsonify({
             "success": False,
-            "error": error_message,
+            "error": f"Request processing error after {total_time:.2f}s: {str(request_error)}",
             "details": traceback.format_exc()
         }), 500
 

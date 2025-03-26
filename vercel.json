@@ -6,7 +6,7 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.9",
-        "maxDuration": 60,
+        "maxDuration": 90,
         "memory": 1024
       }
     },
@@ -31,11 +31,11 @@
   "functions": {
     "server.py": {
       "memory": 1024,
-      "maxDuration": 60
+      "maxDuration": 90
     },
     "api/**/*.py": {
       "memory": 1024,
-      "maxDuration": 60
+      "maxDuration": 90
     }
   }
 } 
