@@ -3,7 +3,8 @@ from flask_cors import CORS
 import sys
 import os
 import traceback
-import io
+import time
+import uuid
 import json
 
 # Add the parent directory to the Python path so we can import from there
@@ -145,52 +146,6 @@ else:
                 'error': str(e),
                 'traceback': traceback.format_exc()
             }), 500
-
-# Handler for Vercel serverless function
-def handler(event, context):
-    """Handle Vercel serverless function requests."""
-    try:
-        # Extract path and HTTP method
-        path = event.get('path', '/')
-        http_method = event.get('httpMethod', 'GET')
-        
-        # Create a mock request object for Flask
-        environ = {
-            'PATH_INFO': path,
-            'REQUEST_METHOD': http_method,
-            'QUERY_STRING': event.get('queryStringParameters', {}),
-            'wsgi.input': io.BytesIO(event.get('body', '').encode('utf-8')),
-            'CONTENT_LENGTH': len(event.get('body', '')),
-            'CONTENT_TYPE': event.get('headers', {}).get('content-type', 'application/json'),
-        }
-        
-        # Add headers to environ
-        for name, value in event.get('headers', {}).items():
-            environ[f'HTTP_{name.replace("-", "_").upper()}'] = value
-        
-        # Use Flask to handle the request
-        with app.request_context(environ):
-            response = app.full_dispatch_request()
-            
-        # Format the response for Vercel
-        return {
-            'statusCode': response.status_code,
-            'headers': dict(response.headers),
-            'body': response.get_data(as_text=True)
-        }
-    except Exception as e:
-        # Return error information for debugging
-        error_info = {
-            "error": str(e),
-            "traceback": traceback.format_exc(),
-            "event": event
-        }
-        
-        return {
-            'statusCode': 500,
-            'body': json.dumps(error_info),
-            'headers': {'Content-Type': 'application/json'}
-        }
 
 # This allows the file to be run directly
 if __name__ == "__main__":
