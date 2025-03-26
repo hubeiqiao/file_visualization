@@ -3,6 +3,8 @@ from flask_cors import CORS
 import sys
 import os
 import traceback
+import io
+import json
 
 # Add the parent directory to the Python path so we can import from there
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -144,69 +146,51 @@ else:
                 'traceback': traceback.format_exc()
             }), 500
 
-# Create a debug API endpoint for Vercel
-def handler(request):
+# Handler for Vercel serverless function
+def handler(event, context):
+    """Handle Vercel serverless function requests."""
     try:
-        debug_info = {
-            "python_version": sys.version,
-            "current_directory": os.getcwd(),
-            "directory_contents": os.listdir(),
-            "environment": "Vercel" if os.environ.get("VERCEL") else "Local",
-            "environment_vars": {k: v for k, v in os.environ.items() if not k.startswith("AWS_") and not "KEY" in k.upper() and not "SECRET" in k.upper()},
-            "sys_path": sys.path,
-            "status": "healthy"
+        # Extract path and HTTP method
+        path = event.get('path', '/')
+        http_method = event.get('httpMethod', 'GET')
+        
+        # Create a mock request object for Flask
+        environ = {
+            'PATH_INFO': path,
+            'REQUEST_METHOD': http_method,
+            'QUERY_STRING': event.get('queryStringParameters', {}),
+            'wsgi.input': io.BytesIO(event.get('body', '').encode('utf-8')),
+            'CONTENT_LENGTH': len(event.get('body', '')),
+            'CONTENT_TYPE': event.get('headers', {}).get('content-type', 'application/json'),
         }
         
-        # Try to import key packages
-        package_status = {}
-        try:
-            import flask
-            package_status["flask"] = str(flask.__version__)
-        except Exception as e:
-            package_status["flask"] = f"Error: {str(e)}"
+        # Add headers to environ
+        for name, value in event.get('headers', {}).items():
+            environ[f'HTTP_{name.replace("-", "_").upper()}'] = value
         
-        try:
-            import flask_cors
-            package_status["flask_cors"] = str(flask_cors.__version__)
-        except Exception as e:
-            package_status["flask_cors"] = f"Error: {str(e)}"
+        # Use Flask to handle the request
+        with app.request_context(environ):
+            response = app.full_dispatch_request()
             
-        try:
-            import anthropic
-            package_status["anthropic"] = str(anthropic.__version__)
-        except Exception as e:
-            package_status["anthropic"] = f"Error: {str(e)}"
-            
-        try:
-            import google.generativeai
-            package_status["google_generativeai"] = "Imported successfully"
-        except Exception as e:
-            package_status["google_generativeai"] = f"Error: {str(e)}"
-            
-        try:
-            import pydantic
-            package_status["pydantic"] = str(pydantic.__version__)
-        except Exception as e:
-            package_status["pydantic"] = f"Error: {str(e)}"
-                
-        debug_info["package_status"] = package_status
-        
-        return Response(
-            response=str(debug_info),
-            status=200,
-            mimetype="text/plain"
-        )
+        # Format the response for Vercel
+        return {
+            'statusCode': response.status_code,
+            'headers': dict(response.headers),
+            'body': response.get_data(as_text=True)
+        }
     except Exception as e:
+        # Return error information for debugging
         error_info = {
             "error": str(e),
-            "traceback": traceback.format_exc()
+            "traceback": traceback.format_exc(),
+            "event": event
         }
         
-        return Response(
-            response=str(error_info),
-            status=500,
-            mimetype="text/plain"
-        )
+        return {
+            'statusCode': 500,
+            'body': json.dumps(error_info),
+            'headers': {'Content-Type': 'application/json'}
+        }
 
 # This allows the file to be run directly
 if __name__ == "__main__":
