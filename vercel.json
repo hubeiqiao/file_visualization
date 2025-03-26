@@ -1,20 +1,15 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "server.py",
-      "use": "@vercel/python",
-      "config": {
-        "runtime": "python3.9",
-        "maxDuration": 90,
-        "memory": 1024
-      }
+  "functions": {
+    "server.py": {
+      "memory": 1024,
+      "maxDuration": 90
     },
-    {
-      "src": "static/**",
-      "use": "@vercel/static"
+    "api/**/*.py": {
+      "memory": 1024,
+      "maxDuration": 90
     }
-  ],
+  },
   "routes": [
     {
       "src": "/static/(.*)",
@@ -27,15 +22,5 @@
   ],
   "env": {
     "PYTHONUNBUFFERED": "1"
-  },
-  "functions": {
-    "server.py": {
-      "memory": 1024,
-      "maxDuration": 90
-    },
-    "api/**/*.py": {
-      "memory": 1024,
-      "maxDuration": 90
-    }
   }
 } 
