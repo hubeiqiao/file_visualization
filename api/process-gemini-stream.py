@@ -7,7 +7,23 @@ import os
 import base64
 
 from server import app
-from helper_function import create_gemini_client, format_stream_event
+try:
+    from helper_function import create_gemini_client, format_stream_event
+except ImportError:
+    # Fallback implementation if the function can't be imported
+    from helper_function import create_gemini_client
+    
+    def format_stream_event(event_type, data=None):
+        """
+        Format data as a server-sent event (fallback implementation)
+        """
+        event = {"type": event_type}
+        
+        if data:
+            event.update(data)
+        
+        # Format as SSE
+        return f"event: {event_type}\ndata: {json.dumps(data if data else {})}\n\n"
 
 # Edge Function configuration - explicitly set runtime to edge
 # Setting runtime configuration for Vercel Edge Functions
@@ -393,5 +409,5 @@ def handler(request):
         }), 500
 
 @app.route('/', methods=['POST'])
-def process_gemini_stream():
+def process_gemini_stream_endpoint():  # Changed function name to avoid conflict
     return handler(request)

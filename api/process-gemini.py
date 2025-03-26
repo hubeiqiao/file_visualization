@@ -326,5 +326,5 @@ def handler(request):
         }), 500
 
 @app.route('/', methods=['POST'])
-def process_gemini():
+def process_gemini_endpoint():
     return handler(request)
