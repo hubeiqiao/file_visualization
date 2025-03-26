@@ -3111,3 +3111,58 @@ function updateApiProviderInfo(provider) {
 } // Modified for Vercel deployment
 // Updated for Vercel optimization
 // GEMINI TEST BRANCH - For testing
+
+// Define fetchWithRetry utility function to handle API requests with automatic retries
+async function fetchWithRetry(url, options = {}, retries = 3, timeout = 30000) {
+    // Keep track of attempts
+    let attempt = 0;
+    
+    // Create a retry loop
+    while (attempt <= retries) {
+        try {
+            console.log(`Fetch attempt ${attempt + 1}/${retries + 1} to ${url}`);
+            
+            // Create an abort controller for timeout handling
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            
+            // Add the signal to options
+            const fetchOptions = {
+                ...options,
+                signal: controller.signal
+            };
+            
+            // Attempt the fetch
+            const response = await fetch(url, fetchOptions);
+            
+            // Clear the timeout
+            clearTimeout(timeoutId);
+            
+            // Return the response
+            return response;
+        } catch (error) {
+            attempt++;
+            
+            // Log the error
+            console.error(`Fetch attempt ${attempt}/${retries + 1} failed:`, error.message);
+            
+            // Check if we've reached max retries
+            if (attempt > retries) {
+                console.error(`All ${retries + 1} fetch attempts failed`);
+                throw error;
+            }
+            
+            // If it's an abort error (timeout), log it differently
+            if (error.name === 'AbortError') {
+                console.warn(`Fetch timed out after ${timeout}ms, retrying...`);
+            }
+            
+            // Calculate exponential backoff wait time (with jitter)
+            const backoffMs = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 1000, 10000);
+            console.log(`Retrying in ${Math.round(backoffMs / 1000)} seconds...`);
+            
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+        }
+    }
+}
