@@ -9,7 +9,7 @@ from server import app
 from helper_function import create_gemini_client, format_stream_event
 
 # Global constants for Gemini
-GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"
+GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Using exact model as requested
 GEMINI_MAX_OUTPUT_TOKENS = 128000
 GEMINI_TEMPERATURE = 1.0
 GEMINI_TOP_P = 0.95
@@ -330,3 +330,4 @@ Here is the content to transform into a website:
 @app.route('/', methods=['POST'])
 def process_gemini_stream():
     return handler(request) # Modified for Vercel deployment
+# Optimized for Vercel deployment without changing model parameters

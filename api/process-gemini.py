@@ -14,7 +14,7 @@ from helper_function import create_gemini_client, GEMINI_AVAILABLE
 from flask import Flask, request, jsonify
 
 # Global constants for Gemini
-GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Make sure to use the latest model
+GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Using exact model as requested  # Make sure to use the latest model
 GEMINI_MAX_OUTPUT_TOKENS = 128000
 GEMINI_TEMPERATURE = 1.0
 GEMINI_TOP_P = 0.95

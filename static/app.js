@@ -3148,3 +3148,4 @@ function updateApiProviderInfo(provider) {
         }
     }
 } // Modified for Vercel deployment
+// Updated for Vercel optimization
