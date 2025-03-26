@@ -1021,11 +1021,11 @@ async function generateWebsite() {
         
         // Get the parameters
         const formatPrompt = ''; // No additional prompt
-        const maxTokens = state.activeProvider === 'gemini' ? parseInt(document.getElementById('maxTokens').value) : 0;
+        const maxTokens = state.apiProvider === 'gemini' ? parseInt(document.getElementById('maxTokens').value) : 0;
         const temperature = parseFloat(document.getElementById('temperature').value);
         const thinkingBudget = state.thinkingBudget || 8;  // Default to 8 seconds
         
-        console.log(`API provider: ${state.activeProvider}`);
+        console.log(`API provider: ${state.apiProvider}`);
         
         // Based on the active provider, generate the website
         let html = '';
@@ -1037,7 +1037,7 @@ async function generateWebsite() {
         window.addEventListener('scroll', scrollHandler);
         
         try {
-            if (state.activeProvider === 'gemini') {
+            if (state.apiProvider === 'gemini') {
                 // First try the non-streaming method
                 try {
                     html = await generateGeminiHTML(apiKey, source, formatPrompt, maxTokens, temperature);
@@ -1054,11 +1054,11 @@ async function generateWebsite() {
                     console.log('Falling back to Gemini streaming method');
                     html = await generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens, temperature);
                 }
-            } else if (state.activeProvider === 'claude') {
+            } else if (state.apiProvider === 'claude') {
                 // Use the streaming method with reconnection support
                 html = await generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, state.activeModel, maxTokens, temperature, thinkingBudget);
             } else {
-                throw new Error(`Unknown API provider: ${state.activeProvider}`);
+                throw new Error(`Unknown API provider: ${state.apiProvider}`);
             }
             
             // If we get here, generation was successful
