@@ -1,53 +1,41 @@
 {
   "version": 2,
-  "cleanUrls": true,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/",
-      "destination": "/api"
-    },
-    {
-      "source": "/(.*).html",
-      "destination": "/api"
-    },
-    { 
-      "source": "/api/(.*)",
-      "destination": "/api" 
+      "src": "server.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.9",
+        "maxDuration": 60,
+        "memory": 1024
+      }
     },
     {
-      "source": "/(.*).css",
-      "destination": "/static/$1.css"
-    },
-    {
-      "source": "/(.*).js",
-      "destination": "/static/$1.js"
-    },
-    {
-      "source": "/(.*).ico",
-      "destination": "/static/$1.ico"
-    },
-    {
-      "source": "/(.*).png",
-      "destination": "/static/$1.png"
-    },
-    { 
-      "source": "/(.*)",
-      "destination": "/api"
+      "src": "static/**",
+      "use": "@vercel/static"
     }
   ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.py"
+    }
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  },
   "functions": {
-    "api/index.py": {
+    "server.py": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "api/**/*.py": {
       "memory": 1024,
       "maxDuration": 60
     }
-  },
-  "build": {
-    "env": {
-      "PYTHON_VERSION": "3.11"
-    }
-  },
-  "env": {
-    "VERCEL": "true",
-    "VERCEL_DEPLOYMENT_TIMESTAMP": "2024-05-24T00:30:00Z"
   }
 } 

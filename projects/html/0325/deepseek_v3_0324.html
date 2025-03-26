@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide to Producing Scoping Literature Reviews Using AI Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#E31937',
+                        secondary: '#333333',
+                        accent: '#0056b3',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            @apply transition-colors duration-200;
+        }
+        .card-hover {
+            @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+        }
+        .btn-hover {
+            @apply transition-all duration-200 hover:scale-105 hover:shadow-md;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+        .prose a {
+            @apply text-accent hover:underline;
+        }
+        .prose ul {
+            @apply list-disc pl-5;
+        }
+        .prose ol {
+            @apply list-decimal pl-5;
+        }
+        .prose h2, .prose h3, .prose h4 {
+            @apply mt-6 mb-3 font-semibold;
+        }
+        .prose h2 {
+            @apply text-2xl border-b pb-2 border-gray-200 dark:border-gray-700;
+        }
+        .prose h3 {
+            @apply text-xl;
+        }
+        .prose h4 {
+            @apply text-lg;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <!-- Dark/Light Mode Toggle -->
+    <button id="theme-toggle" class="fixed top-4 right-4 z-50 p-2 rounded-full bg-white dark:bg-gray-800 shadow-lg">
+        <i class="fas fa-moon dark:hidden"></i>
+        <i class="fas fa-sun hidden dark:block"></i>
+    </button>
+
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm">
+        <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center mb-4 md:mb-0">
+                <img src="https://sprott.carleton.ca/up-our-game-canada/wp-content/uploads/sites/8/2025/02/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-512x110.png" alt="TIM Logo" class="h-12">
+            </div>
+            <nav class="flex space-x-6">
+                <a href="#overview" class="font-medium hover:text-primary">Overview</a>
+                <a href="#part1" class="font-medium hover:text-primary">Part 1</a>
+                <a href="#part2" class="font-medium hover:text-primary">Part 2</a>
+                <a href="#part3" class="font-medium hover:text-primary">Part 3</a>
+                <a href="https://carleton.ca/tim/wp-content/uploads/sites/52/2025/03/assignment-SLR-v3.pdf" target="_blank" class="font-medium text-primary hover:text-accent">Assignment</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-primary to-accent text-white py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6 animate-fade-in">Guide to Producing Scoping Literature Reviews Using AI Tools</h1>
+            <p class="text-xl mb-8 max-w-3xl mx-auto">A comprehensive resource for TIM students and faculty to conduct efficient, rigorous literature reviews with AI assistance</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#overview" class="btn-hover bg-white text-primary font-semibold px-6 py-3 rounded-lg">Get Started</a>
+                <a href="https://carletonu.az1.qualtrics.com/jfe/form/SV_e2MuXF4BTYiKh38" target="_blank" class="btn-hover bg-transparent border-2 border-white font-semibold px-6 py-3 rounded-lg">Take Survey</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="py-16 bg-gray-100 dark:bg-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Overview</h2>
+                <div class="w-24 h-1 bg-primary mx-auto"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 card-hover">
+                    <div class="text-primary text-4xl mb-4">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Objective</h3>
+                    <p class="text-gray-600 dark:text-gray-300">This guide offers a step-by-step method for using AI tools to conduct scoping reviews—from creating review questions to sharing final insights.</p>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 card-hover">
+                    <div class="text-primary text-4xl mb-4">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Audience</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Designed to support TIM students and faculty in formulating questions, conducting thorough reviews, and using AI tools ethically.</p>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 card-hover">
+                    <div class="text-primary text-4xl mb-4">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Structure</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Organized into three parts: Foundation, Method, and Updating the Guide, each with specific focus areas and practical examples.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 1 Section -->
+    <section id="part1" class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Part 1: Foundation of Scoping Reviews</h2>
+                <div class="w-24 h-1 bg-primary mx-auto"></div>
+            </div>
+            
+            <div class="prose dark:prose-invert max-w-4xl mx-auto">
+                <h3>Key Concepts</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-2"><i class="fas fa-search mr-2 text-primary"></i>Scoping Review</h4>
+                        <p>A type of literature review that maps key concepts, evidence, and research gaps in a field, typically without assessing study quality.</p>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-2"><i class="fas fa-project-diagram mr-2 text-primary"></i>Systematic Review</h4>
+                        <p>A structured and comprehensive review of existing research on a specific question, using rigorous methodology to identify and synthesize relevant studies.</p>
+                    </div>
+                </div>
+                
+                <h3>When to Use Scoping Reviews in TIM</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="border-l-4 border-primary pl-4">
+                        <h4 class="font-semibold">Broad or Exploratory Questions</h4>
+                        <p>When investigating a wide variety of studies rather than measuring effectiveness.</p>
+                    </div>
+                    <div class="border-l-4 border-primary pl-4">
+                        <h4 class="font-semibold">Emerging Topics</h4>
+                        <p>When key concepts, definitions, and knowledge gaps are unclear in new fields.</p>
+                    </div>
+                    <div class="border-l-4 border-primary pl-4">
+                        <h4 class="font-semibold">Heterogeneous Literature</h4>
+                        <p>When studies cover diverse methodologies making systematic synthesis impractical.</p>
+                    </div>
+                    <div class="border-l-4 border-primary pl-4">
+                        <h4 class="font-semibold">Identifying Gaps</h4>
+                        <p>When the goal is to summarize research and identify future directions rather than draw conclusions.</p>
+                    </div>
+                </div>
+                
+                <h3>Key Frameworks</h3>
+                <div class="overflow-x-auto mb-8">
+                    <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                        <thead class="bg-primary text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left">Framework</th>
+                                <th class="py-3 px-4 text-left">Strengths</th>
+                                <th class="py-3 px-4 text-left">TIM Application</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="py-3 px-4 font-medium">Arksey & O'Malley (2005)</td>
+                                <td class="py-3 px-4">Five-step outline adaptable to fast-changing fields</td>
+                                <td class="py-3 px-4">Mapping wearable tech for remote patient monitoring</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 font-medium">Levac et al. (2010)</td>
+                                <td class="py-3 px-4">Emphasizes stakeholder engagement</td>
+                                <td class="py-3 px-4">IoT-based smart manufacturing with industry input</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 font-medium">JBI Framework</td>
+                                <td class="py-3 px-4">Refined methodology for planning and conducting</td>
+                                <td class="py-3 px-4">3D-printing technologies for rapid prototyping</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 font-medium">PRISMA-ScR</td>
+                                <td class="py-3 px-4">Standardized reporting guidelines</td>
+                                <td class="py-3 px-4">Blockchain applications in supply chain management</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3>Benefits of AI in Scoping Reviews</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <div class="bg-primary text-white p-2 rounded-full mr-3">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h4 class="font-semibold">Speed & Efficiency</h4>
+                        </div>
+                        <ul class="pl-5">
+                            <li>Rapid literature screening</li>
+                            <li>Automated deduplication</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <div class="bg-primary text-white p-2 rounded-full mr-3">
+                                <i class="fas fa-search-plus"></i>
+                            </div>
+                            <h4 class="font-semibold">Enhanced Discovery</h4>
+                        </div>
+                        <ul class="pl-5">
+                            <li>Diverse data sources</li>
+                            <li>Intelligent recommendations</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <div class="bg-primary text-white p-2 rounded-full mr-3">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <h4 class="font-semibold">Improved Organization</h4>
+                        </div>
+                        <ul class="pl-5">
+                            <li>Topic clustering</li>
+                            <li>Automatic tagging</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <div class="bg-primary text-white p-2 rounded-full mr-3">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4 class="font-semibold">Insight Generation</h4>
+                        </div>
+                        <ul class="pl-5">
+                            <li>Text summarization</li>
+                            <li>Trend detection</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3>Limitations & Challenges</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="border border-red-200 dark:border-red-800 rounded-lg p-4">
+                        <h4 class="font-semibold text-red-600 dark:text-red-400 mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>Scoping Review Limitations</h4>
+                        <ul class="list-disc pl-5 text-sm">
+                            <li>Lack of critical appraisal</li>
+                            <li>Broad and less focused scope</li>
+                            <li>No formal strength-of-evidence assessment</li>
+                            <li>Selection bias risks</li>
+                            <li>Heterogeneity challenges</li>
+                        </ul>
+                    </div>
+                    <div class="border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                        <h4 class="font-semibold text-yellow-600 dark:text-yellow-400 mb-2"><i class="fas fa-robot mr-2"></i>AI Tool Limitations</h4>
+                        <ul class="list-disc pl-5 text-sm">
+                            <li>AI-created citation mistakes ("hallucinations")</li>
+                            <li>Lack of contextual understanding</li>
+                            <li>Bias in generated content</li>
+                            <li>Overreliance on recent literature</li>
+                            <li>Difficulty managing grey literature</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 2 Section -->
+    <section id="part2" class="py-16 bg-gray-100 dark:bg-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Part 2: Method to Produce Scoping Reviews</h2>
+                <div class="w-24 h-1 bg-primary mx-auto"></div>
+            </div>
+            
+            <div class="prose dark:prose-invert max-w-4xl mx-auto">
+                <h3>9-Step Methodology</h3>
+                <div class="relative mb-12">
+                    <!-- Timeline -->
+                    <div class="hidden sm:block absolute h-full w-1 bg-primary left-1/2 transform -translate-x-1/2"></div>
+                    
+                    <!-- Steps -->
+                    <div class="grid sm:grid-cols-9 gap-4 mb-4">
+                        <div class="col-span-4 sm:col-span-3 text-right">
+                            <div class="relative p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md card-hover">
+                                <div class="absolute -right-2 top-1/2 transform translate-x-0 sm:translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white dark:border-gray-800"></div>
+                                <h4 class="font-semibold">1. Formulate Question</h4>
+                                <p class="text-sm">Define research question and scope using AI-assisted refinement</p>
+                            </div>
+                        </div>
+                        <div class="col-span-1 hidden sm:block"></div>
+                        <div class="col-span-4 sm:col-span-3">
+                            <div class="relative p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md card-hover">
+                                <div class="absolute -left-2 top-1/2 transform -translate-x-0 sm:-translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white dark:border-gray-800"></div>
+                                <h4 class="font-semibold">2. Search Articles</h4>
+                                <p class="text-sm">Use AI-driven search strategies to retrieve relevant literature</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid sm:grid-cols-9 gap-4 mb-4">
+                        <div class="col-span-4 sm:col-span-3 text-right">
+                            <div class="relative p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md card-hover">
+                                <div class="absolute -right-2 top-1/2 transform translate-x-0 sm:translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white dark:border-gray-800"></div>
+                                <h4 class="font-semibold">3. Select Articles</h4>
+                                <p class="text-sm">Screen and filter studies using AI-assisted tools</p>
+                            </div>
+                        </div>
+                        <div class="col-span-1 hidden sm:block"></div>
+                        <div class="col-span-4 sm:col-span-3">
+                            <div class="relative p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md card-hover">
+                                <div class="absolute -left-2 top-1/2 transform -translate-x-0 sm:-translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white dark:border-gray-800"></div>
+                                <h4 class="font-semibold">4. Extract Data</h4>
+                                <p class="text-sm">Utilize AI to extract and organize key study insights</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid sm:grid-cols-9 gap-4 mb-4">
+                        <div class="col-span-4 sm:col-span-3 text-right">
+                            <div class="relative p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md card-hover">
+                                <div class="absolute -right-2 top-1/2 transform translate-x-0 sm:translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white dark:border-gray-800"></div>
+                                <h4 class="font-semibold">5. Analyze Data</h4>
+                                <p class="text-sm">Identify trends, themes, and gaps using AI-powered categorization</p>
+                            </div>
+                        </div>
+                        <div class="col-span-1 hidden sm:block"></div>
+                        <div class="col-span-4 sm:col-span-3">
+                            <div class="relative p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md card-hover">
+                                <div class="absolute -left-2 top-1/2 transform -translate-x-0 sm:-translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white dark:border-gray-800"></div>
+                                <h4 class="font-semibold">6. Interpret Results</h4>
+                                <p class="text-sm">Balance AI-generated insights with critical human evaluation</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid sm:grid-cols-9 gap-4 mb-4">
+                        <div class="col-span-4 sm:col-span-3 text-right">
+                            <div class="relative p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md card-hover">
+                                <div class="absolute -right-2 top-1/2 transform translate-x-0 sm:translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white dark:border-gray-800"></div>
+                                <h4 class="font-semibold">7. Write Review</h4>
+                                <p class="text-sm">Use AI for drafting while maintaining human oversight</p>
+                            </div>
+                        </div>
+                        <div class="col-span-1 hidden sm:block"></div>
+                        <div class="col-span-4 sm:col-span-3">
+                            <div class="relative p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md card-hover">
+                                <div class="absolute -left-2 top-1/2 transform -translate-x-0 sm:-translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white dark:border-gray-800"></div>
+                                <h4 class="font-semibold">8. Ethical Considerations</h4>
+                                <p class="text-sm">Apply ethical guidelines to AI integration and research integrity</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid sm:grid-cols-9 gap-4">
+                        <div class="col-span-4 sm:col-span-4"></div>
+                        <div class="col-span-4 sm:col-span-1 text-center">
+                            <div class="relative p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md card-hover">
+                                <div class="absolute -left-2 top-1/2 transform -translate-x-0 sm:-translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white dark:border-gray-800"></div>
+                                <h4 class="font-semibold">9. Disseminate</h4>
+                                <p class="text-sm">Leverage AI for summarization and visualization</p>
+                            </div>
+                        </div>
+                        <div class="col-span-4 sm:col-span-4"></div>
+                    </div>
+                </div>
+                
+                <h3>Key Methodological Components</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 card-hover">
+                        <h4 class="font-semibold text-lg mb-3"><i class="fas fa-question-circle text-primary mr-2"></i>Formulating Review Questions</h4>
+                        <p>Use frameworks like PCC (Population, Concept, Context) to structure questions:</p>
+                        <div class="mt-3 p-3 bg-gray-100 dark:bg-gray-600 rounded">
+                            <p class="font-medium">Example:</p>
+                            <p>"What are the key challenges influencing the scaling of AI-driven product prototypes in technology startups within venture acceleration programs?"</p>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 card-hover">
+                        <h4 class="font-semibold text-lg mb-3"><i class="fas fa-search text-primary mr-2"></i>Search Strategies</h4>
+                        <p>Recommended AI tools for efficient searching:</p>
+                        <ul class="mt-2 pl-5">
+                            <li>ChatGPT for Boolean query generation</li>
+                            <li>Consensus for relevance assessment</li>
+                            <li>Perplexity for diverse source discovery</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 card-hover">
+                        <h4 class="font-semibold text-lg mb-3"><i class="fas fa-filter text-primary mr-2"></i>Article Selection</h4>
+                        <p>Use Rayyan AI for screening:</p>
+                        <ul class="mt-2 pl-5">
+                            <li>Upload references from databases</li>
+                            <li>Apply inclusion/exclusion criteria</li>
+                            <li>Conduct dual screening for accuracy</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 card-hover">
+                        <h4 class="font-semibold text-lg mb-3"><i class="fas fa-table text-primary mr-2"></i>Data Extraction</h4>
+                        <p>Tools for organizing findings:</p>
+                        <ul class="mt-2 pl-5">
+                            <li>Elicit for custom column extraction</li>
+                            <li>SciSpace for tabular data organization</li>
+                            <li>Zotero for reference management</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3>Visualizing Insights</h3>
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center card-hover">
+                        <div class="text-primary text-5xl mb-4">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2">Concept Maps</h4>
+                        <p class="text-sm">Visualize relationships between key themes</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center card-hover">
+                        <div class="text-primary text-5xl mb-4">
+                            <i class="fas fa-network-wired"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2">Citation Networks</h4>
+                        <p class="text-sm">Analyze connections between research papers</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center card-hover">
+                        <div class="text-primary text-5xl mb-4">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2">Trend Analysis</h4>
+                        <p class="text-sm">Track emerging patterns in literature</p>
+                    </div>
+                </div>
+                
+                <h3>Ethical Considerations</h3>
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 mb-8 card-hover">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-3"><i class="fas fa-exclamation-triangle text-primary mr-2"></i>Key Concerns</h4>
+                            <ul class="list-disc pl-5">
+                                <li>AI-generated citation errors</li>
+                                <li>Algorithmic bias in search results</li>
+                                <li>Data privacy and security</li>
+                                <li>Transparency in AI usage</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3"><i class="fas fa-shield-alt text-primary mr-2"></i>Mitigation Strategies</h4>
+                            <ul class="list-disc pl-5">
+                                <li>Manual verification of citations</li>
+                                <li>Diverse database searches</li>
+                                <li>Clear documentation of AI contributions</li>
+                                <li>Human oversight at all stages</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 3 Section -->
+    <section id="part3" class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Part 3: Updating Scoping Review Guide</h2>
+                <div class="w-24 h-1 bg-primary mx-auto"></div>
+            </div>
+            
+            <div class="prose dark:prose-invert max-w-4xl mx-auto">
+                <h3>Guide Strengths</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-2"><i class="fas fa-lightbulb text-primary mr-2"></i>Practical Applications</h4>
+                        <p>Transforms literature reviews into valuable TIM assets like venture pitches, competitive intelligence reports, and product development strategies.</p>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-2"><i class="fas fa-cogs text-primary mr-2"></i>AI Integration</h4>
+                        <p>Incorporates AI tools to improve efficiency in search term refinement, citation management, text summarization, and synthesis.</p>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-2"><i class="fas fa-balance-scale text-primary mr-2"></i>Ethical Framework</h4>
+                        <p>Emphasizes transparency, bias prevention, and reproducibility while documenting AI contributions and maintaining human oversight.</p>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-2"><i class="fas fa-sync-alt text-primary mr-2"></i>Living Document</h4>
+                        <p>Version control system ensures the guide evolves with new methodologies, databases, and AI tools through scheduled updates.</p>
+                    </div>
+                </div>
+                
+                <h3>Version Control System</h3>
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 mb-8 card-hover">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-3"><i class="fas fa-code-branch text-primary mr-2"></i>Current Version</h4>
+                            <ul class="list-disc pl-5">
+                                <li>Version: 1.0</li>
+                                <li>Last Updated: March 4, 2025</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3"><i class="fas fa-calendar-alt text-primary mr-2"></i>Update Process</h4>
+                            <ul class="list-disc pl-5">
+                                <li>Scheduled reviews every 6 months</li>
+                                <li>Ad-hoc updates for emerging practices</li>
+                                <li>Stakeholder feedback incorporated</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>AI Assistance Disclosure</h3>
+                <div class="border border-primary rounded-lg p-6 mb-8">
+                    <p>This guide was developed using AI-powered tools (ChatGPT, Perplexity) for drafting, summarizing, and structuring content. All AI-generated content underwent human oversight to ensure accuracy, methodological soundness, and adherence to academic standards.</p>
+                    <p class="mt-3 font-medium">AI accounted for approximately 50% of initial content, with all sections manually reviewed, refined, or rewritten for depth, clarity, and scholarly rigor.</p>
+                </div>
+                
+                <h3>Contribution Opportunities</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-2"><i class="fas fa-plus-circle text-primary mr-2"></i>Content Areas</h4>
+                        <ul class="list-disc pl-5">
+                            <li>Enhance literature review processes</li>
+                            <li>Develop troubleshooting sections</li>
+                            <li>Expand examples and use cases</li>
+                            <li>Refine grey literature methods</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h4 class="font-semibold mb-2"><i class="fas fa-hands-helping text-primary mr-2"></i>How to Contribute</h4>
+                        <p>Through TIM projects, coursework, or extracurricular activities. Contact:</p>
+                        <p class="mt-2 font-medium">Tony Bailetti<br>tony.bailetti@carleton.ca</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section class="py-16 bg-gray-100 dark:bg-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Resources & Links</h2>
+                <div class="w-24 h-1 bg-primary mx-auto"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <a href="https://carleton.ca/tim/literature-reviews/" target="_blank" class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center card-hover">
+                    <div class="text-primary text-4xl mb-4">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Guide Website</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Official website for the Literature Reviews Guide</p>
+                </a>
+                
+                <a href="https://carleton.ca/tim/wp-content/uploads/sites/52/2025/03/assignment-SLR-v3.pdf" target="_blank" class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center card-hover">
+                    <div class="text-primary text-4xl mb-4">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Assignment</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Try out the scoping review assignment</p>
+                </a>
+                
+                <a href="https://carletonu.az1.qualtrics.com/jfe/form/SV_e2MuXF4BTYi

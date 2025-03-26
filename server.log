@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/joehu/.cursor-tutor/server.py", line 1, in <module>
+    @app.route('/api/process-stream', methods=['POST'])
+     ^^^
+NameError: name 'app' is not defined

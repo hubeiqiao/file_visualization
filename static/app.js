@@ -34,13 +34,17 @@ const elements = {
     // Model Parameters
     temperature: $('#temperature'),
     temperatureValue: $('#temperature-value'),
-    temperatureReset: $('#temperature-reset'),
+    temperatureReset: $('#reset-temp'),
     maxTokens: $('#max-tokens'),
     maxTokensValue: $('#max-tokens-value'),
-    maxTokensReset: $('#max-tokens-reset'),
+    maxTokensReset: $('#reset-max-tokens'),
     thinkingBudget: $('#thinking-budget'),
     thinkingBudgetValue: $('#thinking-budget-value'),
-    thinkingBudgetReset: $('#thinking-budget-reset'),
+    thinkingBudgetReset: $('#reset-thinking-budget'),
+    
+    // Test Mode
+    testModeToggle: $('#test-mode'),
+    testModeIndicator: $('#test-mode-indicator'),
     
     // Generate
     generateBtn: $('#generate-btn'),
@@ -48,8 +52,10 @@ const elements = {
     
     // Processing
     processingStatus: $('#processing-status'),
-    progressBar: $('#progress-bar'),
+    processingText: $('#processing-text'),
+    processingIcon: $('#processing-icon'),
     elapsedTime: $('#elapsed-time'),
+    progressBar: $('#progress-bar'),
     
     // Results
     resultSection: $('#result-section'),
@@ -58,17 +64,20 @@ const elements = {
     thinkingTokens: $('#thinking-tokens'),
     totalCost: $('#total-cost'),
     
-    // HTML Output
+    // Output
+    previewIframe: $('#preview-iframe'),
     htmlOutput: $('#html-output'),
     copyHtml: $('#copy-html'),
     downloadHtml: $('#download-html'),
-    
-    // Preview
-    previewIframe: $('#preview-iframe'),
     openPreview: $('#open-preview'),
     
     // Token Info
-    tokenInfo: $('#tokenInfo')
+    tokenInfo: $('#tokenInfo'),
+    testModeIndicator: $('#test-mode-indicator'),
+    
+    // Usage Statistics
+    totalUsageTokens: $('#total-usage-tokens'),
+    totalUsageCost: $('#total-usage-cost')
 };
 
 // State
@@ -86,7 +95,8 @@ let state = {
     generatedHtml: '',
     fileName: '',
     startTime: null,
-    elapsedTimeInterval: null
+    elapsedTimeInterval: null,
+    testMode: false
 };
 
 // Initialize the app
@@ -151,6 +161,20 @@ function init() {
         state.textContent = elements.inputText.value.trim();
         analyzeTokens(state.textContent);
     }
+    
+    // Initialize test mode from localStorage
+    if (elements.testModeToggle) {
+        const savedTestMode = localStorage.getItem('test_mode') === 'true';
+        console.log("Initializing test mode from localStorage:", savedTestMode);
+        if (savedTestMode) {
+            elements.testModeToggle.checked = true;
+            state.testMode = true;
+            showTestModeIndicator();
+        }
+    }
+    
+    // Load usage statistics
+    loadUsageStatistics();
     
     console.log('App initialized');
 }
@@ -277,6 +301,24 @@ function setupEventListeners() {
         elements.openPreview.addEventListener('click', openPreviewInNewTab);
     }
     
+    // Test mode toggle
+    if (elements.testModeToggle) {
+        console.log("Setting up test mode toggle listener");
+        elements.testModeToggle.addEventListener('change', function() {
+            console.log("Test mode toggle changed:", elements.testModeToggle.checked);
+            state.testMode = elements.testModeToggle.checked;
+            localStorage.setItem('test_mode', state.testMode);
+            
+            if (state.testMode) {
+                showTestModeIndicator();
+            } else {
+                hideTestModeIndicator();
+            }
+        });
+    } else {
+        console.warn("Test mode toggle element not found");
+    }
+    
     console.log('Event listeners set up');
 }
 
@@ -379,20 +421,22 @@ function switchTab(tab) {
     
     state.activeTab = tab;
     
-    if (!elements.fileTab || !elements.textTab || !elements.fileInput || !elements.textInput) {
+    if (!elements.fileTab || !elements.textTab) {
         console.error('Tab elements not found');
         return;
     }
     
     if (tab === 'file') {
+        // Update tab styling
         elements.fileTab.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
         elements.fileTab.classList.add('bg-primary-100', 'dark:bg-primary-900', 'text-primary-700', 'dark:text-primary-300');
         
         elements.textTab.classList.remove('bg-primary-100', 'dark:bg-primary-900', 'text-primary-700', 'dark:text-primary-300');
         elements.textTab.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
         
-        elements.fileInput.classList.remove('hidden');
-        elements.textInput.classList.add('hidden');
+        // Show file input, hide text input
+        if (elements.fileInput) elements.fileInput.classList.remove('hidden');
+        if (elements.textInput) elements.textInput.classList.add('hidden');
         
         // Clear text input content when switching to file tab
         if (elements.inputText) {
@@ -400,14 +444,16 @@ function switchTab(tab) {
             state.textContent = '';
         }
     } else {
+        // Update tab styling
         elements.textTab.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
         elements.textTab.classList.add('bg-primary-100', 'dark:bg-primary-900', 'text-primary-700', 'dark:text-primary-300');
         
         elements.fileTab.classList.remove('bg-primary-100', 'dark:bg-primary-900', 'text-primary-700', 'dark:text-primary-300');
         elements.fileTab.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
         
-        elements.textInput.classList.remove('hidden');
-        elements.fileInput.classList.add('hidden');
+        // Show text input, hide file input
+        if (elements.textInput) elements.textInput.classList.remove('hidden');
+        if (elements.fileInput) elements.fileInput.classList.add('hidden');
         
         // Clear file data when switching to text tab
         state.file = null;
@@ -433,6 +479,7 @@ function switchTab(tab) {
         }
     }
     
+    // Update button state after tab switch
     updateGenerateButtonState();
 }
 
@@ -458,8 +505,18 @@ function setupDragAndDrop() {
     });
     
     ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener('drop', handleDrop, false);
+        dropArea.addEventListener(eventName, unhighlight, false);
     });
+    
+    // Add click event to the drop area to open file dialog
+    dropArea.addEventListener('click', function() {
+        if (elements.fileUpload) {
+            elements.fileUpload.click();
+        }
+    });
+    
+    // Add cursor pointer style
+    dropArea.classList.add('cursor-pointer');
     
     function highlight() {
         dropArea.classList.add('border-primary-500', 'dark:border-primary-400', 'bg-primary-50', 'dark:bg-primary-900/20');
@@ -477,6 +534,9 @@ function setupDragAndDrop() {
             handleFile(file);
         }
     }
+    
+    // Make sure drop area has drop event listener
+    dropArea.addEventListener('drop', handleDrop, false);
 }
 
 function handleFileUpload(e) {
@@ -577,7 +637,7 @@ function handleFile(file) {
                                 <div class="token-analysis">
                                     <h3>Token Analysis</h3>
                                     <p>Estimated Input Tokens: ${data.estimated_tokens.toLocaleString()}</p>
-                                    <p>Estimated Cost: $${data.estimated_cost.toFixed(4)}</p>
+                                    <p>Estimated Input Cost: $${data.estimated_cost.toFixed(4)}</p>
                                     <p>Maximum Safe Output Tokens: ${data.max_safe_output_tokens.toLocaleString()}</p>
                                 </div>
                             `;
@@ -806,234 +866,100 @@ function updateGenerateButtonState() {
     }
 }
 
-// Generation Process
-async function startGeneration() {
-    if (state.processing) {
-        return;
-    }
-
-    // Validate inputs
-    const apiKey = validateApiKey();
-    if (!apiKey) {
-        return;
-    }
-
-    const inputContent = getInputContent();
-    if (!inputContent) {
-        if (elements.generateError) {
-            elements.generateError.textContent = 'Please provide input content';
-            elements.generateError.classList.remove('hidden');
-        }
-        return;
-    }
-
-    // Update UI
+// Main generation function
+async function generateWebsite(content, apiKey, formatPrompt, temperature, maxTokens, thinkingBudget) {
+    console.log(`Generating website with: provider=gemini, maxTokens=${maxTokens}, temperature=${temperature}, thinkingBudget=${thinkingBudget}`);
+    
+    // Mark as processing to prevent duplicate requests
     state.processing = true;
-    if (elements.generateBtn) {
-        elements.generateBtn.disabled = true;
-        elements.generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-    }
+    disableInputsDuringGeneration(true);
     
-    // Get parameters for generating HTML
-    const params = {
-        api_key: apiKey,
-        source: inputContent,
-        format_prompt: elements.formatInstructions ? elements.formatInstructions.value : '',
-        model: elements.model ? elements.model.value : 'claude-3-7-sonnet-20250219',
-        max_tokens: elements.maxTokens ? parseInt(elements.maxTokens.value) : 128000,
-        temperature: elements.temperature ? parseFloat(elements.temperature.value) : 1.0,
-        thinking_budget: elements.thinkingBudget ? parseInt(elements.thinkingBudget.value) : 32000
-    };
-
     try {
-        // Check if we're using the streaming version with reconnect support
-        if (typeof generateHTMLStreamWithReconnection === 'function') {
-            // Use the new streaming function with reconnection support
-            generateHTMLStreamWithReconnection(
-                params.api_key,
-                params.source,
-                params.format_prompt,
-                params.model,
-                params.max_tokens,
-                params.temperature,
-                params.thinking_budget
-            );
-            return;
-        }
-        
-        // Fall back to original implementation if the new function isn't available
-        // Start event source
-        startEventSource(params);
+        // Try non-streaming approach directly (skip the streaming attempt)
+        await generateGeminiHTML(content, apiKey, formatPrompt, temperature, maxTokens);
     } catch (error) {
-        console.error('Error starting generation:', error);
-        showNotification(`Generation error: ${error.message}`, 'error');
-        
-        // Reset UI
-        elements.processingStatus.classList.add('hidden');
-        state.processing = false;
-        updateGenerateButtonState();
-    }
-}
-
-function startElapsedTimeCounter() {
-    clearInterval(state.elapsedTimeInterval);
-    
-    state.elapsedTimeInterval = setInterval(() => {
-        const elapsed = Math.floor((new Date() - state.startTime) / 1000);
-        elements.elapsedTime.textContent = `Elapsed: ${formatTime(elapsed)}`;
-    }, 1000);
-}
-
-function stopElapsedTimeCounter() {
-    clearInterval(state.elapsedTimeInterval);
-}
-
-function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-async function processWithStreaming(data) {
-    try {
-        const response = await fetch(`${API_URL}/api/process`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText);
-        }
-        
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        
-        while (true) {
-            const { value, done } = await reader.read();
-            
-            if (done) {
-                break;
-            }
-            
-            buffer += decoder.decode(value, { stream: true });
-            
-            const events = buffer.split('\n\n');
-            buffer = events.pop() || '';
-            
-            for (const event of events) {
-                if (event.startsWith('data: ')) {
-                    try {
-                        const jsonData = JSON.parse(event.slice(6));
-                        handleStreamEvent(jsonData);
-                    } catch (e) {
-                        console.error('Failed to parse event:', e);
-                        // If we can't parse an event, make sure the UI is still updated
-                        stopProcessingAnimation();
-                    }
-                }
-            }
-        }
-        
-        // Ensure animations are stopped if the stream ends without a completion event
-        if (state.processing) {
-            console.log('Stream ended without completion event, stopping animations');
-            stopProcessingAnimation();
-            resetGenerationUI();
-        }
-        
-    } catch (error) {
-        console.error('Streaming error:', error);
-        showToast(`Error: ${error.message}`, 'error');
+        console.error(`Failed to generate with Gemini API: ${error}`);
+        showToast(`Error: ${error.message}`, "error");
         stopProcessingAnimation();
         resetGenerationUI();
     }
 }
 
-function handleStreamEvent(event) {
-    switch (event.type) {
-        case 'start':
-            console.log('Generation started:', event.message_id);
-            break;
+// Gemini Integration - Non-Streaming
+async function generateGeminiHTML(content, apiKey, formatPrompt, temperature, maxTokens) {
+    console.log("Starting Gemini HTML generation (non-streaming)...");
+    
+    // Estimate input tokens (approximate)
+    const inputTokens = Math.ceil(content.length / 4);
+    console.log(`Estimated input tokens: ${inputTokens}`);
+    
+    try {
+        // Prepare request data
+        const requestData = {
+            api_key: apiKey,
+            content: content,
+            format_prompt: formatPrompt,
+            temperature: temperature,
+            max_tokens: maxTokens
+        };
+        
+        // Determine if we're in a local development environment to handle CORS
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        let baseUrl = isLocalDev ? 'http://127.0.0.1:5011' : window.location.origin;
+        
+        console.log(`Making request to ${baseUrl}/api/process-gemini`);
+        
+        // Make the non-streaming request
+        const response = await fetch(`${baseUrl}/api/process-gemini`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || `Server error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        if (data.html) {
+            // Update the generated HTML
+            state.generatedHtml = data.html;
             
-        case 'chunk':
-            // Accumulate HTML content
-            state.generatedHtml += event.content;
-            
-            // Update code display as we go
+            // Update the display
             updateHtmlDisplay();
             
-            // Update progress bar to indicate activity
-            if (elements.progressBar) {
-                // Increment the progress bar in small steps while receiving chunks
-                const currentWidth = elements.progressBar.style.width || '0%';
-                const currentPercent = parseInt(currentWidth) || 0;
-                
-                // Cap at 90% during chunks to reserve the final 10% for completion
-                if (currentPercent < 90) {
-                    elements.progressBar.style.width = `${Math.min(currentPercent + 1, 90)}%`;
-                }
-            }
-            break;
-            
-        case 'info':
-            // Display informational messages (like retry notifications)
-            console.log('Info message:', event.message);
-            showToast(event.message, 'info');
-            break;
-            
-        case 'complete':
-            console.log('Generation complete:', event.usage);
-            
-            // Ensure processing animation stops completely
-            stopProcessingAnimation();
-            
-            // Set completion message with elapsed time
-            if (event.usage && event.usage.time_elapsed) {
-                elements.elapsedTime.textContent = `Completed in: ${formatTime(Math.floor(event.usage.time_elapsed))}`;
-            }
-            
-            // Update usage statistics
-            if (event.usage) {
-                elements.inputTokens.textContent = event.usage.input_tokens.toLocaleString();
-                elements.outputTokens.textContent = event.usage.output_tokens.toLocaleString();
-                elements.thinkingTokens.textContent = event.usage.thinking_tokens.toLocaleString();
-                elements.totalCost.textContent = `$${event.usage.total_cost.toFixed(4)}`;
-            }
-            
-            // Finalize HTML display
-            updateHtmlDisplay();
-            
-            // Update preview
+            // Update the preview
             updatePreview();
             
-            // Reset UI elements
+            // Update usage statistics
+            if (data.usage) {
+                updateTokenUsage(data.usage);
+                console.log("Received usage statistics from non-streaming API:", data.usage);
+            }
+            
+            // Show success message
+            console.log("Generation complete with Gemini (non-streaming)");
+            showToast("Generation complete!", "success");
+            
+            // Reset UI
+            stopProcessingAnimation();
             resetGenerationUI(true);
             
-            // Show completed message
-            showToast('Visualization complete!', 'success');
-            break;
-            
-        case 'error':
-            console.error('Generation error:', event.message);
-            showToast(`Error: ${event.message}`, 'error');
-            
-            // Stop processing animation on error
-            stopProcessingAnimation();
-            resetGenerationUI();
-            break;
-            
-        case 'deployment_note':
-            // Add deployment note to the generated HTML
-            if (event.content) {
-                state.generatedHtml += event.content;
-                updateHtmlDisplay();
-            }
-            break;
+            return true;
+        } else {
+            throw new Error("No HTML content received from the server");
+        }
+    } catch (error) {
+        console.error("Error generating with Gemini non-streaming:", error);
+        throw error;
     }
 }
 
@@ -1205,7 +1131,7 @@ async function analyzeTokens(content) {
                 <div class="token-analysis">
                     <h3>Token Analysis</h3>
                     <p>Estimated Input Tokens: ${data.estimated_tokens.toLocaleString()}</p>
-                    <p>Estimated Cost: $${data.estimated_cost.toFixed(4)}</p>
+                    <p>Estimated Input Cost: $${data.estimated_cost.toFixed(4)}</p>
                     <p>Maximum Safe Output Tokens: ${data.max_safe_output_tokens.toLocaleString()}</p>
                 </div>
             `;
@@ -1262,22 +1188,42 @@ function stopProcessingAnimation() {
 
 // Helper function to update token info UI
 function updateTokenInfoUI(data) {
-    if (!elements.tokenInfo) return;
+    const tokenInfoElement = elements.tokenInfo;
+    if (!tokenInfoElement) return;
     
-    if (data.error) {
-        elements.tokenInfo.innerHTML = `
-            <div class="token-analysis error">
-                <h3>Error Processing File</h3>
-                <p>${data.error}</p>
-            </div>
-        `;
-    } else {
-        elements.tokenInfo.innerHTML = `
-            <div class="token-analysis">
-                <h3>Token Analysis</h3>
-                <p>Estimated Input Tokens: ${data.estimated_tokens.toLocaleString()}</p>
-                <p>Estimated Cost: $${data.estimated_cost.toFixed(4)}</p>
-                <p>Maximum Safe Output Tokens: ${data.max_safe_output_tokens.toLocaleString()}</p>
+    try {
+        if (data) {
+            if (data.error) {
+                tokenInfoElement.innerHTML = `
+                    <div class="token-analysis text-red-500">
+                        <h3>Token Analysis Error</h3>
+                        <p>${data.error}</p>
+                    </div>
+                `;
+            } else {
+                tokenInfoElement.innerHTML = `
+                    <div class="token-analysis">
+                        <h3>Token Analysis</h3>
+                        <p>Estimated Input Tokens: ${data.estimated_tokens.toLocaleString()}</p>
+                        <p>Estimated Input Cost: $${data.estimated_cost.toFixed(4)}</p>
+                        <p>Maximum Safe Output Tokens: ${data.max_safe_output_tokens.toLocaleString()}</p>
+                    </div>
+                `;
+            }
+        } else {
+            tokenInfoElement.innerHTML = `
+                <div class="token-analysis text-gray-400">
+                    <h3>Token Analysis</h3>
+                    <p>Enter text or upload a file to see token count</p>
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error("Error updating token info UI:", err);
+        tokenInfoElement.innerHTML = `
+            <div class="token-analysis text-red-500">
+                <h3>Token Analysis Error</h3>
+                <p>Failed to display token information</p>
             </div>
         `;
     }
@@ -1336,221 +1282,6 @@ function disableInputsDuringGeneration(disable) {
     }
 }
 
-// Add a new function to handle the streaming API with Vercel timeout handling
-async function generateHTMLStreamWithReconnection(apiKey, sourceContent, formatInstructions, model, maxTokens, temperature, thinkingTokens) {
-    // Clear previous results
-    elements.htmlOutput.value = '';
-    elements.previewIframe.srcdoc = '';
-    
-    // Show loading indicators
-    elements.processingStatus.classList.remove('hidden');
-    elements.resultSection.classList.add('hidden');
-    
-    // Update UI state
-    state.processing = true;
-    updateGenerateButtonState();
-    
-    // Track the HTML content
-    let fullHtmlContent = '';
-    
-    // Track thinking content
-    let thinkingContent = '';
-    
-    // Track session for reconnection
-    let sessionId = null;
-    let reconnectionAttempts = 0;
-    const MAX_RECONNECTION_ATTEMPTS = 5;
-    
-    function connectToStream() {
-        // Prepare request data
-        const requestData = {
-            api_key: apiKey,
-            source: sourceContent,
-            format_prompt: formatInstructions || '',
-            model: model || 'claude-3-7-sonnet-20250219',
-            max_tokens: maxTokens || 128000,
-            temperature: temperature || 1.0,
-            thinking_budget: thinkingTokens || 32000
-        };
-        
-        // If this is a reconnection, include the session ID
-        if (sessionId) {
-            requestData.session_id = sessionId;
-            console.log(`Reconnecting to stream with session ID: ${sessionId}`);
-        }
-        
-        // Create EventSource for streaming
-        const streamUrl = '/api/process-stream'; 
-        
-        // We can't use EventSource directly because we need to send POST data
-        // Instead, we'll use fetch with streaming response handling
-        fetch(streamUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestData)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            
-            // Set up a reader to process the stream
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-            
-            // Process the stream
-            function processStream() {
-                reader.read().then(({ done, value }) => {
-                    if (done) {
-                        console.log('Stream complete');
-                        return;
-                    }
-                    
-                    // Decode the chunk and add it to our buffer
-                    buffer += decoder.decode(value, { stream: true });
-                    
-                    // Process complete SSE messages in the buffer
-                    let lines = buffer.split('\n\n');
-                    buffer = lines.pop() || ''; // Keep the last incomplete chunk in the buffer
-                    
-                    // Process each complete SSE message
-                    for (const line of lines) {
-                        if (line.trim() && line.startsWith('data: ')) {
-                            try {
-                                // Extract the JSON data
-                                const jsonStr = line.substring(6); // Remove 'data: ' prefix
-                                const data = JSON.parse(jsonStr);
-                                
-                                // Handle different message types
-                                switch (data.type) {
-                                    case 'start':
-                                        console.log('Generation started');
-                                        break;
-                                        
-                                    case 'thinking_start':
-                                        elements.thinkingTokens.textContent = 'Claude is thinking...';
-                                        break;
-                                        
-                                    case 'thinking_update':
-                                        // Update thinking output
-                                        thinkingContent += data.content;
-                                        elements.thinkingTokens.textContent = `<pre>${escapeHtml(thinkingContent)}</pre>`;
-                                        // Auto-scroll to the bottom
-                                        elements.thinkingTokens.scrollTop = elements.thinkingTokens.scrollHeight;
-                                        break;
-                                        
-                                    case 'thinking_end':
-                                        // Show completed thinking
-                                        elements.thinkingTokens.textContent = 
-                                            `<p>Thinking complete! Here's Claude's reasoning:</p>
-                                            <pre>${escapeHtml(thinkingContent)}</pre>`;
-                                        break;
-                                        
-                                    case 'content':
-                                        // Update HTML content
-                                        fullHtmlContent += data.text;
-                                        
-                                        // Update preview and textarea
-                                        elements.htmlOutput.value = fullHtmlContent;
-                                        
-                                        try {
-                                            // Try to render the HTML as it comes in
-                                            elements.previewIframe.srcdoc = fullHtmlContent;
-                                        } catch (e) {
-                                            console.error('Error updating preview:', e);
-                                        }
-                                        break;
-                                        
-                                    case 'reconnect':
-                                        // Handle Vercel timeout - need to reconnect
-                                        sessionId = data.session_id;
-                                        console.log(`Need to reconnect with session ID: ${sessionId}`);
-                                        
-                                        // Check if we've tried too many times
-                                        if (reconnectionAttempts >= MAX_RECONNECTION_ATTEMPTS) {
-                                            throw new Error(`Too many reconnection attempts (${reconnectionAttempts})`);
-                                        }
-                                        
-                                        // Close current connection and reconnect
-                                        reader.cancel();
-                                        reconnectionAttempts++;
-                                        
-                                        // Show reconnection message
-                                        const reconnectMsg = `Connection timed out. Reconnecting (attempt ${reconnectionAttempts}/${MAX_RECONNECTION_ATTEMPTS})...`;
-                                        elements.thinkingTokens.textContent += `<p>${reconnectMsg}</p>`;
-                                        
-                                        // Reconnect after a short delay
-                                        setTimeout(connectToStream, 1000);
-                                        return; // Exit this processing loop
-                                        
-                                    case 'error':
-                                        // Handle error
-                                        throw new Error(`API error: ${data.error}`);
-                                        
-                                    case 'usage':
-                                        // Update token usage
-                                        updateTokenUsage(data.usage);
-                                        break;
-                                        
-                                    case 'end':
-                                        // Generation complete
-                                        console.log('Generation complete');
-                                        // Hide loading indicators
-                                        elements.processingStatus.classList.add('hidden');
-                                        elements.resultSection.classList.remove('hidden');
-                                        // Update UI state
-                                        state.processing = false;
-                                        updateGenerateButtonState();
-                                        
-                                        // Save the generated HTML
-                                        state.generatedHtml = fullHtmlContent;
-                                        break;
-                                }
-                            } catch (error) {
-                                console.error('Error processing stream message:', error, line);
-                                // Don't throw here - try to continue processing the stream
-                            }
-                        }
-                    }
-                    
-                    // Continue processing the stream
-                    processStream();
-                }).catch(error => {
-                    console.error('Error reading stream:', error);
-                    
-                    // If this was due to a reconnection, the reader.cancel() above will cause an error here
-                    // We can safely ignore it since we're handling the reconnection elsewhere
-                    if (!sessionId) {
-                        // Only show error if not a planned reconnection
-                        elements.thinkingTokens.textContent += `<p class="error">Error: ${error.message}</p>`;
-                        elements.processingStatus.classList.add('hidden');
-                        elements.resultSection.classList.add('hidden');
-                        state.processing = false;
-                        updateGenerateButtonState();
-                    }
-                });
-            }
-            
-            // Start processing
-            processStream();
-        })
-        .catch(error => {
-            console.error('Fetch error:', error);
-            elements.thinkingTokens.textContent += `<p class="error">Error: ${error.message}</p>`;
-            elements.processingStatus.classList.add('hidden');
-            elements.resultSection.classList.add('hidden');
-            state.processing = false;
-            updateGenerateButtonState();
-        });
-    }
-    
-    // Start the initial connection
-    connectToStream();
-}
-
 // Helper function to update token usage display
 function updateTokenUsage(usage) {
     const inputTokens = usage.input_tokens || 0;
@@ -1570,6 +1301,189 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Function to get the input content from the active tab
+function getInputContent() {
+    console.log("Getting input content");
+    
+    if (state.activeTab === 'text') {
+        // Get content from text input
+        if (elements.inputText && elements.inputText.value.trim()) {
+            console.log("Returning text input content");
+            return elements.inputText.value.trim();
+        }
+    } else if (state.activeTab === 'file') {
+        // Get content from file upload
+        if (state.fileContent) {
+            console.log("Returning file content");
+            return state.fileContent;
+        }
+    }
+    
+    console.log("No input content found");
+    return null;
+}
+
+// Helper function to start processing animation
+function startProcessingAnimation() {
+    // Initialize progress bar animation
+    if (elements.progressBar) {
+        elements.progressBar.style.width = '0%';
+        elements.progressBar.classList.add('animate-progress');
+        
+        // Animate the progress bar to 90% (reserve last 10% for completion)
+        setTimeout(() => {
+            elements.progressBar.style.width = '90%';
+        }, 100);
+    }
+    
+    // Show processing status
+    if (elements.processingStatus) {
+        elements.processingStatus.classList.remove('hidden');
+        elements.processingStatus.classList.remove('processing-complete');
+    }
+    
+    // Update processing text
+    setProcessingText('Processing with Claude...');
+    
+    console.log('Processing animation started');
+}
+
+function hideTestModeIndicator() {
+    if (elements.testModeIndicator) {
+        elements.testModeIndicator.classList.add('hidden');
+    }
+}
+
+function showTestModeIndicator() {
+    console.log("Showing test mode indicator");
+    // Create indicator if it doesn't exist
+    if (!elements.testModeIndicator) {
+        const indicator = document.createElement('span');
+        indicator.id = 'test-mode-indicator';
+        indicator.className = 'test-mode-active ml-2';
+        indicator.textContent = 'Test Mode';
+        
+        // Add indicator next to the generate button
+        if (elements.generateBtn && elements.generateBtn.parentNode) {
+            elements.generateBtn.parentNode.insertBefore(indicator, elements.generateBtn.nextSibling);
+            elements.testModeIndicator = indicator;
+        } else {
+            console.warn("Generate button not found for adding test mode indicator");
+        }
+    } else if (elements.testModeIndicator) {
+        elements.testModeIndicator.classList.remove('hidden');
+    }
+}
+
+// Load and save usage statistics
+function saveUsageStatistics(usage) {
+    try {
+        // Get existing statistics
+        const existingStats = JSON.parse(localStorage.getItem('usage_statistics') || '[]');
+        
+        // Add new usage data with timestamp
+        const newEntry = {
+            timestamp: new Date().toISOString(),
+            input_tokens: usage.input_tokens || 0,
+            output_tokens: usage.output_tokens || 0,
+            thinking_tokens: usage.thinking_tokens || 0,
+            total_cost: usage.total_cost || 0,
+            test_mode: state.testMode
+        };
+        
+        // Add to beginning of array (newest first)
+        existingStats.unshift(newEntry);
+        
+        // Limit to last 20 entries
+        const limitedStats = existingStats.slice(0, 20);
+        
+        // Save back to localStorage
+        localStorage.setItem('usage_statistics', JSON.stringify(limitedStats));
+        console.log('Usage statistics saved:', newEntry);
+    } catch (error) {
+        console.error('Error saving usage statistics:', error);
+    }
+}
+
+function loadUsageStatistics() {
+    try {
+        const statistics = JSON.parse(localStorage.getItem('usage_statistics') || '[]');
+        
+        // Calculate totals
+        let totalTokens = 0;
+        let totalCost = 0;
+        
+        statistics.forEach(entry => {
+            totalTokens += (entry.input_tokens || 0) + (entry.output_tokens || 0) + (entry.thinking_tokens || 0);
+            totalCost += entry.total_cost || 0;
+        });
+        
+        // Update UI if we have elements for it
+        if (elements.totalUsageTokens) {
+            elements.totalUsageTokens.textContent = totalTokens.toLocaleString();
+        }
+        
+        if (elements.totalUsageCost) {
+            elements.totalUsageCost.textContent = `$${totalCost.toFixed(4)}`;
+        }
+        
+        console.log('Usage statistics loaded:', {
+            entries: statistics.length,
+            totalTokens,
+            totalCost
+        });
+        
+    } catch (error) {
+        console.error('Error loading usage statistics:', error);
+    }
+}
+
+// Helper function to set the processing text
+function setProcessingText(text) {
+    if (elements.processingText) {
+        elements.processingText.textContent = text;
+    }
+}
+
+// Function to update the HTML preview with error handling for null elements
+function updateHtmlPreview(html) {
+    try {
+        if (!html) return;
+        
+        // Update the HTML output textarea/pre element
+        if (elements.htmlOutput) {
+            elements.htmlOutput.textContent = html;
+            
+            // Highlight with Prism.js if available
+            if (window.Prism) {
+                Prism.highlightElement(elements.htmlOutput);
+            }
+        }
+        
+        // Update the preview iframe if it exists
+        if (elements.previewIframe) {
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            elements.previewIframe.src = url;
+        }
+        
+        // Save the HTML to the state
+        state.generatedHtml = html;
+        
+        // Show result section if available
+        showResultSection();
+    } catch (error) {
+        console.error('Error updating HTML preview:', error);
+    }
+}
+
+// Function to show the result section if it exists
+function showResultSection() {
+    if (elements.resultSection) {
+        elements.resultSection.classList.remove('hidden');
+    }
 }
 
 // Initialize the app

@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide to Produce Scoping Literature Reviews Using AI Tools</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/3.3.5/tailwind.min.css" integrity="sha512-ZnlenrU6w3u77nOu0gsOx/D/SqLzLg6jyPtkP3o9ld3fEQ+PkyfNYpiee7Zk+ejRb+4+m8wu+ho+VlZ/q9+iWw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Custom Styles for Dark Mode and Transitions */
+        body {
+            @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-50 transition-colors duration-300;
+        }
+        .card {
+            @apply bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-shadow duration-300 hover:shadow-md hover:-translate-y-1;
+        }
+        .card-title {
+            @apply text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100;
+        }
+        .section-title {
+            @apply text-2xl font-bold mb-6 text-gray-900 dark:text-gray-50 border-b-2 border-gray-200 dark:border-gray-700 pb-2;
+        }
+        .subsection-title {
+            @apply text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200;
+        }
+        .list-item {
+            @apply mb-2 flex items-start;
+        }
+        .list-icon {
+            @apply mr-3 text-blue-500 dark:text-blue-400 mt-1;
+        }
+        .button {
+            @apply bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors duration-300 hover:scale-105;
+        }
+        .toggle-container {
+            @apply fixed top-4 right-4 z-50;
+        }
+        .toggle-button {
+            @apply bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full p-2 transition-colors duration-300 cursor-pointer;
+        }
+        .toggle-icon {
+            @apply text-gray-700 dark:text-gray-200;
+        }
+        .fade-in {
+            animation: fadeIn ease 1s;
+            -webkit-animation: fadeIn ease 1s;
+            -moz-animation: fadeIn ease 1s;
+            -o-animation: fadeIn ease 1s;
+            -ms-animation: fadeIn ease 1s;
+        }
+        @keyframes fadeIn {
+            0% {opacity:0;}
+            100% {opacity:1;}
+        }
+        @-moz-keyframes fadeIn {
+            0% {opacity:0;}
+            100% {opacity:1;}
+        }
+        @-webkit-keyframes fadeIn {
+            0% {opacity:0;}
+            100% {opacity:1;}
+        }
+        @-o-keyframes fadeIn {
+            0% {opacity:0;}
+            100% {opacity:1;}
+        }
+        @-ms-keyframes fadeIn {
+            0% {opacity:0;}
+            100% {opacity:1;}
+        }
+        .hover-card:hover {
+            @apply shadow-md -translate-y-1 border border-gray-200 dark:border-gray-700;
+        }
+        .hover-card {
+            @apply transition-all duration-300 border border-transparent;
+        }
+        .timeline-item {
+            @apply relative mb-4;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 10px;
+            height: 10px;
+            background-color: #3b82f6; /* Blue-500 */
+            border-radius: 50%;
+            transform: translateX(-50%);
+            @apply dark:bg-blue-400;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            height: calc(100% - 10px);
+            border-left: 2px dashed #d1d5db; /* Gray-300 */
+            transform: translateX(-50%);
+            @apply dark:border-gray-600;
+        }
+
+        .timeline-item:last-child::after {
+            content: none;
+        }
+
+        .timeline-content {
+            @apply pl-6;
+        }
+
+        .timeline-year {
+            @apply font-semibold text-blue-500 dark:text-blue-400;
+        }
+
+        .timeline-description {
+            @apply text-gray-700 dark:text-gray-300;
+        }
+
+        .table-container {
+            @apply overflow-x-auto shadow-md rounded-lg;
+        }
+
+        .styled-table {
+            @apply w-full text-sm text-left text-gray-500 dark:text-gray-400;
+        }
+
+        .styled-table th {
+            @apply px-6 py-3 text-gray-700 dark:text-gray-300 uppercase bg-gray-50 dark:bg-gray-700;
+        }
+
+        .styled-table td {
+            @apply px-6 py-4;
+        }
+
+        .styled-table tbody tr:nth-child(even) {
+            @apply bg-gray-50 dark:bg-gray-800;
+        }
+
+        .styled-table tbody tr:hover {
+            @apply bg-gray-100 dark:bg-gray-700;
+        }
+
+        .styled-table tbody tr {
+            @apply border-b dark:border-gray-700;
+        }
+
+        .styled-table tbody tr:last-child {
+            @apply border-b-0;
+        }
+
+
+    </style>
+</head>
+<body class="fade-in">
+
+<div class="toggle-container">
+    <button id="theme-toggle" type="button" class="toggle-button">
+        <i id="theme-toggle-dark-icon" class="fa-solid fa-moon toggle-icon hidden"></i>
+        <i id="theme-toggle-light-icon" class="fa-solid fa-sun toggle-icon hidden"></i>
+    </button>
+</div>
+
+<header class="container mx-auto px-4 py-8 flex justify-between items-center">
+    <div>
+        <img src="https://sprott.carleton.ca/up-our-game-canada/wp-content/uploads/sites/8/2025/02/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-512x110.png" alt="TIM Logo" class="h-12">
+    </div>
+    <div>
+        <a href="https://carleton.ca/tim/literature-reviews/" target="_blank" class="button">Visit Website</a>
+    </div>
+</header>
+
+<main class="container mx-auto px-4 pb-16">
+
+    <section class="mb-12">
+        <h1 class="section-title">Guide to Produce Scoping Literature Reviews Using AI Tools</h1>
+        <p class="mb-6">This guide offers a step-by-step method for using AI tools to conduct scoping reviews, focusing on ethical, current, and easy-to-follow processes for students and faculty in Technology Innovation Management (TIM).</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card hover-card">
+                <h3 class="card-title"><i class="fa-solid fa-bullseye list-icon"></i> Objective</h3>
+                <p>Provide a clear method for using AI in scoping reviews, from question creation to insight sharing.</p>
+            </div>
+            <div class="card hover-card">
+                <h3 class="card-title"><i class="fa-solid fa-users list-icon"></i> Target Audience</h3>
+                <p>TIM students and faculty aiming to conduct thorough and reproducible scoping reviews using AI tools.</p>
+            </div>
+            <div class="card hover-card">
+                <h3 class="card-title"><i class="fa-solid fa-list-check list-icon"></i> Key Benefits</h3>
+                <ul class="list-none pl-0">
+                    <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Formulate effective review questions.</li>
+                    <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Conduct thorough literature reviews.</li>
+                    <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Utilize AI for study selection, data extraction, and synthesis.</li>
+                    <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Ensure ethical and transparent reporting.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-12">
+        <h2 class="section-title">Structure</h2>
+        <p class="mb-6">The guide is organized into three key parts, each focusing on a different aspect of conducting scoping reviews with AI.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card hover-card">
+                <h3 class="card-title">Part 1: Foundation of Scoping Reviews</h3>
+                <ul class="list-none pl-0">
+                    <li class="list-item"><i class="fa-solid fa-book-open list-icon"></i> Glossary</li>
+                    <li class="list-item"><i class="fa-solid fa-arrow-right-to-bracket list-icon"></i> Introduction</li>
+                    <li class="list-item"><i class="fa-solid fa-question-circle list-icon"></i> When to Use Scoping vs. Systematic Reviews</li>
+                    <li class="list-item"><i class="fa-solid fa-layer-group list-icon"></i> Key Frameworks</li>
+                    <li class="list-item"><i class="fa-solid fa-thumbs-up list-icon"></i> Benefits & <i class="fa-solid fa-thumbs-down list-icon"></i> Limitations of AI</li>
+                    <li class="list-item"><i class="fa-solid fa-user-shield list-icon"></i> Human Oversight</li>
+                    <li class="list-item"><i class="fa-solid fa-file-alt list-icon"></i> Grey Literature Searches</li>
+                    <li class="list-item"><i class="fa-solid fa-file-import list-icon"></i> Reference Management</li>
+                </ul>
+            </div>
+            <div class="card hover-card">
+                <h3 class="card-title">Part 2: Method to Produce Scoping Reviews</h3>
+                <ul class="list-none pl-0">
+                    <li class="list-item"><i class="fa-solid fa-arrow-right-to-bracket list-icon"></i> Introduction</li>
+                    <li class="list-item"><i class="fa-solid fa-list-ol list-icon"></i> 9-Step Method:
+                        <ul class="list-disc pl-5 mt-2">
+                            <li>Formulate Question & Scope</li>
+                            <li>Search for Articles</li>
+                            <li>Select Articles</li>
+                            <li>Extract Data</li>
+                            <li>Analyze & Synthesize Data</li>
+                            <li>Interpret Results</li>
+                            <li>Write the Scoping Review</li>
+                            <li>Incorporate Ethical Considerations</li>
+                            <li>Disseminate Findings</li>
+                        </ul>
+                    </li>
+                    <li class="list-item"><i class="fa-solid fa-clipboard-check list-icon"></i> Checklist for Authors & Reviewers</li>
+                </ul>
+            </div>
+            <div class="card hover-card">
+                <h3 class="card-title">Part 3: Updating Scoping Review Guide</h3>
+                <ul class="list-none pl-0">
+                    <li class="list-item"><i class="fa-solid fa-arrow-right-to-bracket list-icon"></i> Introduction</li>
+                    <li class="list-item"><i class="fa-solid fa-star list-icon"></i> Strengths of the Guide</li>
+                    <li class="list-item"><i class="fa-solid fa-code-branch list-icon"></i> Version Control & Updates</li>
+                    <li class="list-item"><i class="fa-solid fa-user-secret list-icon"></i> AI Assistance Disclosure</li>
+                    <li class="list-item"><i class="fa-solid fa-hand-sparkles list-icon"></i> Ways to Contribute</li>
+                    <li class="list-item"><i class="fa-solid fa-heart list-icon"></i> Acknowledgements</li>
+                    <li class="list-item"><i class="fa-solid fa-comment-dots list-icon"></i> Epilogue</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-12">
+        <h2 class="section-title">Part 1: Foundation of Scoping Reviews</h2>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-solid fa-book-open list-icon"></i> Glossary</h3>
+            <div class="table-container">
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Boolean operators</td>
+                            <td>Logical connectors (AND, OR, NOT) used in database searches to refine search results.</td>
+                        </tr>
+                        <tr>
+                            <td>Grey literature</td>
+                            <td>Information produced outside traditional publishing channels, like reports and proceedings.</td>
+                        </tr>
+                        <tr>
+                            <td>Human oversight</td>
+                            <td>Human judgment in automated systems to ensure ethical and responsible outcomes.</td>
+                        </tr>
+                        <tr>
+                            <td>PRISMA-ScR</td>
+                            <td>Reporting guidelines for scoping reviews.</td>
+                        </tr>
+                        <tr>
+                            <td>Scoping review</td>
+                            <td>Literature review mapping concepts and research gaps, without quality assessment.</td>
+                        </tr>
+                        <tr>
+                            <td>Systematic review</td>
+                            <td>Structured review of research on a specific question, with rigorous methodology.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-arrow-right-to-bracket fa-solid list-icon"></i> Introduction</h3>
+            <p>Scoping reviews gather and examine a wide range of sources to show what is known and unknown, especially valuable in Technology Innovation Management (TIM) for identifying opportunities in areas like blockchain, open innovation, and AI startups. They cast a wider net than systematic reviews, suitable for rapidly evolving technology landscapes. If your review is narrowly defined and quality-focused, a systematic review is more appropriate.</p>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-question-circle fa-solid list-icon"></i> 1.1 When to Use a Scoping Review Instead of a Systematic Review</h3>
+            <p>In TIM, scoping reviews are particularly useful when:</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Broad or Exploratory Questions:</strong> Explore a wide variety of studies on a topic. Example: AI platforms in technology commercialization.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Emerging Topics:</strong> When the field is new and concepts are unclear. Example: Quantum computing applications in startups.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Heterogeneous Literature:</strong> Diverse methodologies and disciplines. Example: AI in healthcare, finance, manufacturing.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Minimal Critical Appraisal:</strong> Cataloging strategies rather than evaluating effectiveness. Example: Open innovation strategies.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Identifying Gaps and Trends:</strong> Summarize research and inform future directions. Example: Blockchain in supply chain management.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-layer-group fa-solid list-icon"></i> 1.2 Key Frameworks</h3>
+            <p>Scoping reviews in TIM often follow these frameworks:</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Arksey and O’Malley (2005):</strong> Flexible, good for fast-changing fields. Example: Wearable technology for patient monitoring.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Levac et al. (2010):</strong> Emphasizes stakeholder engagement, vital for TIM. Example: IoT in smart manufacturing with startup accelerators.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Joanna Briggs Institute (JBI):</strong> Rigorous methodology, good for diverse sources. Example: 3D-printing technologies for rapid prototyping.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>PRISMA-ScR:</strong> Standardized reporting, enhances credibility. Example: Blockchain in supply chain management reporting.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Recent Updates (2020–Present):</strong> Incorporate AI tools for speed and data analysis. Example: AI in digital entrepreneurship post-COVID-19.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-thumbs-up fa-solid list-icon"></i> 1.3 Benefits of Using AI for Scoping Reviews in TIM Context</h3>
+            <p>AI manages large data volumes quickly and consistently, speeding up research and delivering actionable insights in TIM.</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-bolt list-icon"></i> <strong>Speed and Efficiency:</strong> Rapid literature screening, automated deduplication.</li>
+                <li class="list-item"><i class="fa-solid fa-magnifying-glass list-icon"></i> <strong>Enhanced Discovery:</strong> Diverse data sources, intelligent recommendations.</li>
+                <li class="list-item"><i class="fa-solid fa-folder-tree list-icon"></i> <strong>Improved Organization:</strong> Topic clustering, automatic tagging & categorization.</li>
+                <li class="list-item"><i class="fa-solid fa-chart-bar list-icon"></i> <strong>Scalable Analysis:</strong> Big data handling, dynamic updating.</li>
+                <li class="list-item"><i class="fa-solid fa-user-shield list-icon"></i> <strong>Reduced Human Error:</strong> Consistent screening criteria, continuous refinement.</li>
+                <li class="list-item"><i class="fa-solid fa-lightbulb list-icon"></i> <strong>Insight Generation:</strong> Text summarization, trend detection.</li>
+                <li class="list-item"><i class="fa-solid fa-piggy-bank list-icon"></i> <strong>Cost Savings:</strong> Streamlined workflows, resource allocation.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-thumbs-down fa-solid list-icon"></i> 1.4 Limitations of Scoping Reviews</h3>
+            <p>While scoping reviews offer broad overviews, they have limitations:</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>Lack of Critical Appraisal:</strong> May include low-quality studies.</li>
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>Broad and Less Focused Scope:</strong> Insufficient depth for specific recommendations.</li>
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>No Formal Strength-of-Evidence Assessment:</strong> Difficult to uniformly assess quality.</li>
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>Selection Bias:</strong> Risk of overemphasizing highly cited clusters.</li>
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>Heterogeneity of Studies:</strong> Combining diverse data complicates analysis.</li>
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>Lack of Meta-Analysis:</strong> No effect size calculations.</li>
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>Time and Resource-Intensive:</strong> Mining complex domains requires extensive searching.</li>
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>Difficulty in Defining Scope:</strong> Balancing coverage with feasibility is tricky.</li>
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>Risk of Overlooking Grey Literature:</strong> Missing real-world insights.</li>
+                <li class="list-item"><i class="fa-solid fa-xmark-circle list-icon"></i> <strong>Challenges in Updating:</strong> Rapid technology shifts require frequent re-scoping.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-thumbs-down fa-solid list-icon"></i> 1.5 Limitations of Using AI Tools to Produce Scoping Reviews</h3>
+            <p>AI tools improve productivity but require caution:</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-triangle-exclamation list-icon"></i> <strong>1.5.1 AI-created mistakes in citations – ‘hallucinations’:</strong> AI might invent references. Mitigation: Double-check citations.</li>
+                <li class="list-item"><i class="fa-solid fa-triangle-exclamation list-icon"></i> <strong>1.5.2 Lack of Contextual Understanding:</strong> AI may oversimplify nuances. Mitigation: Human expertise, validate with experts.</li>
+                <li class="list-item"><i class="fa-solid fa-triangle-exclamation list-icon"></i> <strong>1.5.3 Bias in AI-Generated Content:</strong> AI may favor Anglophone research. Mitigation: Diverse database searches, triangulate sources.</li>
+                <li class="list-item"><i class="fa-solid fa-triangle-exclamation list-icon"></i> <strong>1.5.4 Overreliance on Recent Literature:</strong> AI might miss foundational works. Mitigation: Manual backward citation, scan foundational papers.</li>
+                <li class="list-item"><i class="fa-solid fa-triangle-exclamation list-icon"></i> <strong>1.5.5 Difficulty Managing Grey Literature:</strong> AI overlooks industry reports. Mitigation: Targeted grey literature searches, manual assessment.</li>
+                <li class="list-item"><i class="fa-solid fa-triangle-exclamation list-icon"></i> <strong>1.5.6 Inconsistent Handling of Research Methodologies:</strong> AI may misclassify study types. Mitigation: Manual confirmation, expert appraisal.</li>
+                <li class="list-item"><i class="fa-solid fa-triangle-exclamation list-icon"></i> <strong>1.5.7 Ethical Concerns and Plagiarism Risks:</strong> AI text might resemble existing literature. Mitigation: Cite sources, plagiarism tools, ethics guidelines.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-triangle-exclamation fa-solid list-icon"></i> 1.6 AI Biases</h3>
+            <p>AI biases can shape understanding of technology trends:</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-filter list-icon"></i> <strong>1.6.1 Selection bias:</strong> Overrepresentation of visible sources. Mitigation: Extend search to regional databases.</li>
+                <li class="list-item"><i class="fa-solid fa-code list-icon"></i> <strong>1.6.2 Algorithmic bias:</strong> AI may amplify established perspectives. Mitigation: Use multiple AI tools, cross-verify.</li>
+                <li class="list-item"><i class="fa-solid fa-check-double list-icon"></i> <strong>1.6.3 Confirmation bias:</strong> AI may align with initial search terms. Mitigation: Include counter-narratives, critical examination.</li>
+                <li class="list-item"><i class="fa-solid fa-quote-left list-icon"></i> <strong>1.6.4 Citation bias:</strong> AI prioritizes widely cited older work. Mitigation: Update search parameters, include novel studies.</li>
+                <li class="list-item"><i class="fa-solid fa-language list-icon"></i> <strong>1.6.5 Language and Accessibility Bias:</strong> AI focuses on English open-access. Mitigation: Multilingual databases, translations.</li>
+                <li class="list-item"><i class="fa-solid fa-robot list-icon"></i> <strong>1.6.6 Data Hallucination:</strong> AI might merge concepts fictitiously. Mitigation: Verify references, manual investigation.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-user-shield fa-solid list-icon"></i> 1.7 Human Oversight</h3>
+            <p>Human oversight in TIM scoping reviews is crucial for:</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-eye list-icon"></i> Monitoring AI outputs for domain accuracy.</li>
+                <li class="list-item"><i class="fa-solid fa-check list-icon"></i> Evaluating study suitability and credibility.</li>
+                <li class="list-item"><i class="fa-solid fa-hand-point-left list-icon"></i> Intervening when AI misinterprets concepts.</li>
+            </ul>
+            <p>Blend AI efficiency with contextual knowledge of technology markets and regulations.</p>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-file-alt fa-solid list-icon"></i> 1.8 Step-by-step Approach to Grey Literature Searches</h3>
+            <p>Grey literature reveals real-world insights missed by journals. Steps include:</p>
+            <ol class="list-decimal pl-6">
+                <li><strong>Define Scope:</strong> Identify relevant technology reports, policy documents, whitepapers.</li>
+                <li><strong>Pick Keywords:</strong> Outline core TIM concepts and synonyms with Boolean operators.</li>
+                <li><strong>Select Sources:</strong> Government databases, think tanks, industry reports (Gartner, Forrester, CB Insights), patent databases, conference proceedings, institutional repositories.</li>
+                <li><strong>Search Specialized Databases:</strong> OpenGrey, NTIS, ProQuest Dissertations, Google Scholar (filters).</li>
+                <li><strong>Search Competitor Info:</strong> Company websites, press releases, SEC filings, specialized databases (Crunchbase, PitchBook).</li>
+                <li><strong>Contact Experts:</strong> Government agencies, incubators, associations, LinkedIn, TIM conferences.</li>
+                <li><strong>Filter and Evaluate:</strong> Authority, credibility, relevance, timeliness.</li>
+            </ol>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-file-import fa-solid list-icon"></i> 1.9 Reference Management</h3>
+            <p>Organize sources effectively for scoping reviews. Reference managers help with:</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-folder-open list-icon"></i> Efficient organization</li>
+                <li class="list-item"><i class="fa-solid fa-file-pen list-icon"></i> Automated citation formatting</li>
+                <li class="list-item"><i class="fa-solid fa-users-rays list-icon"></i> Collaboration and sharing</li>
+                <li class="list-item"><i class="fa-solid fa-copy list-icon"></i> Duplicate detection</li>
+                <li class="list-item"><i class="fa-solid fa-file-word list-icon"></i> Integration with writing software</li>
+            </ul>
+            <p class="mt-4">Recommended managers: <strong>Zotero</strong> (webpage capture, Google Docs integration, AI plugins), <strong>Mendeley</strong> (AI suggestions, PDF annotation), <strong>EndNote</strong> (large-scale data, ResearchRabbit integration).</p>
+        </div>
+    </section>
+
+    <section class="mb-12">
+        <h2 class="section-title">Part 2: Method to Produce Scoping Reviews</h2>
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-arrow-right-to-bracket fa-solid list-icon"></i> Introduction</h3>
+            <p>Conducting a scoping review needs a structured approach for clarity and reliability. Part 2 outlines a 9-step method tailored for TIM, integrating AI tools for efficiency and precision. AI enhances efficiency but doesn't replace human expertise; use it for automation while relying on human judgment for critical analysis and decision-making. Critical thinking involves analyzing, evaluating, and synthesizing information systematically.</p>
+        </div>
+
+        <section class="mb-8">
+            <h3 class="subsection-title"><i class="fa-list-ol fa-solid list-icon"></i> 9-Step Method Overview</h3>
+            <div class="relative">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">Step 1</h4>
+                            <p class="timeline-description">Formulate the Review Question and Scope</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">Step 2</h4>
+                            <p class="timeline-description">Search for Articles</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">Step 3</h4>
+                            <p class="timeline-description">Select Articles</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">Step 4</h4>
+                            <p class="timeline-description">Extract Data</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">Step 5</h4>
+                            <p class="timeline-description">Analyze and Synthesize Data</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">Step 6</h4>
+                            <p class="timeline-description">Interpret Results</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">Step 7</h4>
+                            <p class="timeline-description">Write the Scoping Review</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">Step 8</h4>
+                            <p class="timeline-description">Incorporate Ethical Considerations</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">Step 9</h4>
+                            <p class="timeline-description">Disseminate Findings</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-list-ol fa-solid list-icon"></i> 2.1 Step 1: Formulate the Review Question and Scope</h3>
+            <p>Requires a broad and exploratory review question. Use AI (ChatGPT) to generate variations and refine clarity. Start broad, refine iteratively. AI identifies gaps and key authors. Human oversight ensures clarity, feasibility, and theoretical frameworks. Guidance: compare AI suggestions with published reviews, align with frameworks like PCC (Population, Concept, Context).</p>
+            <h4 class="subsection-title mt-4"><i class="fa-users fa-solid list-icon"></i> Population, Concept, Context (PCC) Framework</h4>
+            <p>Ensures clarity in scoping review formulation.</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Example 1: Product development:</strong> Startups developing AI products; Challenges in scaling; Venture acceleration programs.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Example 2: Digital transformation in manufacturing:</strong> Mid-sized firms; Industry 4.0 adoption; North American landscape.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Example 3: Commercialization of quantum security:</strong> Cybersecurity firms, agencies; Strategies for quantum-resistant tech; National security context.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Example 4: Open Innovation in Corporate R&D:</strong> Large tech firms; Open innovation models; Global tech sector.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Example 5: Sustainability in supply chains:</strong> Tech hardware manufacturers; Sustainability practices; Global electronics industry.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-shapes fa-solid list-icon"></i> Alternative Frameworks</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>CIMO (Context, Intervention, Mechanism, Outcome):</strong> For complex interventions. Example: AI project management software in remote startups.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>ECLIPSE (Expectation, Client, Location, Impact, Professionals, Service):</strong> For technology-related services. Example: Cybersecurity risk frameworks for regulated tech firms.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>PEO (Population, Exposure, Outcome):</strong> For qualitative research. Example: Remote work policies on software engineers.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>SPIDER (Sample, Phenomenon, Design, Evaluation, Research type):</strong> For qualitative and mixed methods. Example: IT project managers experiencing agile methodology challenges.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-ruler-combined fa-solid list-icon"></i> Formulate Scope</h4>
+            <p>Scope should be broad for key insights, specific for conclusions. Consider breadth vs. depth, time, literature type (academic vs. industry), geographical scope, and stakeholder perspective.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-arrow-right fa-solid list-icon"></i> Outputs of Step 1</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Clearly defined research question using PCC or other frameworks.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Review objectives outlining knowledge gaps.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Preliminary keywords and search terms.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Selection of search strategies and AI tools.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Defined scope with inclusion/exclusion criteria, source types, and relevant fields.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-list-ol fa-solid list-icon"></i> 2.2 Step 2: Search for Articles</h3>
+            <p>Thorough search is essential. AI helps generate keywords, Boolean strings, and identify databases. Human oversight refines queries, selects databases, and adjusts Boolean operators. Guidance: assess AI queries in multiple databases, validate keywords with prior reviews, include grey literature.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-search fa-solid list-icon"></i> Develop Search Strategy</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Define key terms and Boolean operators.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Adapt strategies for different databases.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Define inclusion/exclusion criteria.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-robot fa-solid list-icon"></i> Recommended AI Tools</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-comment-dots list-icon"></i> <strong>ChatGPT:</strong> Generate search terms, Boolean strings, summarize themes and findings.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> <strong>Consensus:</strong> Assess result relevance, rank papers, determine agreement.</li>
+                <li class="list-item"><i class="fa-solid fa-question-circle list-icon"></i> <strong>Perplexity:</strong> Retrieve from academic/non-academic sources, generate answers from sources, latest research.</li>
+                <li class="list-item"><i class="fa-solid fa-file-lines list-icon"></i> <strong>Elicit:</strong> Extract insights, prioritize studies, compare studies side-by-side.</li>
+                <li class="list-item"><i class="fa-solid fa-book-open list-icon"></i> <strong>OpenRead:</strong> Retrieve based on meaning, extract relevant parts, summarize papers.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-database fa-solid list-icon"></i> Sources of Evidence & Databases</h4>
+            <p>Combine peer-reviewed literature with industry insights. Use academic databases (Scopus, Web of Science, IEEE Xplore), industry reports (Gartner, McKinsey), preprints (ArXiv, SSRN), patent databases (Google Patents). Select databases aligned with research domain, considering indexing, quality, precision, and coverage. Databases include: Business & Tech (IEEE Xplore, ABI/INFORM), Multidisciplinary (Scopus, Web of Science, Google Scholar), Social Sciences (PsycINFO), Grey Literature (OpenGrey, OAIster), Health Sciences (PubMed).</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-code fa-solid list-icon"></i> Search Queries Examples</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Digital transformation in SMEs:</strong> Boolean Query and Filters example provided.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>AI in venture capital decision-making:</strong> Boolean Query and Filters example provided.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Blockchain for supply chain transparency:</strong> Boolean Query and Filters example provided.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Green IT and Sustainable Data Centers:</strong> Boolean Query and Filters example provided.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Cybersecurity Challenges in IoT Devices:</strong> Boolean Query and Filters example provided.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-list-check fa-solid list-icon"></i> Manage Search Results & Document Process</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Use reference management software, remove duplicates, track strategies, refine iteratively, troubleshoot if results too broad.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Document using PRISMA-ScR flow diagram, report dates/limits, justify selection criteria.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-arrow-right fa-solid list-icon"></i> Outputs of Step 2</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Documented search strategy.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Collection of relevant articles.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> PRISMA-ScR flow diagram.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Refined search query.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> List of excluded articles with reasons.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-list-ol fa-solid list-icon"></i> 2.3 Step 3: Select Articles</h3>
+            <p>Structured selection process is essential. Two-step screening: title/abstract and full-text. Use PRISMA-ScR flow diagram. AI (Rayyan) classifies, ranks, summarizes abstracts, detects duplicates. Human oversight reviews criteria, assesses relevance, identifies biases. Guidance: spot-checks, ensure key studies aren't omitted, dual human screening.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-filter fa-solid list-icon"></i> Screen Articles Strategy</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Two Phases:</strong> Title/Abstract Screening (remove irrelevant studies using Rayyan AI), Full-Text Screening (assess alignment with criteria).</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Title/Abstract Screening:</strong> Initial screening, apply criteria, use Rayyan for filtering, document changes, AI assists but doesn't replace manual.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Full-text screening:</strong> Retrieve full texts, assess criteria alignment, use Rayyan for tagging, justify exclusions.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-robot fa-solid list-icon"></i> Select Studies Using Rayyan AI</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-file-upload list-icon"></i> <strong>Upload & Organize References:</strong> Import from databases (RIS, BibTeX), set criteria, collaborative screening.</li>
+                <li class="list-item"><i class="fa-solid fa-magnifying-glass list-icon"></i> <strong>Screening:</strong> Prioritization, tagging, blind review mode.</li>
+                <li class="list-item"><i class="fa-solid fa-users-between-lines list-icon"></i> <strong>Dual Screening:</strong> Two independent reviewers, minimizes bias, ensures reliability, resolution process for disagreements.</li>
+                <li class="list-item"><i class="fa-solid fa-check-double list-icon"></i> <strong>Final Selection:</strong> Export selected studies, organize in reference manager.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-file-lines fa-solid list-icon"></i> Track & Document</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Maintain PRISMA-ScR flow diagram, record excluded articles with reasons, update screening process based on criteria evolution.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-arrow-right fa-solid list-icon"></i> Outputs of Step 3</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Refined set of eligible articles.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> PRISMA-ScR flow diagram.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> List of excluded articles with reasons.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Updated inclusion/exclusion criteria.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Title/Abstract and Full-Text screening results.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-list-ol fa-solid list-icon"></i> 2.4 Step 4: Extract Data</h3>
+            <p>Structured data extraction ensures systematic information capture. AI summarizes and organizes, manual oversight needed for accuracy. AI extracts themes, concepts, study characteristics, summarizes findings, groups studies. Human oversight verifies info, checks context, ensures methodological consistency. Guidance: manual sample extraction for AI accuracy comparison, use structured form (Excel, Covidence), align AI categories with review question.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-key fa-solid list-icon"></i> Extract Key Information</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-robot list-icon"></i> <strong>Recommended AI Tools:</strong> ChatGPT 4.0, Elicit, SciSpace, Research Rabbit, Litmaps, Vos Viewer.</li>
+                <li class="list-item"><i class="fa-solid fa-list list-icon"></i> <strong>Key Data Elements:</strong> Citation details, study type, methodology, population, concepts, findings, gaps.</li>
+                <li class="list-item"><i class="fa-solid fa-arrow-rotate-right list-icon"></i> Adjust charting categories iteratively.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-table fa-solid list-icon"></i> Extract Data & Organize into Tables</h4>
+            <p>Recommended tools: Elicit or SciSpace for data table extraction. Alternatives: Retica, Scite Assistant, Diffbot, OutWit Hub. Extract study characteristics, key findings, research gaps. AI populates tables. Example table structures provided.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-chart-column fa-solid list-icon"></i> Visualize Insights</h4>
+            <p>Reporting impact enhanced by clear visuals. Example: "AI in venture financing" insights. Recommended visualization tools: Concept Maps (CmapTools, MindMeister, Obsidian), AI-generated summaries (ChatGPT, Claude, Scite), Citation Networks (Research Rabbit, Litmaps, VOSviewer).</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-shield-check fa-solid list-icon"></i> Ensure Data Quality & Consistency</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Manually verify AI extractions, review charts for consistency, ethical review (AI summaries reflect original intent, JBI guidelines).</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-file-lines fa-solid list-icon"></i> Document Extraction Process</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Maintain data extraction template, track adjustments, ensure unbiased data handling.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-arrow-right fa-solid list-icon"></i> Outputs of Step 4</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Completed data extraction tables.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Structured dataset.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> AI-generated and manually refined summaries.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Final data extraction template.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Records of methodological adjustments.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-list-ol fa-solid list-icon"></i> 2.5 Step 5: Analyze and Synthesize Data</h3>
+            <p>Goal is to organize, summarize, and present findings meaningfully. Prioritize mapping and thematic grouping over meta-analysis. AI summarizes themes, categorizes studies, generates thematic maps, identifies patterns. Human oversight verifies themes, ensures methodological consistency, assesses depth, refines categories, validates gaps. Guidance: read original studies to confirm AI accuracy, manually organize themes, refine AI categories, align with theoretical models, discuss with experts.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-chart-pie fa-solid list-icon"></i> Descriptive Summary</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Summarize findings based on frequency and trends (studies per year, geographic distribution, methodologies, research trends), use tables and figures, triangulate findings. ChatGPT prompt example provided.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-pen-to-square fa-solid list-icon"></i> Narrative Synthesis</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Use Custom GPT or SciSpace to structure insights, group studies by themes, validate AI themes, identify patterns and inconsistencies, ensure synthesized insights align with full texts, document frameworks, figures, tables, page numbers.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-palette fa-solid list-icon"></i> Thematic & Visual Analysis</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Thematic synthesis to map gaps, revisit criteria if themes unclear, address contradictions, use visualization tools (concept maps, tables, citation networks).</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-robot fa-solid list-icon"></i> AI-Assisted Analysis & Synthesis</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Use Custom GPT, Converse, or SciSpace to break down info, synthesize data, identify gaps, suggest directions, categorize studies, create summary tables.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-file-lines fa-solid list-icon"></i> Track & Document</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Keep records of data organization, document thematic categorization decisions, ensure transparency with references.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-arrow-right fa-solid list-icon"></i> Outputs of Step 5</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Structured descriptive summary.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Thematic synthesis report.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Visual representations (tables, concept maps, citation networks).</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Identified knowledge gaps.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-list-ol fa-solid list-icon"></i> 2.6 Step 6: Interpret Results</h3>
+            <p>Involves drawing meaningful insights while maintaining objectivity. Highlight trends, gaps, implications, not conclusions. AI generates summaries, proposes applications, flags inconsistencies, compares results. Human oversight assesses contextual accuracy, ensures coherence, validates implications, integrates theories, refines contradictions. Guidance: compare AI conclusions with original studies, apply models like PRISMA-ScR, discuss with experts, consider practical applications, validate gaps.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-lightbulb fa-solid list-icon"></i> Translating Research into Action</h4>
+            <p>Scoping reviews map knowledge and provide actionable insights for TIM. Identify opportunities for new product development, inform strategic technology adoption, develop competitive intelligence reports, identify partners. Templates for each provided.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-comment-dots fa-solid list-icon"></i> Explain Significance & Identify Limitations</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Relate findings to review question, discuss contribution, identify key takeaways. Acknowledge data gaps, publication bias, study diversity limitations.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-robot fa-solid list-icon"></i> AI-Assisted Interpretation & Maintain Broad Perspective</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Over-reliance on AI for interpretation poses risks (accuracy, bias, lack of critical evaluation), AI should complement, not replace human expertise. Use AI tools (ChatGPT-4o, Jenni) to summarize trends, fact-check AI outputs, refine interpretations. Emphasize mapping evidence, not firm conclusions, focus on emerging directions, present multiple perspectives.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-arrow-right fa-solid list-icon"></i> Outputs of Step 6</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Synthesized discussion of key findings.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> List of research gaps and future directions.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Limitations section.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Refined conclusions based on AI insights.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-list-ol fa-solid list-icon"></i> 2.7 Step 7: Write the Scoping Review</h3>
+            <p>AI generates summaries, intros, discussion sections, suggests structure. Human oversight refines AI text for coherence, ensures rigor, checks citations. Guidance: use AI for drafting, manual edits for clarity, validate citations.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-pen-nib fa-solid list-icon"></i> Turn Findings into Valuable Assets & Templates</h4>
+            <p>Transform findings into pitches, product development, strategic decisions, market research, competitive intelligence, partnerships, publications, theses, policies, training, grants. Templates provided for product development, technology adoption, competitive intelligence, partnerships.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-comments fa-solid list-icon"></i> Solicit Feedback from AI Tools & Experts</h4>
+            <p>Feedback enhances rigor. AI tools (Gemini, Grok, OpenAI, Perplexity) provide structural/analytical feedback. Expert feedback (faculty, industry) gives contextual/strategic insights. Iterative refinement loop: draft, AI feedback, expert review, iterate, validate.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-file-alt fa-solid list-icon"></i> Structure Manuscript & AI-Assisted Writing</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Follow PRISMA-ScR guidelines (Intro, Methods, Results, Discussion, Conclusion). Use ChatGPT-4o for initial drafts (manual refinement needed), Grammarly for readability/plagiarism, manual editing for clarity, fact-check AI content.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-clipboard-check fa-solid list-icon"></i> Revision, Quality Control, Report & Document</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Multiple revision rounds, cross-check findings, ensure rigor, document methods, consider JBI guidelines, transparency on AI use.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-arrow-right fa-solid list-icon"></i> Outputs of Step 7</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Complete, structured manuscript.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Refined AI-assisted content.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Well-documented methodology.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Revised and proofread last version.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-list-ol fa-solid list-icon"></i> 2.8 Step 8: Incorporate Ethical Considerations</h3>
+            <p>Ethical integrity requires transparency in data, AI use, methodology. Disclose AI use, prevent biases, adhere to guidelines. AI analyzes literature for biases, highlights transparency lacks, recommends guidelines, scans ethics discussions. Human oversight evaluates AI biases, ensures responsible AI use, verifies ethical frameworks, checks integrity, assesses inclusivity. Guidance: engage ethics boards, follow policies, disclose AI contributions, seek diverse studies, ensure data transparency.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-triangle-exclamation fa-solid list-icon"></i> Ethical Implications of AI in TIM</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Bias and fairness:</strong> AI models may inherit biases, leading to unequal access. Mitigation: Audit AI models, diverse datasets, human oversight.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Transparency and accountability:</strong> AI insights must be traceable. Mitigation: Explainable AI, documentation.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Data privacy and security:</strong> AI processes sensitive data. Mitigation: Cybersecurity, anonymization, legal compliance.</li>
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> <strong>Impact on employment:</strong> Automation may displace roles. Mitigation: Upskilling professionals, AI as collaborator.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-eye fa-solid list-icon"></i> AI Transparency & Documentation</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Disclose AI processes, document AI influence, validate AI content, include disclaimers. Prevent plagiarism with Turnitin, manual reviews, bias assessment. Mitigate bias by ensuring diverse perspectives. Ethical use of stakeholder input (approvals, confidentiality). Compliance with guidelines (institutional protocols, ACM Code of Ethics), avoid AI tools storing personal data, consider methodology registration, maintain audit trail. Data privacy compliance, avoid storing proprietary data, keep data handling records.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-arrow-right fa-solid list-icon"></i> Outputs of Step 8</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Transparent AI usage statement.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Plagiarism and bias report.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Documented audit trail of AI methods.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Compliance checklist.</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-list-ol fa-solid list-icon"></i> 2.9 Step 9: Disseminate Findings</h3>
+            <p>Effective dissemination ensures findings reach audiences. Strategies: peer-reviewed publications, conferences, policy briefs, public reports. AI generates summaries, infographics, slide decks, recommends journals, simplifies findings, structures summaries. Human oversight ensures accuracy in AI summaries, verifies journal recommendations, maintains integrity, tailors strategies, ensures ethical communication. Guidance: AI as starting point, ensure alignment with requirements, publish in journals, conferences, repositories, translate insights into recommendations, state AI's role.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-vial fa-solid list-icon"></i> Research Vignette & Pitch Presentation Templates</h4>
+            <p>Templates provided for Research Vignette for industry partners/investors and Pitch Presentation for new ventures based on scoping review.</p>
+
+            <h4 class="subsection-title mt-4"><i class="fa-newspaper fa-solid list-icon"></i> Publication & Conference Presentations</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Publish in peer-reviewed journals (business, tech, social sciences), follow guidelines, consider open access. Present at conferences (Cochrane Colloquium, IEEE, etc.), prepare presentations, posters, panel discussions.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-file-contract fa-solid list-icon"></i> Policy Briefs, Digital Platforms, Public Engagement</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-chevron-right list-icon"></i> Policy briefs for policymakers, practitioners, organizations. Digital platforms (preprint/institutional repositories, PROSPERO, Zenodo, Figshare). Public engagement via blog posts, podcasts, social media, media outreach, videos, infographics.</li>
+            </ul>
+
+            <h4 class="subsection-title mt-4"><i class="fa-arrow-right fa-solid list-icon"></i> Outputs of Step 9</h4>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Peer-reviewed journal article.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Conference presentation.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Policy brief or executive summary.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Open-access datasets and materials.</li>
+                <li class="list-item"><i class="fa-solid fa-check-circle list-icon"></i> Engagement materials (blogs, social media, infographics).</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-clipboard-check fa-solid list-icon"></i> 2.10 Checklist for Authors and Reviewers</h3>
+            <p>Checklist to ensure rigorous scoping reviews. Includes checks for all 9 steps, plus ethical considerations.</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-check-square list-icon"></i> Formulate research question & scope (PCC framework, relevance, breadth).</li>
+                <li class="list-item"><i class="fa-solid fa-check-square list-icon"></i> Identify & select relevant studies (databases, search strategy, AI tools).</li>
+                <li class="list-item"><i class="fa-solid fa-check-square list-icon"></i> Screen & select studies using Rayyan AI (upload, criteria, dual screening).</li>
+                <li class="list-item"><i class="fa-solid fa-check-square list-icon"></i> Extract & synthesize data (key characteristics, drivers, gaps).</li>
+                <li class="list-item"><i class="fa-solid fa-check-square list-icon"></i> Visualize & report insights (concept maps, AI summaries, networks).</li>
+                <li class="list-item"><i class="fa-solid fa-check-square list-icon"></i> Translate research into action (product dev, strategy, intelligence, partners).</li>
+                <li class="list-item"><i class="fa-solid fa-check-square list-icon"></i> Disseminate findings (vignette, pitch, publications).</li>
+                <li class="list-item"><i class="fa-solid fa-check-square list-icon"></i> Ethical Considerations in AI for TIM (bias, transparency, privacy, human role).</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="mb-12">
+        <h2 class="section-title">Part 3: Updating Scoping Review Guide</h2>
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-arrow-right-to-bracket fa-solid list-icon"></i> Introduction</h3>
+            <p>Research methods and AI tools evolve constantly, requiring guide updates. Part 3 outlines strengths, maintenance, improvement, and expansion to keep it valuable for TIM.</p>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-star fa-solid list-icon"></i> 3.1 Strengths of the Guide</h3>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-award list-icon"></i> Transforms literature reviews into valuable TIM assets (venture pitches, market entry, competitive intelligence, product development, business plans, technology adoption).</li>
+                <li class="list-item"><i class="fa-solid fa-list-numbered list-icon"></i> Provides step-by-step approach with TIM examples.</li>
+                <li class="list-item"><i class="fa-solid fa-rocket list-icon"></i> Integrates AI tools for efficiency and depth.</li>
+                <li class="list-item"><i class="fa-solid fa-book list-icon"></i> Incorporates both academic and grey literature.</li>
+                <li class="list-item"><i class="fa-solid fa-user-check list-icon"></i> Maintains integrity through human oversight (critical evaluation, manual validation, balanced AI use).</li>
+                <li class="list-item"><i class="fa-solid fa-shield-alt list-icon"></i> Ensures ethical AI use (transparency, bias prevention, reproducibility).</li>
+            </ul>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-code-branch fa-solid list-icon"></i> 3.2 Version Control and Updates System</h3>
+            <p>Structured system for current, accurate, aligned guide:</p>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-tag list-icon"></i> <strong>Version Control System:</strong> Version numbering (major/minor updates), update frequency (scheduled reviews every six months, ad-hoc updates), change documentation (changelog, "Last Updated" date), stakeholder input (faculty, students, clients), accessibility (archived versions, user notifications).</li>
+            </ul>
+            <p class="mt-4">Current version information: Version: 1.0, Last Updated: March 4, 2025.</p>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-user-secret fa-solid list-icon"></i> 3.3 AI Assistance and Human Oversight Disclosure Statement</h3>
+            <p>Guide developed with AI tools (ChatGPT, Perplexity, Gemini, Grok, OpenAI). AI used for drafting, summarizing, structuring. Human oversight ensures accuracy, soundness, ethics. AI-generated content manually reviewed, validated, refined. AI-assisted drafting ~50% of initial content. Aligns with Carleton University's AI guidelines.</p>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-hand-sparkles fa-solid list-icon"></i> 3.4 Ways to Contribute</h3>
+            <ul class="list-none pl-0">
+                <li class="list-item"><i class="fa-solid fa-lightbulb list-icon"></i> Enhance literature review process with innovative tech (e.g., OpenAI's Deep Research).</li>
+                <li class="list-item"><i class="fa-solid fa-pen-ruler list-icon"></i> Improve clarity and accuracy.</li>
+                <li class="list-item"><i class="fa-solid fa-wrench list-icon"></i> Develop troubleshooting section (queries, data conflicts, limited literature).</li>
+                <li class="list-item"><i class="fa-solid fa-list-alt list-icon"></i> Expand examples and use cases (scenarios, walkthroughs, screenshots).</li>
+                <li class="list-item"><i class="fa-solid fa-file-earmark-text list-icon"></i> Refine grey literature methods (systematic approaches, quality assessment).</li>
+                <li class="list-item"><i class="fa-solid fa-circle-plus list-icon"></i> Fill content gaps.</li>
+                <li class="list-item"><i class="fa-solid fa-robot list-icon"></i> Address AI limitations (citation verification, misinformation, ethics).</li>
+                <li class="list-item"><i class="fa-solid fa-user-visor list-icon"></i> Clarify human oversight role (bias mitigation, misinterpretations).</li>
+            </ul>
+            <p class="mt-4">Contact Tony Bailetti (tony.bailetti@carleton.ca) for contributions.</p>
+        </div>
+
+        <div class="card mb-6">
+            <h3 class="card-title"><i class="fa-heart fa-solid list-icon"></i> 3.5 Acknowledgements & <i class="fa-comment-dots fa-solid list-icon"></i> 3.6 Epilogue</h3>
+            <p>Guide benefits from TIM faculty and students at Carleton University. Epilogue: follow guide for efficient, rigorous, ethical scoping reviews with AI. AI augments, not replaces, human expertise. Scoping reviews are dynamic, iterative, require planning, ethics. AI enhances efficiency, human oversight ensures integrity. Academic research evolves, emphasizing transparency, collaboration, human oversight. Well-conducted scoping reviews are foundational for future research, informing discourse, policy, decisions.</p>
+        </div>
+    </section>
+
+    <section class="mt-16 text-center">
+        <h2 class="section-title">Interested? Explore More!</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="card hover-card">
+                <h3 class="card-title"><i class="fa-solid fa-link list-icon"></i> Assignment Link</h3>
+                <p>Try out the assignment related to this guide for a practical experience.</p>
+                <a href="https://carleton.ca/tim/wp-content/uploads/sites/52/2025/03/assignment-SLR-v3.pdf" target="_blank" class="button mt-4">View Assignment</a>
+            </div>
+            <div class="card hover-card">
+                <h3 class="card-title"><i class="fa-solid fa-survey list-icon"></i> Take Our Survey</h3>
+                <p>Help us understand graduate students' perceptions and use of AI in literature reviews.</p>
+                <a href="https://carletonu.az1.qualtrics.com/jfe/form/SV_e2MuXF4BTYiKh38" target="_blank" class="button mt-4">Take Survey Now</a>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 py-8 mt-16 border-t border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto px-4 text-center">
+        <p>© 2025 Technology Innovation Management - Carleton University. All rights reserved.</p>
+        <p class="mt-2">Guide Version 1.0 - Last Updated: March 4, 2025</p>
+    </div>
+</footer>
+
+<script>
+    // Dark/Light Mode Toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+    const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+    // Function to toggle between dark and light theme
+    function toggleTheme(isDark) {
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+            themeToggleDarkIcon.classList.remove('hidden');
+            themeToggleLightIcon.classList.add('hidden');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            themeToggleLightIcon.classList.remove('hidden');
+            themeToggleDarkIcon.classList.add('hidden');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // Event listener for theme toggle button
+    themeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        toggleTheme(!isDark);
+    });
+
+    // Check system preference and saved theme on page load
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        toggleTheme(true);
+    } else {
+        toggleTheme(false);
+    }
+</script>
+
+</body>
+</html>

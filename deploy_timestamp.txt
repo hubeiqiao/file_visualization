@@ -1,2 +1,0 @@
-Last deployed: 2024-05-24
-Fixed: Implemented chunked streaming with reconnection to handle Vercel timeouts 

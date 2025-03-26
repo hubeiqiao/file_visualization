@@ -329,9 +329,24 @@
                     <p class="text-gray-700 mb-2">
                         Click "Generate" and watch as your document is transformed into beautiful HTML!
                     </p>
-                    <p class="text-gray-600 text-sm mb-2">
-                        <i class="fas fa-wifi mr-1"></i> <strong>Important:</strong> Keep your internet connection stable during this process. Generation takes 5-20 minutes depending on content size.
-                    </p>
+                    
+                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 mb-4 relative shadow-md">
+                        <div class="flex items-center">
+                            <div class="text-yellow-500 rounded-full bg-yellow-200 p-1 mr-2">
+                                <i class="fas fa-exclamation-triangle text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold">Connection Stability Required</p>
+                                <p>Keep your internet connection stable during generation. Processing may take 5-20 minutes depending on content size.</p>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex items-center">
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-yellow-500 h-2.5 rounded-full animate-pulse-slow" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="mt-auto">
                         <details class="mt-2">
                             <summary class="cursor-pointer text-green-600 hover:underline">
@@ -482,6 +497,14 @@
 
                 <!-- Generate Button -->
                 <div class="text-center">
+                    <!-- Connection stability warning -->
+                    <div class="bg-yellow-50 border border-yellow-300 rounded-md p-3 mb-4 shadow-sm">
+                        <div class="flex items-center">
+                            <i class="fas fa-wifi text-yellow-500 mr-2 text-lg"></i>
+                            <p class="text-yellow-700 font-medium">Please maintain a stable internet connection during generation (5-20 minutes).</p>
+                        </div>
+                    </div>
+                    
                     <button id="generate-btn" disabled class="w-full bg-gray-300 text-gray-500 px-6 py-3 rounded-md text-lg font-bold shadow-md transition-all cursor-not-allowed">
                         <i class="fas fa-magic mr-2"></i>Generate Visualization
                     </button>

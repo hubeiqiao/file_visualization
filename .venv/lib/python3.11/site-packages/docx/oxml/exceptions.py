@@ -1,4 +1,8 @@
-"""Exceptions for oxml sub-package."""
+# encoding: utf-8
+
+"""
+Exceptions for oxml sub-package
+"""
 
 
 class XmlchemyError(Exception):
@@ -6,5 +10,7 @@ class XmlchemyError(Exception):
 
 
 class InvalidXmlError(XmlchemyError):
-    """Raised when invalid XML is encountered, such as on attempt to access a missing
-    required child element."""
+    """
+    Raised when invalid XML is encountered, such as on attempt to access a
+    missing required child element
+    """

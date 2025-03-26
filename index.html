@@ -1,561 +1,160 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Visualizer</title>
-    <!-- Tailwind CSS (For development only - Use PostCSS plugin or Tailwind CLI for production: https://tailwindcss.com/docs/installation) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Prism.js for code highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-    
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-in-out',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Adjust the heights of the preview and HTML output sections */
-        #html-output, #preview-iframe {
-            height: 500px; /* Increase from default height */
-            min-height: 500px;
-        }
-        
-        /* Ensure consistent spacing */
-        .result-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            height: 100%;
-        }
-        
-        /* Fix spacing between sections */
-        .section-gap {
-            margin-bottom: 1.5rem;
-        }
-        
-        /* Ensure the result section has proper spacing */
-        #result-section {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        
-        /* Processing animation improvements */
-        .animate-progress {
-            transition: width 0.5s ease;
-        }
-        
-        /* Animation stopped state */
-        .processing-complete .progress-bar {
-            width: 100% !important;
-            transition: width 0.3s ease;
-        }
-        
-        /* Visually enhanced header */
-        .header-gradient {
-            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-        }
-        
-        /* Steps styling for How to Use section */
-        .step-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        .step-card {
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .step-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .step-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 9999px;
-            margin-bottom: 1rem;
-            font-weight: bold;
-        }
-        
-        /* Example section styling */
-        .example-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        .example-card {
-            border-radius: 0.75rem;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .example-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .example-image {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-        }
-    </style>
-</head>
-<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-200">
-    <!-- Header -->
-    <header class="header-gradient shadow-md">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex flex-col items-center text-center">
-                <h1 class="text-4xl font-bold text-white mb-2 flex items-center">
-                    <i class="fas fa-wand-magic-sparkles mr-3 animate-pulse-slow"></i>
-                    File Visualizer
-                </h1>
-                <p class="text-blue-100 max-w-2xl">
-                    Transform your plain documents into stunning, interactive HTML visualizations powered by Claude 3.7's thinking capabilities
-                </p>
-            </div>
+<!-- Test Mode Switch -->
+<div class="mb-4">
+    <label for="test-mode" class="flex items-center cursor-pointer">
+        <div class="relative">
+            <input type="checkbox" id="test-mode" class="sr-only">
+            <div class="block bg-gray-300 dark:bg-gray-700 w-14 h-8 rounded-full"></div>
+            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
         </div>
-    </header>
+        <div class="ml-3">
+            <span class="text-sm font-medium">Test Mode</span>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+                Generate test HTML with minimal API tokens
+            </p>
+        </div>
+    </label>
+</div>
 
-    <!-- Usage Instructions -->
-    <div class="bg-gradient-to-r from-primary-50 to-blue-50 dark:from-primary-900/30 dark:to-blue-900/30 py-8">
-        <div class="container mx-auto px-4">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-5">
-                <h2 class="text-2xl font-semibold mb-6 text-center">
-                    <i class="fas fa-info-circle text-primary-500 mr-2"></i>
-                    How to Use
-                </h2>
-                
-                <div class="step-container">
-                    <!-- Step 1: API Key -->
-                    <div class="step-card bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
-                        <div class="step-number bg-primary-500 text-white">1</div>
-                        <h3 class="text-lg font-medium mb-2 text-primary-700 dark:text-primary-300">Enter Your Anthropic API Key</h3>
-                        <p class="text-gray-700 dark:text-gray-300 mb-2">
-                            You'll need an Anthropic API key to use Claude 3.7's thinking capabilities.
-                        </p>
-                        <div class="mt-auto">
-                            <details class="mt-2">
-                                <summary class="cursor-pointer text-primary-600 dark:text-primary-400 hover:underline">
-                                    How to get an API key?
-                                </summary>
-                                <div class="pl-4 mt-2 text-sm">
-                                    <ol class="list-decimal pl-4 space-y-1">
-                                        <li>Visit <a href="https://console.anthropic.com/" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline">Anthropic Console</a></li>
-                                        <li>Sign up or log in to your account</li>
-                                        <li>Navigate to "API Keys" section</li>
-                                        <li>Create a new API key (starts with "sk-ant-")</li>
-                                        <li>Copy the key (you'll only see it once!)</li>
-                                    </ol>
-                                    <p class="mt-2 text-gray-600 dark:text-gray-400">The API key allows pay-as-you-go access to Claude's capabilities. You'll only be charged for the tokens you use.</p>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-                    
-                    <!-- Step 2: Upload content -->
-                    <div class="step-card bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                        <div class="step-number bg-blue-500 text-white">2</div>
-                        <h3 class="text-lg font-medium mb-2 text-blue-700 dark:text-blue-300">Upload Your Content</h3>
-                        <p class="text-gray-700 dark:text-gray-300 mb-2">
-                            Upload a file or paste your text content into the text area.
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                            Supported formats: PDF, DOCX, TXT, HTML, MD, CSV, JSON, and more.
-                        </p>
-                        <div class="mt-auto">
-                            <details class="mt-2">
-                                <summary class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">
-                                    Size limits and token calculation
-                                </summary>
-                                <div class="pl-4 mt-2 text-sm">
-                                    <p>The application will automatically count the tokens in your content and estimate the input cost.</p>
-                                    <ul class="list-disc pl-4 mt-1">
-                                        <li>Maximum input: 128K tokens (approx. 100 pages)</li>
-                                        <li>Cost: Approx. $3 per million input tokens</li>
-                                        <li>Typical generation: $0.20-$2.00 total</li>
-                                    </ul>
-                                    <p class="mt-2 text-gray-600 dark:text-gray-400">Currently, you can only process one file at a time due to token limitations.</p>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-                    
-                    <!-- Step 3: Customize -->
-                    <div class="step-card bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
-                        <div class="step-number bg-indigo-500 text-white">3</div>
-                        <h3 class="text-lg font-medium mb-2 text-indigo-700 dark:text-indigo-300">Customize Settings</h3>
-                        <p class="text-gray-700 dark:text-gray-300 mb-2">
-                            Adjust generation settings or add custom instructions.
-                        </p>
-                        <div class="mt-auto">
-                            <details class="mt-2">
-                                <summary class="cursor-pointer text-indigo-600 dark:text-indigo-400 hover:underline">
-                                    Tips for customization
-                                </summary>
-                                <div class="pl-4 mt-2 text-sm">
-                                    <p>In the "Additional Instructions" box:</p>
-                                    <ul class="list-disc pl-4 mt-1">
-                                        <li>Request specific visual styles or layouts</li>
-                                        <li>Add links to images you want included</li>
-                                        <li>Suggest specific data visualizations</li>
-                                        <li>If not satisfied with the first result, add more specific requirements and regenerate</li>
-                                    </ul>
-                                    <p class="mt-2">The "Temperature" controls creativity (higher = more creative, lower = more conservative), while "Thinking Budget" allows Claude to reason more deeply about complex content.</p>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-                    
-                    <!-- Step 4: Generate and Deploy -->
-                    <div class="step-card bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                        <div class="step-number bg-green-500 text-white">4</div>
-                        <h3 class="text-lg font-medium mb-2 text-green-700 dark:text-green-300">Generate & Deploy</h3>
-                        <p class="text-gray-700 dark:text-gray-300 mb-2">
-                            Click "Generate" and wait while Claude works its magic!
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                            Generation takes 5-20 minutes depending on content size. Keep your connection open.
-                        </p>
-                        <div class="mt-auto">
-                            <details class="mt-2">
-                                <summary class="cursor-pointer text-green-600 dark:text-green-400 hover:underline">
-                                    Deploying your HTML file
-                                </summary>
-                                <div class="pl-4 mt-2 text-sm">
-                                    <p>Once generated, you can:</p>
-                                    <ul class="list-disc pl-4 mt-1">
-                                        <li>Download the complete HTML file</li>
-                                        <li>Deploy it for free using:
-                                            <ul class="list-circle pl-4 mt-1">
-                                                <li><a href="https://github.io" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">GitHub Pages</a></li>
-                                                <li><a href="https://netlify.drop" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">Netlify Drop</a></li>
-                                                <li><a href="https://surge.sh" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">Surge.sh</a></li>
-                                                <li><a href="https://vercel.com" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">Vercel</a></li>
-                                            </ul>
-                                        </li>
-                                        <li>Share the link with anyone</li>
-                                    </ul>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Examples Section -->
-                <div class="mt-10">
-                    <h3 class="text-xl font-semibold mb-4 text-center">See Examples of What's Possible</h3>
-                    <div class="example-grid">
-                        <a href="https://egkxhslu0z.yourware.so/" target="_blank" class="example-card bg-white dark:bg-gray-700 shadow-md">
-                            <img src="https://i.imgur.com/M3bgNMK.png" alt="Guide to Produce Scoping Reviews" class="example-image">
-                            <div class="p-4">
-                                <h4 class="font-medium text-lg mb-1">Scoping Reviews Guide</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Academic guide transformed into an interactive, navigable web page with clear sections and visual hierarchy.</p>
-                            </div>
-                        </a>
-                        <a href="https://mk9wzcfz6q.yourware.so/" target="_blank" class="example-card bg-white dark:bg-gray-700 shadow-md">
-                            <img src="https://i.imgur.com/kDLkHQA.png" alt="Up Our Game Canada Module 8" class="example-image">
-                            <div class="p-4">
-                                <h4 class="font-medium text-lg mb-1">Up Our Game, Canada! Module 8</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Training material transcript converted into an elegant, branded learning experience with enhanced readability.</p>
-                            </div>
-                        </a>
-                    </div>
-                    <p class="text-center mt-5 text-sm text-gray-600 dark:text-gray-400">
-                        These visualizations were created with a single prompt using File Visualizer!
-                    </p>
-                </div>
+<!-- Results Section -->
+<section id="result-section" class="mt-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg hidden">
+    <h2 class="text-2xl font-bold mb-4">Generated HTML Visualization</h2>
+    
+    <!-- Token Usage -->
+    <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+        <h3 class="text-lg font-semibold mb-2">Token Usage for This Generation</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Input Tokens</p>
+                <p id="input-tokens" class="text-lg font-mono">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Output Tokens</p>
+                <p id="output-tokens" class="text-lg font-mono">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Thinking Tokens</p>
+                <p id="thinking-tokens" class="text-lg font-mono">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Total Cost</p>
+                <p id="total-cost" class="text-lg font-mono">$0.0000</p>
             </div>
         </div>
     </div>
-
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto p-4 md:p-6 animate-fade-in">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Input Section -->
-            <div class="lg:col-span-5 space-y-6">
-                <!-- API Key -->
-                <div id="api-key-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-key text-primary-500 mr-2"></i>Anthropic API Key
-                    </h2>
-                    <div class="mb-4">
-                        <input type="password" id="api-key" placeholder="Enter your Anthropic API key" 
-                            class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                            Your API key is stored locally in your browser and never sent to our servers.
-                        </p>
-                    </div>
-                    <button id="validate-key" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md transition-colors">
-                        <i class="fas fa-check-circle mr-2"></i>Validate Key
-                    </button>
-                    <div id="key-status" class="mt-3 hidden">
-                        <!-- Will be filled by JS -->
-                    </div>
-                </div>
-
-                <!-- File Upload / Text Input -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-file-upload text-primary-500 mr-2"></i>Input Source
-                    </h2>
-                    
-                    <div class="mb-4">
-                        <div class="flex space-x-3 mb-4">
-                            <button id="file-tab" class="flex-1 py-2 px-4 rounded-md bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium">
-                                <i class="fas fa-file mr-2"></i>Upload File
-                            </button>
-                            <button id="text-tab" class="flex-1 py-2 px-4 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium">
-                                <i class="fas fa-keyboard mr-2"></i>Enter Text
-                            </button>
-                        </div>
-                        
-                        <!-- File Upload -->
-                        <div id="file-input" class="transition-all">
-                            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-primary-500 dark:hover:border-primary-400 transition-colors" id="drop-area">
-                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 dark:text-gray-500 mb-2"></i>
-                                <p class="mb-2">Drag & drop a file here, or <span class="text-primary-500">browse</span></p>
-                                <input type="file" id="file-upload" class="hidden" accept=".txt,.md,.json,.csv,.html,.js,.css,.py,.pdf,.doc,.docx">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Supported file types: txt, md, json, csv, html, js, css, py, pdf, doc, docx</p>
-                            </div>
-                            <div id="file-info" class="mt-3 hidden">
-                                <!-- Will be filled by JS when file is uploaded -->
-                            </div>
-                        </div>
-                        
-                        <!-- Text Input -->
-                        <div id="text-input" class="hidden transition-all">
-                            <textarea id="input-text" rows="6" placeholder="Enter or paste your text here..." 
-                                class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"></textarea>
-                        </div>
-                        
-                        <!-- Token Info - Moved outside both input types so it's visible for both -->
-                        <div id="tokenInfo" class="mt-3">
-                            <!-- Will be filled by JS when file is uploaded or text is entered -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Additional Prompt -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-comment-alt text-primary-500 mr-2"></i>Additional Instructions (Optional)
-                    </h2>
-                    <textarea id="additional-prompt" rows="3" placeholder="Any specific requirements for your visualization? Add custom styling instructions, layout preferences, or image links here." 
-                        class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"></textarea>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                        Not satisfied with the first result? Add more specific requirements here and regenerate.
-                    </p>
-                </div>
-
-                <!-- Model Parameters -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-sliders-h text-primary-500 mr-2"></i>Generation Settings
-                    </h2>
-                    
-                    <div class="space-y-4">
-                        <!-- Temperature -->
-                        <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <label for="temperature" class="font-medium text-gray-900 dark:text-gray-100">Creativity Level: <span id="temperature-value" class="text-primary-600 dark:text-primary-400">1.0</span></label>
-                                <button id="temperature-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
-                            </div>
-                            <input type="range" id="temperature" min="0" max="1" step="0.1" value="1.0" 
-                                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Lower values create more predictable, consistent results. Higher values allow more creativity and variation.</p>
-                        </div>
-                        
-                        <!-- Max Tokens -->
-                        <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <label for="max-tokens" class="font-medium text-gray-900 dark:text-gray-100">Output Length: <span id="max-tokens-value" class="text-primary-600 dark:text-primary-400">128000</span></label>
-                                <button id="max-tokens-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
-                            </div>
-                            <input type="range" id="max-tokens" min="1000" max="128000" step="1000" value="128000" 
-                                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Controls how much content Claude can generate. For large inputs, use a lower value (20-50K) to prevent errors.</p>
-                        </div>
-                        
-                        <!-- Thinking Budget -->
-                        <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <label for="thinking-budget" class="font-medium text-gray-900 dark:text-gray-100">Thinking Depth: <span id="thinking-budget-value" class="text-primary-600 dark:text-primary-400">32000</span></label>
-                                <button id="thinking-budget-reset" class="text-xs text-primary-500 hover:underline">Reset</button>
-                            </div>
-                            <input type="range" id="thinking-budget" min="1024" max="128000" step="1024" value="32000" 
-                                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Allocates how much "thinking" Claude can do before responding. Higher values allow deeper analysis of complex content.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Generate Button -->
-                <div class="text-center">
-                    <button id="generate-btn" disabled class="w-full bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-6 py-3 rounded-md text-lg font-bold shadow-md transition-all cursor-not-allowed">
-                        <i class="fas fa-magic mr-2"></i>Generate Visualization
-                    </button>
-                    <p id="generate-error" class="text-red-500 mt-2 hidden">Please provide an API key and input content.</p>
-                </div>
+    
+    <!-- Usage Statistics -->
+    <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+        <h3 class="text-lg font-semibold mb-2">Usage Statistics</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Total Tokens Used</p>
+                <p id="total-usage-tokens" class="text-lg font-mono">0</p>
             </div>
-
-            <!-- Output Section -->
-            <div class="lg:col-span-7 space-y-6">
-                <!-- Processing Status -->
-                <div id="processing-status" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 hidden">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-xl font-semibold flex items-center">
-                            <i class="fas fa-spinner fa-spin text-primary-500 mr-2"></i>Processing...
-                        </h2>
-                        <div id="elapsed-time" class="text-sm font-medium">
-                            Elapsed: 0s
-                        </div>
-                    </div>
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
-                        <div id="progress-bar" class="bg-primary-500 h-2.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Claude is working on visualizing your content. This may take 5-20 minutes depending on your content size.</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Please keep this connection open until the process completes.</p>
-                </div>
-
-                <!-- Result Section -->
-                <div id="result-section" class="hidden mt-8">
-                    <!-- Usage Stats -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5">
-                        <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-chart-line text-primary-500 mr-2"></i>Usage Statistics
-                        </h2>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Input Tokens</p>
-                                <p id="input-tokens" class="text-lg font-semibold">-</p>
-                            </div>
-                            <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Output Tokens</p>
-                                <p id="output-tokens" class="text-lg font-semibold">-</p>
-                            </div>
-                            <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Thinking Tokens</p>
-                                <p id="thinking-tokens" class="text-lg font-semibold">-</p>
-                            </div>
-                            <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Cost</p>
-                                <p id="total-cost" class="text-lg font-semibold">-</p>
-                            </div>
-                        </div>
-                        <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                            <p>Pricing: Input - $3/million tokens, Output - $15/million tokens, Thinking - $3/million tokens</p>
-                            <p class="mt-1">Typical generations cost between $0.20-$2.00 depending on content size and complexity.</p>
-                        </div>
-                    </div>
-
-                    <!-- Output reorganized with Preview above Generated HTML -->
-                    <div class="grid grid-cols-1 gap-6">
-                        <!-- Preview - Now first -->
-                        <div class="col-span-1">
-                            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow h-full">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-medium">Preview</h3>
-                                    <button id="open-preview" class="btn-secondary">
-                                        <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
-                                    </button>
-                                </div>
-                                <div class="relative border rounded-lg overflow-hidden" style="height: 500px">
-                                    <iframe id="preview-iframe" class="w-full h-full"></iframe>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- HTML Output - Now second -->
-                        <div class="col-span-1">
-                            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-medium">Generated HTML</h3>
-                                    <div class="flex space-x-2">
-                                        <button id="copy-html" class="btn-secondary">
-                                            <i class="fas fa-copy mr-1"></i> Copy
-                                        </button>
-                                        <button id="download-html" class="btn-secondary">
-                                            <i class="fas fa-download mr-1"></i> Download
-                                        </button>
-                                    </div>
-                                </div>
-                                <pre id="html-output" class="language-html overflow-auto rounded-lg p-4 bg-gray-50 dark:bg-gray-900"></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Total Cost</p>
+                <p id="total-usage-cost" class="text-lg font-mono">$0.0000</p>
             </div>
         </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white dark:bg-gray-800 shadow-inner mt-8">
-        <div class="container mx-auto px-4 py-6 text-center">
-            <p class="text-gray-600 dark:text-gray-400">Powered by <a href="https://www.anthropic.com/claude" class="text-primary-500 hover:underline" target="_blank">Anthropic Claude 3.7</a> with thinking capabilities</p>
-            <p class="mt-2 text-gray-600 dark:text-gray-400">© 2025 - <span class="font-medium">File Visualizer</span> by <a href="https://www.linkedin.com/in/hubeiqiao/" class="text-primary-500 hover:underline" target="_blank">Joe Hu</a></p>
-            <div class="mt-4">
-                <a href="https://buy.stripe.com/6oEdTw8OQ86S0CYcMN" class="inline-flex items-center px-4 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full hover:bg-green-200 dark:hover:bg-green-800 transition-colors" target="_blank">
-                    <i class="fas fa-coffee mr-2"></i> Appreciate this magic? Buy me a coffee!
-                </a>
-            </div>
-            <div class="flex justify-center mt-4">
-                <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                    <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
-                    <i class="fas fa-moon text-blue-300 hidden dark:block"></i>
+    </div>
+    
+    <!-- HTML Output -->
+    <div class="mb-6">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-semibold">HTML Code</h3>
+            <div class="flex space-x-2">
+                <button id="copy-html" class="btn-secondary text-xs px-2 py-1">
+                    <i class="fas fa-copy mr-1"></i> Copy
+                </button>
+                <button id="download-html" class="btn-secondary text-xs px-2 py-1">
+                    <i class="fas fa-download mr-1"></i> Download
                 </button>
             </div>
         </div>
-    </footer>
+        <pre class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg max-h-96 overflow-auto"><code id="html-output" class="language-html"></code></pre>
+    </div>
+    
+    <!-- Preview -->
+    <div>
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-semibold">Preview</h3>
+            <button id="open-preview" class="btn-secondary text-xs px-2 py-1">
+                <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+            </button>
+        </div>
+        <div class="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white">
+            <iframe id="preview-iframe" class="w-full h-96" sandbox="allow-scripts"></iframe>
+        </div>
+    </div>
+</section>
 
-    <script src="app.js"></script>
-</body>
-</html> 
+<script src="/app.js"></script>
+<script src="/fix.js"></script>
+<!-- Add inline script to fix the updateHtmlPreview function -->
+<script>
+    // Patch the updateHtmlPreview function to handle null elements
+    const originalUpdateHtmlPreview = window.updateHtmlPreview;
+    window.updateHtmlPreview = function(html) {
+        try {
+            if (!html) return;
+            
+            // Update the HTML output element
+            const htmlOutput = document.getElementById('html-output');
+            if (htmlOutput) {
+                htmlOutput.textContent = html;
+                
+                // Highlight with Prism.js if available
+                if (window.Prism) {
+                    Prism.highlightElement(htmlOutput);
+                }
+            }
+            
+            // Update the preview iframe if it exists
+            const previewIframe = document.getElementById('preview-iframe');
+            if (previewIframe) {
+// Function to fetch and update usage statistics
+function fetchUsageStats() {
+    fetch('/api/usage-stats')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch usage statistics');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update the UI with usage statistics
+            document.getElementById('total-usage-tokens').textContent = data.total_tokens.toLocaleString();
+            document.getElementById('total-usage-cost').textContent = '$' + data.total_cost.toFixed(4);
+            console.log('Usage statistics updated:', data);
+        })
+        .catch(error => {
+            console.error('Error fetching usage statistics:', error);
+        });
+}
+
+// Fetch usage statistics when the page loads
+document.addEventListener('DOMContentLoaded', fetchUsageStats);
+
+// Event handler for form submission
+document.getElementById('visualization-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    // ... existing form submission code ...
+    
+    // Fetch event handler for streaming response
+    const evtSource = new EventSource(streamUrl);
+    
+    evtSource.addEventListener('message', function(event) {
+        // ... existing event handler code ...
+        
+        // If the event type is 'complete', update usage statistics
+        if (eventData.type === 'complete') {
+            // ... existing complete handler code ...
+            
+            // Fetch updated usage statistics
+            fetchUsageStats();
+        }
+    });
+    
+    // ... rest of existing event handlers ...
+});
+</script> 

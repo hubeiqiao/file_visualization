@@ -144,6 +144,70 @@ else:
                 'traceback': traceback.format_exc()
             }), 500
 
+# Create a debug API endpoint for Vercel
+def handler(request):
+    try:
+        debug_info = {
+            "python_version": sys.version,
+            "current_directory": os.getcwd(),
+            "directory_contents": os.listdir(),
+            "environment": "Vercel" if os.environ.get("VERCEL") else "Local",
+            "environment_vars": {k: v for k, v in os.environ.items() if not k.startswith("AWS_") and not "KEY" in k.upper() and not "SECRET" in k.upper()},
+            "sys_path": sys.path,
+            "status": "healthy"
+        }
+        
+        # Try to import key packages
+        package_status = {}
+        try:
+            import flask
+            package_status["flask"] = str(flask.__version__)
+        except Exception as e:
+            package_status["flask"] = f"Error: {str(e)}"
+        
+        try:
+            import flask_cors
+            package_status["flask_cors"] = str(flask_cors.__version__)
+        except Exception as e:
+            package_status["flask_cors"] = f"Error: {str(e)}"
+            
+        try:
+            import anthropic
+            package_status["anthropic"] = str(anthropic.__version__)
+        except Exception as e:
+            package_status["anthropic"] = f"Error: {str(e)}"
+            
+        try:
+            import google.generativeai
+            package_status["google_generativeai"] = "Imported successfully"
+        except Exception as e:
+            package_status["google_generativeai"] = f"Error: {str(e)}"
+            
+        try:
+            import pydantic
+            package_status["pydantic"] = str(pydantic.__version__)
+        except Exception as e:
+            package_status["pydantic"] = f"Error: {str(e)}"
+                
+        debug_info["package_status"] = package_status
+        
+        return Response(
+            response=str(debug_info),
+            status=200,
+            mimetype="text/plain"
+        )
+    except Exception as e:
+        error_info = {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+        
+        return Response(
+            response=str(error_info),
+            status=500,
+            mimetype="text/plain"
+        )
+
 # This allows the file to be run directly
 if __name__ == "__main__":
     if 'app' in locals():

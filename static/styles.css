@@ -450,4 +450,38 @@ button:disabled {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Decreased from 300px */
     gap: 1rem; /* Decreased from 1.5rem */
+}
+
+/* Add styles for the test mode toggle switch */
+#test-mode:checked ~ .dot {
+    transform: translateX(100%);
+    background-color: #0ea5e9;
+}
+
+.dark #test-mode:checked ~ .dot {
+    background-color: #38bdf8;
+}
+
+/* Add transition for smooth toggle animation */
+.dot {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Add styles for the test mode indicator */
+.test-mode-active {
+    background-color: rgba(14, 165, 233, 0.1);
+    border: 1px solid #0ea5e9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    color: #0ea5e9;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.dark .test-mode-active {
+    background-color: rgba(56, 189, 248, 0.1);
+    border-color: #38bdf8;
+    color: #38bdf8;
 } 

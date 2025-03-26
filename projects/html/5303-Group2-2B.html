@@ -1,0 +1,1715 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PQC Companies Analysis | TIM5303B</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #5D5CDE;
+            --primary-dark: #4A49B0;
+            --primary-light: #7E7DE8;
+            --tim-red: #E31837;
+            --tim-black: #231F20;
+            --background-light: #FFFFFF;
+            --background-dark: #181818;
+            --text-light: #1F2937;
+            --text-dark: #F3F4F6;
+            --card-light: #F9FAFB;
+            --card-dark: #262626;
+            --border-light: #E5E7EB;
+            --border-dark: #404040;
+        }
+        
+        .dark {
+            --background: var(--background-dark);
+            --text: var(--text-dark);
+            --card: var(--card-dark);
+            --border: var(--border-dark);
+        }
+        
+        :root:not(.dark) {
+            --background: var(--background-light);
+            --text: var(--text-light);
+            --card: var(--card-light);
+            --border: var(--border-light);
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .benefit-card {
+            transition: all 0.2s ease;
+        }
+        
+        .benefit-card:hover {
+            transform: scale(1.03);
+        }
+        
+        .topic-pill {
+            background-color: rgba(93, 92, 222, 0.1);
+            color: var(--primary);
+            transition: all 0.2s ease;
+        }
+        
+        .dark .topic-pill {
+            background-color: rgba(93, 92, 222, 0.2);
+        }
+        
+        .topic-pill:hover {
+            background-color: rgba(93, 92, 222, 0.2);
+        }
+        
+        .dark .topic-pill:hover {
+            background-color: rgba(93, 92, 222, 0.3);
+        }
+        
+        .group-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.6s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .group-1 { animation-delay: 0.1s; }
+        .group-2 { animation-delay: 0.2s; }
+        .group-3 { animation-delay: 0.3s; }
+        .group-4 { animation-delay: 0.4s; }
+        .group-5 { animation-delay: 0.5s; }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .hexagon {
+            position: relative;
+            width: 100px;
+            height: 57.74px;
+            background-color: var(--primary);
+            margin: 28.87px 0;
+        }
+        
+        .hexagon:before,
+        .hexagon:after {
+            content: "";
+            position: absolute;
+            width: 0;
+            border-left: 50px solid transparent;
+            border-right: 50px solid transparent;
+        }
+        
+        .hexagon:before {
+            bottom: 100%;
+            border-bottom: 28.87px solid var(--primary);
+        }
+        
+        .hexagon:after {
+            top: 100%;
+            width: 0;
+            border-top: 28.87px solid var(--primary);
+        }
+        
+        .process-step {
+            position: relative;
+        }
+        
+        .process-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            width: 30px;
+            height: 2px;
+            background: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .process-step:not(:last-child)::after {
+                top: 100%;
+                right: 50%;
+                width: 2px;
+                height: 20px;
+                transform: translateX(50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Logo and Dark Mode Toggle -->
+    <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="https://carleton.ca/tim/wp-content/uploads/sites/52/2024/07/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-copy-scaled.jpg" alt="TIM Program Logo" class="h-12 md:h-16 dark:hidden">
+                <img src="https://carleton.ca/tim/wp-content/uploads/sites/52/2024/07/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-copy-scaled.jpg" alt="TIM Program Logo" class="h-12 md:h-16 hidden dark:block invert">
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-moon text-gray-600 dark:hidden"></i>
+                    <i class="fas fa-sun text-yellow-300 hidden dark:block"></i>
+                </button>
+                <a href="https://carleton.ca/tim/" target="_blank" class="hidden md:flex items-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-tim-red dark:hover:text-tim-red transition-colors">
+                    <i class="fas fa-external-link-alt mr-2"></i>
+                    Visit TIM Website
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-16 md:py-24 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 text-center">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-gray-900 dark:text-white leading-tight">
+                Post-Quantum Cryptography <span class="text-primary">Companies Analysis</span>
+            </h1>
+            <p class="text-xl mb-8 text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                A comprehensive analysis of PQC companies and their value propositions in the quantum-resistant security landscape
+            </p>
+            <div class="flex flex-wrap justify-center gap-3 mb-8">
+                <span class="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium">
+                    <i class="fas fa-book-open mr-2"></i>TIMG5303B: ML for Tech Entrepreneurship
+                </span>
+                <span class="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium">
+                    <i class="fas fa-calendar mr-2"></i>Winter 2025
+                </span>
+                <span class="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium">
+                    <i class="fas fa-users mr-2"></i>Group 2
+                </span>
+            </div>
+            <div class="flex flex-wrap justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <span class="px-3 py-1 rounded-full bg-gray-50 dark:bg-gray-800">Temuulen Turbat</span>
+                <span class="px-3 py-1 rounded-full bg-gray-50 dark:bg-gray-800">Lizhao Luo</span>
+                <span class="px-3 py-1 rounded-full bg-gray-50 dark:bg-gray-800">Mike Wang</span>
+                <span class="px-3 py-1 rounded-full bg-gray-50 dark:bg-gray-800">Christabel Awuah-Gyasi</span>
+                <span class="px-3 py-1 rounded-full bg-gray-50 dark:bg-gray-800">Babatunde Oladoja</span>
+                <span class="px-3 py-1 rounded-full bg-gray-50 dark:bg-gray-800">Ye Liu</span>
+                <span class="px-3 py-1 rounded-full bg-gray-50 dark:bg-gray-800">Joe (Beiqiao) Hu</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Overview Section -->
+    <section class="py-16 bg-white dark:bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Our Research Process</h2>
+            
+            <div class="flex flex-col md:flex-row justify-center items-center md:items-start gap-8 mb-16">
+                <div class="process-step flex flex-col items-center max-w-xs text-center">
+                    <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white text-xl mb-4">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Data Collection</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Compiled a list of 66 PQC companies and gathered their products and solutions data</p>
+                </div>
+                
+                <div class="process-step flex flex-col items-center max-w-xs text-center">
+                    <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white text-xl mb-4">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Data Processing</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Used Orange workflow to preprocess and analyze the corpus</p>
+                </div>
+                
+                <div class="process-step flex flex-col items-center max-w-xs text-center">
+                    <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white text-xl mb-4">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Topic Modeling</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Identified five distinct topic models with log perplexity of 32.44154 and topic coherence of 0.51707</p>
+                </div>
+                
+                <div class="process-step flex flex-col items-center max-w-xs text-center">
+                    <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white text-xl mb-4">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">LLM Analysis</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Used an LLM to explain topics and analyze value propositions for each group</p>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 md:p-8 shadow-lg">
+                <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Orange Workflow</h3>
+                <div class="flex justify-center">
+                    <img src="https://github.com/hubeiqiao/tim5303/blob/main/orange_workflow_2b.png?raw=true" alt="Orange Workflow Diagram" class="max-w-full h-auto rounded-lg shadow-md">
+                </div>
+                
+                <div class="mt-8 grid md:grid-cols-3 gap-6">
+                    <div class="card rounded-lg p-5">
+                        <h4 class="font-bold text-lg mb-3 text-primary">Load Data</h4>
+                        <p class="text-gray-600 dark:text-gray-400">Loaded the corpus from 1A into Orange using CSV File Import widget</p>
+                    </div>
+                    
+                    <div class="card rounded-lg p-5">
+                        <h4 class="font-bold text-lg mb-3 text-primary">Preprocess Data</h4>
+                        <ul class="list-disc list-inside text-gray-600 dark:text-gray-400 space-y-2">
+                            <li>Transformation: Lowercase</li>
+                            <li>Tokenization: Regexp</li>
+                            <li>Filtering: Stopwords &amp; Stemming</li>
+                            <li>Document Frequency: 0.11 - 0.85 range</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card rounded-lg p-5">
+                        <h4 class="font-bold text-lg mb-3 text-primary">Topic Modeling</h4>
+                        <ul class="list-disc list-inside text-gray-600 dark:text-gray-400 space-y-2">
+                            <li>Log perplexity: 32.44154</li>
+                            <li>Topic coherence: 0.51707</li>
+                            <li>Five distinct topic models identified</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Topic Overview Section -->
+    <section class="py-16 bg-gray-50 dark:bg-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Topics Identified</h2>
+            <p class="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+                Our analysis identified five distinct topic models from the PQC companies' data. Each topic represents a unique focus area in the post-quantum cryptography landscape.
+            </p>
+            
+            <div class="grid md:grid-cols-5 gap-6 mb-12">
+                <div class="group-card group-1 card rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Topic 1</h3>
+                        <span class="text-xs font-medium px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">Infrastructure</span>
+                    </div>
+                    <h4 class="font-semibold text-lg mb-4 text-primary">Secure Digital Infrastructure</h4>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-6 flex-grow">
+                        Products built for modern digital environments integrating blockchain and cloud technologies with robust APIs and storage solutions
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">blockchain</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">cloud</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">design</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">service</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">partner</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">fip</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">storage</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">api</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">ip</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">developer</span>
+                    </div>
+                </div>
+                
+                <div class="group-card group-2 card rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Topic 2</h3>
+                        <span class="text-xs font-medium px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">Embedded</span>
+                    </div>
+                    <h4 class="font-semibold text-lg mb-4 text-primary">Embedded Advanced Security</h4>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-6 flex-grow">
+                        Solutions designed to be embedded within hardware or software systems with advanced cryptographic methods and discovery tools
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">embed</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">offer</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">discovery</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">bit</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">design</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">advance</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">government</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">method</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">service</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">tool</span>
+                    </div>
+                </div>
+                
+                <div class="group-card group-3 card rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Topic 3</h3>
+                        <span class="text-xs font-medium px-3 py-1 rounded-full bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">Communication</span>
+                    </div>
+                    <h4 class="font-semibold text-lg mb-4 text-primary">Resilient Communication &amp; Encryption</h4>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-6 flex-grow">
+                        Products addressing the critical need for secure data transmission with enhanced traditional encryption/decryption processes
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">government</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">encrypt</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">resilient</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">decrypt</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">benefit</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">transmission</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">case</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">problem</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">traditional</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">ability</span>
+                    </div>
+                </div>
+                
+                <div class="group-card group-4 card rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Topic 4</h3>
+                        <span class="text-xs font-medium px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">Analytics</span>
+                    </div>
+                    <h4 class="font-semibold text-lg mb-4 text-primary">Comprehensive Visibility &amp; Analytics</h4>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-6 flex-grow">
+                        Tools delivering full-system visibility through machine-level analytics with built-in discovery features and adherence to standards
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">machine</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">visibility</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">full</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">crystal</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">standard</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">offer</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">discover</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">built</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">user</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">advance</span>
+                    </div>
+                </div>
+                
+                <div class="group-card group-5 card rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Topic 5</h3>
+                        <span class="text-xs font-medium px-3 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">Authentication</span>
+                    </div>
+                    <h4 class="font-semibold text-lg mb-4 text-primary">Robust Authentication &amp; Protection</h4>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-6 flex-grow">
+                        Features like randomness and advanced decryption to strengthen authentication with complex, resilient protection mechanisms
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">random</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">protect</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">feature</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">resilient</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">guide</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">authentication</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">state</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">enhance</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">complex</span>
+                        <span class="topic-pill px-2 py-1 rounded-full text-xs">decrypt</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-center">
+                <div class="inline-flex rounded-md" role="group" aria-label="Group insights tabs">
+                    <button class="tab-button px-5 py-2 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-primary active-tab" data-tab="topic-breakdown">
+                        <i class="fas fa-chart-pie mr-2"></i>Topic Breakdown
+                    </button>
+                    <button class="tab-button px-5 py-2 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-primary" data-tab="model-metrics">
+                        <i class="fas fa-chart-line mr-2"></i>Model Metrics
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-8">
+                <div id="topic-breakdown" class="tab-content active">
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
+                        <canvas id="topicChart" height="300"></canvas>
+                    </div>
+                </div>
+                
+                <div id="model-metrics" class="tab-content">
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="flex flex-col items-center">
+                            <h4 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Log Perplexity</h4>
+                            <div class="w-48 h-48 rounded-full bg-white dark:bg-gray-800 shadow-lg flex flex-col items-center justify-center">
+                                <div class="text-4xl font-bold text-primary">32.44</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">Lower is better</div>
+                            </div>
+                            <p class="mt-4 text-center text-gray-600 dark:text-gray-400 text-sm">
+                                Log perplexity measures how well the model predicts the data. Lower values indicate a better fit.
+                            </p>
+                        </div>
+                        
+                        <div class="flex flex-col items-center">
+                            <h4 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Topic Coherence</h4>
+                            <div class="w-48 h-48 rounded-full bg-white dark:bg-gray-800 shadow-lg flex flex-col items-center justify-center">
+                                <div class="text-4xl font-bold text-primary">0.517</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">Higher is better</div>
+                            </div>
+                            <p class="mt-4 text-center text-gray-600 dark:text-gray-400 text-sm">
+                                Topic coherence measures how closely related the words within a topic are. Higher values suggest more coherent topics.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Group Analysis Section -->
+    <section class="py-16 bg-white dark:bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Group Analysis</h2>
+            <p class="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+                A comprehensive analysis of each group's value proposition, target customers, key benefits, differentiators, and more.
+            </p>
+            
+            <!-- Group Analysis Tabs -->
+            <div class="flex flex-wrap justify-center mb-8 gap-2">
+                <button class="group-tab px-4 py-2 rounded-full border border-primary text-primary bg-transparent hover:bg-primary hover:text-white transition-colors active" data-group="1">Group 1</button>
+                <button class="group-tab px-4 py-2 rounded-full border border-primary text-primary bg-transparent hover:bg-primary hover:text-white transition-colors" data-group="2">Group 2</button>
+                <button class="group-tab px-4 py-2 rounded-full border border-primary text-primary bg-transparent hover:bg-primary hover:text-white transition-colors" data-group="3">Group 3</button>
+                <button class="group-tab px-4 py-2 rounded-full border border-primary text-primary bg-transparent hover:bg-primary hover:text-white transition-colors" data-group="4">Group 4</button>
+                <button class="group-tab px-4 py-2 rounded-full border border-primary text-primary bg-transparent hover:bg-primary hover:text-white transition-colors" data-group="5">Group 5</button>
+            </div>
+            
+            <!-- Group 1 Content -->
+            <div class="group-content active" id="group-1">
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 md:p-8 shadow-lg mb-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="md:w-1/3">
+                            <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+                                Secure Digital Infrastructure
+                            </h3>
+                            <div class="flex flex-wrap gap-2 mb-6">
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">blockchain</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">cloud</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">design</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">service</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">partner</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">fip</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">storage</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">api</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">ip</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">developer</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                This category highlights products built for modern digital environments. They integrate blockchain and cloud technologies with robust APIs and storage solutions, support secure design and development, and adhere to compliance standards (e.g., FIP) to facilitate collaboration among developers and partners.
+                            </p>
+                        </div>
+                        <div class="md:w-2/3">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-300">
+                                            <i class="fas fa-bullseye"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Market Offers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        Companies focus on providing a secure digital foundation that integrates modern technologies such as blockchain and cloud services. Their offerings are built around robust APIs and scalable storage solutions.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-300">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Target Customers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        Tech-forward enterprises, digital service providers, and developer communities. Organizations looking to build secure, compliant, and interoperable systems in rapidly evolving digital ecosystems.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 col-span-2">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-300">
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Benefits</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Scalability &amp; Integration</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Leveraging cloud and blockchain allows for flexible scaling and seamless integration.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Compliance &amp; Security</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Adherence to industry standards (like FIP) ensures trust and regulatory compliance.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Developer Empowerment</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Extensive API support and partner networks make it easier for developers to embed secure functions.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Differentiators</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            Their competitive edge comes from blending cutting‑edge digital technologies with a developer-centric approach. Key resources include a robust cloud infrastructure, blockchain expertise, and a focus on secure design protocols.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Role of AI &amp; Technologies</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            AI can be integrated to optimize security analytics, automate threat detection, and manage resource allocation across cloud environments--thus enhancing overall system resilience.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Cost Drivers</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            Investments in cloud infrastructure, blockchain integration, and compliance certifications drive costs, along with ongoing R&amp;D to stay ahead in secure design and API development.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Group 2 Content -->
+            <div class="group-content hidden" id="group-2">
+                <div class="bg-green-50 dark:bg-green-900/20 rounded-2xl p-6 md:p-8 shadow-lg mb-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="md:w-1/3">
+                            <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+                                Embedded Advanced Security
+                            </h3>
+                            <div class="flex flex-wrap gap-2 mb-6">
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">embed</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">offer</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">discovery</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">bit</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">design</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">advance</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">government</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">method</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">service</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">tool</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                Focused on integration, these solutions are designed to be embedded within hardware or software systems. They offer advanced cryptographic methods and discovery tools with a particular emphasis on government-grade security, enabling innovative design and seamless service delivery.
+                            </p>
+                        </div>
+                        <div class="md:w-2/3">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center text-green-600 dark:text-green-300">
+                                            <i class="fas fa-bullseye"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Market Offers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        This group emphasizes solutions that are meant to be embedded directly into hardware or software systems. Their offerings integrate advanced cryptographic methods and discovery tools designed for high-assurance, government-grade security.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center text-green-600 dark:text-green-300">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Target Customers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        These products target sectors that demand deep integration of security features--most notably government agencies, defense contractors, and enterprises requiring embedded security in their hardware or software systems.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 col-span-2">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center text-green-600 dark:text-green-300">
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Benefits</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Seamless Integration</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Embeddable security tools allow companies to incorporate advanced protection without major overhauls.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Government-Grade Assurance</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                A focus on robust, certified methods appeals to clients with high security and regulatory requirements.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Innovation in Design</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Continuous advancement in cryptographic methods ensures that solutions remain resilient against emerging threats.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Differentiators</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            The ability to offer advanced, integrated security directly within operational systems sets these companies apart. Their key resources include specialized hardware modules, secure chip technologies, and proprietary integration protocols.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Role of AI &amp; Technologies</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            AI may be used to monitor embedded systems for anomalies, optimize cryptographic algorithms in real time, and facilitate rapid discovery of security vulnerabilities.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Cost Drivers</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            High R&amp;D expenses in developing and certifying embedded systems, along with integration testing and government regulatory compliance costs, are significant cost drivers.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Group 3 Content -->
+            <div class="group-content hidden" id="group-3">
+                <div class="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6 md:p-8 shadow-lg mb-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="md:w-1/3">
+                            <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+                                Resilient Communication &amp; Encryption
+                            </h3>
+                            <div class="flex flex-wrap gap-2 mb-6">
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">government</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">encrypt</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">resilient</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">decrypt</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">benefit</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">transmission</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">case</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">problem</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">traditional</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">ability</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                Products in this group address the critical need for secure data transmission. They enhance traditional encryption/decryption processes with resilient methods, ensuring that sensitive communications--especially for government use--are reliably protected against emerging threats.
+                            </p>
+                        </div>
+                        <div class="md:w-2/3">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center text-red-600 dark:text-red-300">
+                                            <i class="fas fa-bullseye"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Market Offers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        Companies in this group specialize in securing data transmission and communication channels. They enhance traditional encryption/decryption processes by incorporating resilience into their methodologies, which is critical for protecting sensitive information.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center text-red-600 dark:text-red-300">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Target Customers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        Government bodies, financial institutions, and organizations with a critical need for secure communications are the primary targets. These clients typically require dependable encryption solutions that can withstand quantum-era threats.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 col-span-2">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center text-red-600 dark:text-red-300">
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Benefits</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Enhanced Resilience</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Upgraded encryption/decryption processes provide a higher level of security against evolving threats.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Reliability in Transmission</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Products ensure that data remains protected during transmission, which is crucial for government and high-security applications.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Improved Traditional Methods</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                They build on existing encryption paradigms while adding layers of resilience.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Differentiators</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            Their differentiators lie in the combination of traditional encryption with next‑generation resilient methods. Key resources include advanced cryptographic algorithms and secure communication protocols.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Role of AI &amp; Technologies</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            AI can bolster these offerings by enabling adaptive encryption schemes, detecting anomalies in data transmission, and automating the decryption process where appropriate without compromising security.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Cost Drivers</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            R&amp;D in resilient encryption techniques, integration with legacy systems, and ensuring compliance with stringent government standards drive costs.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Group 4 Content -->
+            <div class="group-content hidden" id="group-4">
+                <div class="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-6 md:p-8 shadow-lg mb-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="md:w-1/3">
+                            <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+                                Comprehensive Visibility &amp; Analytics
+                            </h3>
+                            <div class="flex flex-wrap gap-2 mb-6">
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">machine</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">visibility</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">full</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">crystal</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">standard</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">offer</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">discover</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">built</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">user</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">advance</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                This topic covers tools that deliver full-system visibility through machine-level analytics. With built-in discovery features and adherence to industry standards, these solutions empower users with clear insights and proactive monitoring to maintain robust security.
+                            </p>
+                        </div>
+                        <div class="md:w-2/3">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-300">
+                                            <i class="fas fa-bullseye"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Market Offers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        This group provides tools that focus on delivering complete system visibility via machine-level analytics. Their solutions come with built-in discovery features and adhere to industry standards, thus empowering users with clear, actionable insights.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-300">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Target Customers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        Large enterprises, security operations centers (SOCs), and IT departments that require continuous monitoring and proactive threat management are the core audience.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 col-span-2">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-300">
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Benefits</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Proactive Monitoring</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Full-system visibility and real-time analytics allow organizations to preemptively identify and respond to threats.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">User Empowerment</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Advanced discovery features offer users actionable insights that can be translated into quick security responses.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Standard Compliance</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Adherence to industry standards builds trust and ensures interoperability with existing systems.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Differentiators</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            The use of machine-level analytics to achieve comprehensive visibility is a strong differentiator. Their key resources include sophisticated data analytics platforms, AI-driven monitoring systems, and a deep repository of security event data.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Role of AI &amp; Technologies</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            AI is central here--enabling predictive analytics, anomaly detection, and pattern recognition, which collectively enhance the accuracy and speed of threat detection.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Cost Drivers</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            Significant costs include investments in data processing capabilities, AI analytics platforms, and ongoing integration with existing IT infrastructures.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Group 5 Content -->
+            <div class="group-content hidden" id="group-5">
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-6 md:p-8 shadow-lg mb-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="md:w-1/3">
+                            <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+                                Robust Authentication &amp; Protection
+                            </h3>
+                            <div class="flex flex-wrap gap-2 mb-6">
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">random</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">protect</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">feature</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">resilient</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">guide</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">authentication</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">state</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">enhance</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">complex</span>
+                                <span class="topic-pill px-3 py-1 rounded-full text-sm">decrypt</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                Emphasizing the fundamentals of secure operations, this category offers features like randomness and advanced decryption to strengthen authentication. These products provide complex, resilient protection mechanisms that guide users in enhancing overall security in challenging environments.
+                            </p>
+                        </div>
+                        <div class="md:w-2/3">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-800 flex items-center justify-center text-yellow-600 dark:text-yellow-300">
+                                            <i class="fas fa-bullseye"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Market Offers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        Companies in this group emphasize the fundamentals of secure operations. Their products focus on robust authentication and protection, using elements like randomness and advanced decryption techniques to safeguard sensitive systems.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 flex flex-col h-full">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-800 flex items-center justify-center text-yellow-600 dark:text-yellow-300">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Target Customers</h4>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                                        Organizations that require stringent access controls--such as banks, critical infrastructure operators, and enterprises in high-risk sectors--are the primary customers.
+                                    </p>
+                                </div>
+                                
+                                <div class="card rounded-xl p-5 col-span-2">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-800 flex items-center justify-center text-yellow-600 dark:text-yellow-300">
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                        <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Benefits</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Strengthened Authentication</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                Advanced methods, including randomization and complex decryption, significantly bolster authentication processes.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Resilience in Protection</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                The systems are designed to operate effectively even in challenging or evolving threat environments.
+                                            </p>
+                                        </div>
+                                        <div class="benefit-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+                                            <h5 class="font-semibold text-primary mb-2">Guided Security Measures</h5>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                                The offerings often include tools that help users navigate and implement best practices in security.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Differentiators</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            Their focus on enhancing authentication via state‑of‑the‑art cryptographic features differentiates them. Key resources include robust cryptographic libraries, secure key management systems, and sometimes even hardware tokens or biometric systems.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Role of AI &amp; Technologies</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            AI can enhance these solutions by powering biometric authentication, detecting unusual access patterns, and providing real‑time adjustments to security protocols based on risk analysis.
+                        </p>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6 flex flex-col h-full">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <h4 class="font-bold text-lg ml-3 text-gray-900 dark:text-white">Key Cost Drivers</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow">
+                            Costs are driven by the need for advanced research into cryptographic methods, integration of high‑assurance hardware elements, and maintaining cutting‑edge authentication technology.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cross-Group Insights Section -->
+    <section class="py-16 bg-gray-50 dark:bg-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Cross-Group Insights</h2>
+            <p class="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+                Comparing insights across the five groups to understand the broader post-quantum cryptography landscape
+            </p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <div class="card rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-6 text-primary">Market Offers &amp; Customer Segmentation</h3>
+                    <div class="relative">
+                        <canvas id="marketSegmentChart" height="300"></canvas>
+                    </div>
+                    <div class="mt-6 space-y-4">
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 mt-1">
+                                <i class="fas fa-layer-group text-sm"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Diverse Security Focus</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    Although all groups aim to enhance security in the post‑quantum era, they target different layers of the security stack--from infrastructure and embedded systems to communication channels, monitoring and analytics, and authentication.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 mt-1">
+                                <i class="fas fa-users-cog text-sm"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Tailored Value Propositions</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    Each group has specialized value propositions targeting specific customer needs, from foundational security (Groups 1-2) to resilient communication (Group 3), monitoring (Group 4), and access protection (Group 5).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-6 text-primary">Key Benefits &amp; Differentiators</h3>
+                    <div class="flex justify-center mb-8">
+                        <div class="relative w-full max-w-lg">
+                            <svg viewBox="0 0 500 300" class="w-full">
+                                <!-- Group 1 Hexagon -->
+                                <g class="transform translate-x-110 translate-y-50">
+                                    <polygon points="100,0 150,25 150,75 100,100 50,75 50,25" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2" class="dark:fill-blue-900/30"></polygon>
+                                    <text x="100" y="55" text-anchor="middle" fill="#3B82F6" class="text-xs font-semibold dark:fill-blue-300">Digital Infrastructure</text>
+                                </g>
+                                
+                                <!-- Group 2 Hexagon -->
+                                <g class="transform translate-x-250 translate-y-50">
+                                    <polygon points="100,0 150,25 150,75 100,100 50,75 50,25" fill="#DCFCE7" stroke="#22C55E" stroke-width="2" class="dark:fill-green-900/30"></polygon>
+                                    <text x="100" y="55" text-anchor="middle" fill="#22C55E" class="text-xs font-semibold dark:fill-green-300">Embedded Security</text>
+                                </g>
+                                
+                                <!-- Group 3 Hexagon -->
+                                <g class="transform translate-x-40 translate-y-150">
+                                    <polygon points="100,0 150,25 150,75 100,100 50,75 50,25" fill="#FEE2E2" stroke="#EF4444" stroke-width="2" class="dark:fill-red-900/30"></polygon>
+                                    <text x="100" y="50" text-anchor="middle" fill="#EF4444" class="text-xs font-semibold dark:fill-red-300">Resilient</text>
+                                    <text x="100" y="70" text-anchor="middle" fill="#EF4444" class="text-xs font-semibold dark:fill-red-300">Communication</text>
+                                </g>
+                                
+                                <!-- Group 4 Hexagon -->
+                                <g class="transform translate-x-180 translate-y-150">
+                                    <polygon points="100,0 150,25 150,75 100,100 50,75 50,25" fill="#F3E8FF" stroke="#A855F7" stroke-width="2" class="dark:fill-purple-900/30"></polygon>
+                                    <text x="100" y="50" text-anchor="middle" fill="#A855F7" class="text-xs font-semibold dark:fill-purple-300">Analytics &amp;</text>
+                                    <text x="100" y="70" text-anchor="middle" fill="#A855F7" class="text-xs font-semibold dark:fill-purple-300">Visibility</text>
+                                </g>
+                                
+                                <!-- Group 5 Hexagon -->
+                                <g class="transform translate-x-320 translate-y-150">
+                                    <polygon points="100,0 150,25 150,75 100,100 50,75 50,25" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2" class="dark:fill-yellow-900/30"></polygon>
+                                    <text x="100" y="50" text-anchor="middle" fill="#F59E0B" class="text-xs font-semibold dark:fill-yellow-300">Authentication &amp;</text>
+                                    <text x="100" y="70" text-anchor="middle" fill="#F59E0B" class="text-xs font-semibold dark:fill-yellow-300">Protection</text>
+                                </g>
+                                
+                                <!-- Connecting Lines -->
+                                <line x1="130" y1="100" x2="90" y2="150" stroke="#5D5CDE" stroke-width="2" stroke-dasharray="5,5" class="dark:stroke-gray-400"></line>
+                                <line x1="130" y1="100" x2="180" y2="150" stroke="#5D5CDE" stroke-width="2" stroke-dasharray="5,5" class="dark:stroke-gray-400"></line>
+                                <line x1="270" y1="100" x2="230" y2="150" stroke="#5D5CDE" stroke-width="2" stroke-dasharray="5,5" class="dark:stroke-gray-400"></line>
+                                <line x1="270" y1="100" x2="320" y2="150" stroke="#5D5CDE" stroke-width="2" stroke-dasharray="5,5" class="dark:stroke-gray-400"></line>
+                                <line x1="180" y1="150" x2="90" y2="150" stroke="#5D5CDE" stroke-width="2" stroke-dasharray="5,5" class="dark:stroke-gray-400"></line>
+                                <line x1="180" y1="150" x2="320" y2="150" stroke="#5D5CDE" stroke-width="2" stroke-dasharray="5,5" class="dark:stroke-gray-400"></line>
+                                <line x1="230" y1="150" x2="320" y2="150" stroke="#5D5CDE" stroke-width="2" stroke-dasharray="5,5" class="dark:stroke-gray-400"></line>
+                                <line x1="230" y1="150" x2="90" y2="150" stroke="#5D5CDE" stroke-width="2" stroke-dasharray="5,5" class="dark:stroke-gray-400"></line>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 mt-1">
+                                <i class="fas fa-lightbulb text-sm"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Innovation and Resilience</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    Each group leverages advanced technologies to offer innovative security solutions that differentiate them from traditional alternatives.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 mt-1">
+                                <i class="fas fa-check-circle text-sm"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Compliance and Integration</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    Adherence to standards is a common differentiator, ensuring that solutions not only secure systems but also integrate smoothly into existing environments.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <div class="card rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-6 text-primary">Role of AI and Emerging Technologies</h3>
+                    <div class="bg-white dark:bg-gray-700 rounded-lg p-5 mb-6">
+                        <canvas id="aiRoleChart" height="220"></canvas>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 mt-1">
+                                <i class="fas fa-plus-circle text-sm"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Enhancing Customer Value</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    AI is a common thread across all groups, enhancing different aspects from real-time monitoring to anomaly detection, adaptive encryption, and biometric systems.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 mt-1">
+                                <i class="fas fa-rocket text-sm"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Driving Innovation</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    The convergence of AI with cryptographic techniques strengthens the overall security posture and offers a competitive edge in rapidly evolving threat landscapes.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-6 text-primary">Resources &amp; Cost Considerations</h3>
+                    <div class="grid grid-cols-1 gap-4 mb-6">
+                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-300 mr-4">
+                                <i class="fas fa-flask"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Investment in R&amp;D</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    Significant investments in R&amp;D, infrastructure, and compliance certifications are necessary across all groups.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-300 mr-4">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Strategic Partnerships</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    Many companies emphasize partnerships which are critical to value co‑creation, helping reduce integration costs and foster innovation.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-300 mr-4">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Cost Drivers for Customers</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    Integration costs, compliance certification, and operational overheads contribute to customer cost bases across all groups.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conclusion Section -->
+    <section class="py-16 bg-gradient-to-br from-primary-light/10 to-primary/20 dark:from-gray-900 dark:to-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">Conclusion</h2>
+            
+            <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                <div class="flex flex-col md:flex-row items-center gap-8 mb-8">
+                    <div class="md:w-1/3 flex justify-center">
+                        <div class="w-48 h-48 relative">
+                            <svg viewBox="0 0 200 200" class="w-full h-full">
+                                <circle cx="100" cy="100" r="80" fill="none" stroke="#E2E8F0" stroke-width="20" class="dark:stroke-gray-600"></circle>
+                                <circle cx="100" cy="100" r="80" fill="none" stroke="url(#gradientPath)" stroke-width="20" stroke-dasharray="502" stroke-dashoffset="100"></circle>
+                                
+                                <defs>
+                                    <linearGradient id="gradientPath" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#5D5CDE"></stop>
+                                        <stop offset="100%" stop-color="#7E7DE8"></stop>
+                                    </linearGradient>
+                                </defs>
+                                
+                                <text x="100" y="85" text-anchor="middle" fill="#5D5CDE" class="text-2xl font-bold dark:fill-white">PQC</text>
+                                <text x="100" y="115" text-anchor="middle" fill="#5D5CDE" class="text-lg font-semibold dark:fill-white">Landscape</text>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            By examining each group individually and then comparing them, we can see that while all these companies are focused on enhancing security in the quantum era, they differentiate themselves through specialized market offers--from digital infrastructure and embedded security to resilient communication, comprehensive analytics, and robust authentication.
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            Their value propositions are driven by a blend of advanced cryptographic techniques, compliance with industry standards, and the strategic use of AI and emerging technologies. This multi‐layered approach not only caters to diverse target customers--from developers to government agencies--but also addresses key challenges such as integration complexity, cost of deployment, and the need for proactive security measures.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap justify-center gap-4 mt-8">
+                    <div class="px-5 py-3 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm font-medium flex items-center">
+                        <i class="fas fa-lock mr-2"></i>Security Enhancement
+                    </div>
+                    <div class="px-5 py-3 rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm font-medium flex items-center">
+                        <i class="fas fa-puzzle-piece mr-2"></i>Specialized Solutions
+                    </div>
+                    <div class="px-5 py-3 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-sm font-medium flex items-center">
+                        <i class="fas fa-robot mr-2"></i>AI Integration
+                    </div>
+                    <div class="px-5 py-3 rounded-full bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-sm font-medium flex items-center">
+                        <i class="fas fa-shield-alt mr-2"></i>Quantum Resistance
+                    </div>
+                    <div class="px-5 py-3 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-sm font-medium flex items-center">
+                        <i class="fas fa-handshake mr-2"></i>Value Co-Creation
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+                <div class="mb-6 md:mb-0">
+                    <img src="https://carleton.ca/tim/wp-content/uploads/sites/52/2024/07/CU_Sprott_TIMFull_Logo_Horizontal_CMYK_Red_Black_on_light-copy-scaled.jpg" alt="TIM Program Logo" class="h-12 md:h-16 invert">
+                </div>
+                <div class="flex flex-col md:flex-row gap-6">
+                    <a href="https://carleton.ca/tim/" target="_blank" class="text-gray-300 hover:text-white transition-colors">
+                        <i class="fas fa-external-link-alt mr-2"></i>TIM Website
+                    </a>
+                    <a href="https://github.com/hubeiqiao/tim5303" target="_blank" class="text-gray-300 hover:text-white transition-colors">
+                        <i class="fab fa-github mr-2"></i>Project Repository
+                    </a>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
+                <p>TIMG5303B: ML for Tech Entrepreneurship Problem Solving (SEM), Winter 2025, Assignment 2B</p>
+                <p class="mt-2">© 2025 Group 2 - Temuulen Turbat, Lizhao Luo, Mike Wang, Christabel Awuah-Gyasi, Babatunde Oladoja, Ye Liu, Joe (Beiqiao) Hu</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark Mode Toggle
+        function setDarkMode() {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        
+        // Set initial dark mode based on user preference
+        setDarkMode();
+        
+        // Listen for preference changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setDarkMode);
+        
+        // Toggle button functionality
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        darkModeToggle.addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+        });
+        
+        // Tab functionality
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetTab = this.dataset.tab;
+                
+                // Remove active class from all tab buttons
+                tabButtons.forEach(btn => btn.classList.remove('active-tab', 'bg-gray-100', 'dark:bg-gray-600'));
+                
+                // Add active class to clicked button
+                this.classList.add('active-tab', 'bg-gray-100', 'dark:bg-gray-600');
+                
+                // Hide all tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show target tab content
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+        
+        // Group tabs functionality
+        const groupTabs = document.querySelectorAll('.group-tab');
+        groupTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const groupId = this.dataset.group;
+                
+                // Remove active class from all tabs
+                groupTabs.forEach(t => {
+                    t.classList.remove('active', 'bg-primary', 'text-white');
+                    t.classList.add('bg-transparent', 'text-primary');
+                });
+                
+                // Add active class to clicked tab
+                this.classList.add('active', 'bg-primary', 'text-white');
+                this.classList.remove('bg-transparent', 'text-primary');
+                
+                // Hide all group content
+                document.querySelectorAll('.group-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Show target group content
+                document.getElementById('group-' + groupId).classList.remove('hidden');
+            });
+        });
+        
+        // Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Topic Breakdown Chart
+            const topicCtx = document.getElementById('topicChart').getContext('2d');
+            const topicChart = new Chart(topicCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Security Integration', 'Compliance', 'Advanced Analytics', 'Customer Customization', 'Resilience', 'Authentication'],
+                    datasets: [
+                        {
+                            label: 'Group 1',
+                            data: [90, 85, 60, 75, 70, 55],
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 0.8)',
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+                        },
+                        {
+                            label: 'Group 2',
+                            data: [80, 70, 55, 90, 75, 65],
+                            backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                            borderColor: 'rgba(34, 197, 94, 0.8)',
+                            pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(34, 197, 94, 1)'
+                        },
+                        {
+                            label: 'Group 3',
+                            data: [70, 80, 50, 65, 95, 70],
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                            borderColor: 'rgba(239, 68, 68, 0.8)',
+                            pointBackgroundColor: 'rgba(239, 68, 68, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(239, 68, 68, 1)'
+                        },
+                        {
+                            label: 'Group 4',
+                            data: [65, 75, 95, 70, 60, 65],
+                            backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                            borderColor: 'rgba(168, 85, 247, 0.8)',
+                            pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(168, 85, 247, 1)'
+                        },
+                        {
+                            label: 'Group 5',
+                            data: [60, 70, 65, 65, 80, 95],
+                            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                            borderColor: 'rgba(245, 158, 11, 0.8)',
+                            pointBackgroundColor: 'rgba(245, 158, 11, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(245, 158, 11, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)',
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)',
+                            },
+                            pointLabels: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563';
+                                },
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            ticks: {
+                                display: false,
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563';
+                                },
+                                font: {
+                                    size: 12
+                                },
+                                boxWidth: 15
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Market Segment Chart
+            const marketCtx = document.getElementById('marketSegmentChart').getContext('2d');
+            const marketChart = new Chart(marketCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Developers', 'Government', 'Enterprises', 'Financial Institutions', 'Critical Infrastructure'],
+                    datasets: [
+                        {
+                            label: 'Group 1',
+                            data: [90, 50, 80, 60, 40],
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Group 2',
+                            data: [60, 95, 70, 50, 60],
+                            backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Group 3',
+                            data: [30, 90, 60, 85, 65],
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Group 4',
+                            data: [50, 70, 90, 60, 55],
+                            backgroundColor: 'rgba(168, 85, 247, 0.7)',
+                            borderColor: 'rgba(168, 85, 247, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Group 5',
+                            data: [40, 75, 65, 90, 80],
+                            backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563';
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563';
+                                }
+                            },
+                            grid: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563';
+                                },
+                                font: {
+                                    size: 11
+                                },
+                                boxWidth: 12
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // AI Role Chart
+            const aiCtx = document.getElementById('aiRoleChart').getContext('2d');
+            const aiChart = new Chart(aiCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: [
+                        'Threat Detection',
+                        'Anomaly Detection',
+                        'Predictive Analytics',
+                        'Access Control',
+                        'Automation'
+                    ],
+                    datasets: [{
+                        data: [85, 80, 75, 70, 65],
+                        backgroundColor: [
+                            'rgba(93, 92, 222, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(34, 197, 94, 0.7)',
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(245, 158, 11, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(93, 92, 222, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            ticks: {
+                                display: false
+                            },
+                            grid: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                                }
+                            },
+                            angleLines: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                                }
+                            },
+                            pointLabels: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563';
+                                },
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: function(context) {
+                                    return document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563';
+                                },
+                                font: {
+                                    size: 11
+                                },
+                                boxWidth: 12
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Dark mode chart update
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            darkModeToggle.addEventListener('click', function() {
+                // Update chart colors for dark mode
+                topicChart.update();
+                marketChart.update();
+                aiChart.update();
+            });
+        });
+    </script>
+
+
+</body></html>
