@@ -231,3 +231,4 @@ Here is the content to transform into a website:
 @app.route('/', methods=['POST'])
 def process_gemini():
     return handler(request) # Modified for Vercel deployment
+# GEMINI TEST BRANCH: This branch is for testing Gemini integration

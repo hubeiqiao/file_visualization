@@ -331,3 +331,4 @@ Here is the content to transform into a website:
 def process_gemini_stream():
     return handler(request) # Modified for Vercel deployment
 # Optimized for Vercel deployment without changing model parameters
+# GEMINI TEST BRANCH: Testing streaming version
