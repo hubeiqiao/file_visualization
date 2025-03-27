@@ -12,8 +12,8 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Constants
-GEMINI_MODEL = "gemini-1.5-pro"
-GEMINI_MAX_OUTPUT_TOKENS = 128000
+GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"
+GEMINI_MAX_OUTPUT_TOKENS = 65536
 GEMINI_TEMPERATURE = 1.0
 GEMINI_TOP_P = 0.95
 GEMINI_TOP_K = 64
@@ -28,11 +28,8 @@ except ImportError:
     GEMINI_AVAILABLE = False
     print("Google Generative AI module is not installed")
 
-# System instruction
-SYSTEM_INSTRUCTION = """
-You are a web developer specialized in converting content into beautiful, accessible, responsive HTML with modern CSS.
-Generate a single-page website from the given content.
-"""
+# System instruction - matching the one used for Claude
+SYSTEM_INSTRUCTION = """I will provide you with a file or a content, analyze its content, and transform it into a visually appealing and well-structured webpage.### Content Requirements* Maintain the core information from the original file while presenting it in a clearer and more visually engaging format.⠀Design Style* Follow a modern and minimalistic design inspired by Linear App.* Use a clear visual hierarchy to emphasize important content.* Adopt a professional and harmonious color scheme that is easy on the eyes for extended reading.⠀Technical Specifications* Use HTML5, TailwindCSS 3.0+ (via CDN), and necessary JavaScript.* Implement a fully functional dark/light mode toggle, defaulting to the system setting.* Ensure clean, well-structured code with appropriate comments for easy understanding and maintenance.⠀Responsive Design* The page must be fully responsive, adapting seamlessly to mobile, tablet, and desktop screens.* Optimize layout and typography for different screen sizes.* Ensure a smooth and intuitive touch experience on mobile devices.⠀Icons & Visual Elements* Use professional icon libraries like Font Awesome or Material Icons (via CDN).* Integrate illustrations or charts that best represent the content.* Avoid using emojis as primary icons.* Check if any icons cannot be loaded.⠀User Interaction & ExperienceEnhance the user experience with subtle micro-interactions:* Buttons should have slight enlargement and color transitions on hover.* Cards should feature soft shadows and border effects on hover.* Implement smooth scrolling effects throughout the page.* Content blocks should have an elegant fade-in animation on load.⠀Performance Optimization* Ensure fast page loading by avoiding large, unnecessary resources.* Use modern image formats (WebP) with proper compression.* Implement lazy loading for content-heavy pages.⠀Output Requirements* Deliver a fully functional standalone HTML file, including all necessary CSS and JavaScript.* Ensure the code meets W3C standards with no errors or warnings.* Maintain consistent design and functionality across different browsers.* Your output is only one HTML file, do not present any other notes on the HTML. Also, try your best to visualize the whole content.⠀Create the most effective and visually appealing webpage based on the uploaded file's content type (document, data, images, etc.)."""
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -102,14 +99,8 @@ def handler(request):
                 "success": False
             }), 400
         
-        # Prepare the prompt
-        prompt = f"""
-{SYSTEM_INSTRUCTION}
-
-Here is the content to transform into a website:
-
-{content[:100000]}
-"""
+        # Prepare the prompt - direct content without additional text
+        prompt = f"{content[:100000]}"
         
         if format_prompt:
             prompt += f"\n\n{format_prompt}"
@@ -124,7 +115,9 @@ Here is the content to transform into a website:
             "max_output_tokens": max_tokens,
             "temperature": temperature,
             "top_p": GEMINI_TOP_P,
-            "top_k": GEMINI_TOP_K
+            "top_k": GEMINI_TOP_K,
+            "response_mime_type": "text/plain",
+            "system_instruction": SYSTEM_INSTRUCTION
         }
         
         try:
