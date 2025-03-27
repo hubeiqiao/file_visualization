@@ -229,86 +229,62 @@ Here is the content to transform into a website:
             'details': traceback.format_exc()
         }, 500
 
-def handler(request):
-    """
-    Handler function for processing requests.
-    """
-    try:
-        # Check if it's an OPTIONS request (CORS preflight)
-        if request.get('method', '').upper() == 'OPTIONS':
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type',
-                    'Access-Control-Max-Age': '86400'
-                },
-                'body': ''
-            }
-            
-        # Check for empty request
-        if not request.get('body'):
-            print("Empty request received")
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'error': 'Empty request body'
-                })
-            }
-        
-        # Parse the request body as JSON
+# Class-based handler for Vercel compatibility
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
         try:
-            # Handle both string and byte body formats from Vercel
-            body = request.get('body', '')
-            if isinstance(body, bytes):
-                body = body.decode('utf-8')
+            # Get content length from headers
+            content_length = int(self.headers.get('Content-Length', 0))
+            if content_length <= 0:
+                self._send_error_response(400, 'Empty request body')
+                return
                 
-            request_data = json.loads(body)
-            print(f"Parsed request data successfully: {type(request_data)}")
-        except json.JSONDecodeError as e:
-            print(f"JSON decode error: {str(e)}")
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'error': f'Invalid JSON in request body: {str(e)}'
-                })
-            }
+            # Read and parse request body
+            request_body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                request_data = json.loads(request_body)
+            except json.JSONDecodeError as e:
+                self._send_error_response(400, f'Invalid JSON in request body: {str(e)}')
+                return
+                
+            # Process the request
+            response_data, status_code = process_request(request_data)
+            
+            # Send the response
+            if 200 <= status_code < 300:
+                self._send_response(status_code, response_data)
+            else:
+                self._send_error_response(status_code, response_data.get('error', 'Unknown error'))
+            
+        except Exception as e:
+            print(f"Error in handler: {str(e)}")
+            print(traceback.format_exc())
+            self._send_error_response(500, f'Server error: {str(e)}')
+            
+    def do_OPTIONS(self):
+        """Handle OPTIONS requests for CORS preflight"""
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.send_header('Access-Control-Max-Age', '86400')
+        self.end_headers()
+            
+    def _send_response(self, status_code, data):
+        """Helper method to send a JSON response"""
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode('utf-8'))
         
-        # Process the request with our helper function
-        result = process_request(request_data)
-        
-        # Return the JSON response
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Cache-Control': 'no-cache, no-store, must-revalidate'
-            },
-            'body': json.dumps(result)
-        }
-    except Exception as e:
-        print(f"Error in handler: {str(e)}")
-        print(traceback.format_exc())
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'error': f'Server error: {str(e)}'
-            })
-        }
+    def _send_error_response(self, status_code, message):
+        """Helper method to send an error response"""
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps({'error': message}).encode('utf-8'))
 
 # For local development using Flask
 # This will be ignored when deployed to Vercel
@@ -320,15 +296,24 @@ try:
     @app.route('/api/process-gemini', methods=['POST'])
     def process_gemini():
         try:
-            request_data = request.json
+            # Get request data
+            request_data = request.get_json()
+            if not request_data:
+                return jsonify({'error': 'Invalid or missing JSON data'}), 400
+                
+            # Process the request
             response_data, status_code = process_request(request_data)
+            
+            # Return the response
             return jsonify(response_data), status_code
+            
         except Exception as e:
             print(f"Error in Flask route: {str(e)}")
             print(traceback.format_exc())
             return jsonify({
-                'error': f"Unexpected error: {str(e)}",
+                'error': f'Server error: {str(e)}',
                 'details': traceback.format_exc()
             }), 500
+            
 except ImportError:
     print("Flask is not available, local development API will not be available")

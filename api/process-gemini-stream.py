@@ -26,9 +26,8 @@ except ImportError:
     
     GEMINI_AVAILABLE = False
 
-# Setting runtime configuration for Vercel Edge Functions
+# Setting runtime configuration for Vercel
 __VERCEL_PYTHON_RUNTIME = "3.9"
-__VERCEL_HANDLER = "handler"
 __VERCEL_HANDLER_MEMORY = 1024
 __VERCEL_HANDLER_MAXDURATION = 60
 
@@ -133,211 +132,10 @@ Here is the content to transform into a website:
             "session_id": session_id
         })
         
-        # Define the streaming response generator
-        def gemini_stream_generator():
-            try:
-                # Get the model
-                model = client.get_model(GEMINI_MODEL)
-                print(f"Successfully retrieved Gemini model: {GEMINI_MODEL}")
-                
-                # Configure generation parameters
-                generation_config = {
-                    "max_output_tokens": max_tokens,
-                    "temperature": temperature,
-                    "top_p": GEMINI_TOP_P,
-                    "top_k": GEMINI_TOP_K
-                }
-                
-                # Send status update
-                yield format_stream_event("status", {
-                    "message": "Model loaded, starting generation",
-                    "session_id": session_id
-                })
-                
-                # Keep track of chunks for keepalive purposes
-                last_chunk_time = time.time()
-                chunks_received = 0
-                accumulated_content = ""
-                
-                # Try streaming generation
-                try:
-                    print("Starting streaming generation with Gemini")
-                    
-                    # Generate content with streaming
-                    # Note: Removed timeout parameter as it's not supported and was causing errors
-                    response = model.generate_content(
-                        prompt,
-                        generation_config=generation_config,
-                        stream=True
-                    )
-                    
-                    # Process the streaming response
-                    for chunk in response:
-                        # Update last chunk time
-                        current_time = time.time()
-                        chunks_received += 1
-                        
-                        # Extract text from the chunk
-                        chunk_text = ""
-                        try:
-                            if hasattr(chunk, 'text'):
-                                chunk_text = chunk.text
-                            elif hasattr(chunk, 'parts') and chunk.parts:
-                                for part in chunk.parts:
-                                    if hasattr(part, 'text'):
-                                        chunk_text += part.text
-                        except Exception as chunk_error:
-                            print(f"Error extracting text from chunk: {str(chunk_error)}")
-                            continue
-                        
-                        # Skip empty chunks
-                        if not chunk_text:
-                            continue
-                            
-                        # Add to accumulated content
-                        accumulated_content += chunk_text
-                        
-                        # Send content chunk
-                        yield format_stream_event("content_block_delta", {
-                            "delta": {"text": chunk_text},
-                            "type": "content_block_delta",
-                            "session_id": session_id
-                        })
-                        
-                        # Send keepalive if needed (every 15 chunks or 5 seconds)
-                        if chunks_received % 15 == 0 or (current_time - last_chunk_time) > 5:
-                            last_chunk_time = current_time
-                            yield format_stream_event("keepalive", {
-                                "type": "keepalive",
-                                "session_id": session_id
-                            })
-                    
-                    # Completed successfully
-                    total_generation_time = time.time() - start_time
-                    
-                    # Calculate approximate token usage
-                    input_tokens = max(1, int(len(prompt.split()) * 1.3))
-                    output_tokens = max(1, int(len(accumulated_content.split()) * 1.3))
-                    
-                    # Send completion event
-                    yield format_stream_event("message_complete", {
-                        "message": "Generation complete",
-                        "type": "message_complete",
-                        "html": accumulated_content,
-                        "session_id": session_id,
-                        "usage": {
-                            "input_tokens": input_tokens,
-                            "output_tokens": output_tokens,
-                            "total_tokens": input_tokens + output_tokens,
-                            "processing_time": total_generation_time
-                        }
-                    })
-                    
-                    print(f"Streaming completed successfully in {total_generation_time:.2f}s")
-                    print(f"Generated content length: {len(accumulated_content)} chars")
-                    print(f"Estimated tokens: Input={input_tokens}, Output={output_tokens}")
-                    
-                except Exception as stream_error:
-                    print(f"Error during streaming: {str(stream_error)}")
-                    print(traceback.format_exc())
-                    
-                    # If we have accumulated content, continue with it
-                    if accumulated_content:
-                        print(f"Using partial content from stream ({len(accumulated_content)} chars)")
-                        total_generation_time = time.time() - start_time
-                        
-                        # Calculate approximate token usage
-                        input_tokens = max(1, int(len(prompt.split()) * 1.3))
-                        output_tokens = max(1, int(len(accumulated_content.split()) * 1.3))
-                        
-                        # Send completion event with partial content
-                        yield format_stream_event("message_complete", {
-                            "message": "Generation partially complete",
-                            "type": "message_complete",
-                            "html": accumulated_content,
-                            "session_id": session_id,
-                            "usage": {
-                                "input_tokens": input_tokens,
-                                "output_tokens": output_tokens,
-                                "total_tokens": input_tokens + output_tokens,
-                                "processing_time": total_generation_time
-                            }
-                        })
-                    else:
-                        # Fallback to non-streaming as a last resort
-                        print("No content from streaming, trying non-streaming fallback")
-                        yield format_stream_event("status", {
-                            "message": "Trying non-streaming fallback",
-                            "session_id": session_id
-                        })
-                        
-                        try:
-                            # Generate content without streaming
-                            fallback_response = model.generate_content(
-                                prompt,
-                                generation_config=generation_config
-                            )
-                            
-                            # Extract content
-                            fallback_html = ""
-                            if hasattr(fallback_response, 'text'):
-                                fallback_html = fallback_response.text
-                            elif hasattr(fallback_response, 'parts') and fallback_response.parts:
-                                for part in fallback_response.parts:
-                                    if hasattr(part, 'text'):
-                                        fallback_html += part.text
-                            
-                            if fallback_html:
-                                total_generation_time = time.time() - start_time
-                                
-                                # Calculate approximate token usage
-                                input_tokens = max(1, int(len(prompt.split()) * 1.3))
-                                output_tokens = max(1, int(len(fallback_html.split()) * 1.3))
-                                
-                                # Send the fallback content
-                                yield format_stream_event("content", {
-                                    "chunk": fallback_html,
-                                    "type": "content",
-                                    "session_id": session_id
-                                })
-                                
-                                # Send completion event
-                                yield format_stream_event("message_complete", {
-                                    "message": "Generation complete (fallback)",
-                                    "type": "message_complete",
-                                    "html": fallback_html,
-                                    "session_id": session_id,
-                                    "usage": {
-                                        "input_tokens": input_tokens,
-                                        "output_tokens": output_tokens,
-                                        "total_tokens": input_tokens + output_tokens,
-                                        "processing_time": total_generation_time
-                                    }
-                                })
-                                
-                                print(f"Fallback generation completed in {total_generation_time:.2f}s")
-                                print(f"Fallback content length: {len(fallback_html)} chars")
-                            else:
-                                raise ValueError("No content from non-streaming fallback")
-                        except Exception as fallback_error:
-                            print(f"Fallback generation failed: {str(fallback_error)}")
-                            print(traceback.format_exc())
-                            yield format_stream_event("error", {
-                                "error": f"Generation failed: {str(fallback_error)}",
-                                "type": "error",
-                                "session_id": session_id
-                            })
-            except Exception as outer_error:
-                print(f"Outer error in Gemini stream generator: {str(outer_error)}")
-                print(traceback.format_exc())
-                yield format_stream_event("error", {
-                    "error": f"Server error: {str(outer_error)}",
-                    "type": "error",
-                    "session_id": session_id
-                })
-        
-        # Return the generator function to be used by the streaming response
-        return gemini_stream_generator()
+        # Generate stream events
+        for event in gemini_stream_generator(client, prompt, max_tokens, temperature, session_id, start_time):
+            yield event
+            
     except Exception as e:
         # Handle any exception that might occur outside the generator
         print(f"Error in process_stream_request: {str(e)}")
@@ -348,147 +146,290 @@ Here is the content to transform into a website:
             "session_id": session_id
         })
 
-def handler(request):
-    """
-    Handler function for Vercel Edge Function
-    """
+def gemini_stream_generator(client, prompt, max_tokens, temperature, session_id, start_time):
+    """Handle the Gemini streaming process and yield events"""
     try:
-        # Check if it's an OPTIONS request (CORS preflight)
-        if request.get('method', '').upper() == 'OPTIONS':
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type',
-                    'Access-Control-Max-Age': '86400'
-                },
-                'body': ''
-            }
-            
-        # Check for empty request
-        if not request.get('body'):
-            print("Empty request received")
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'error': 'Empty request body'
-                })
-            }
+        # Get the model
+        model = client.get_model(GEMINI_MODEL)
+        print(f"Successfully retrieved Gemini model: {GEMINI_MODEL}")
         
-        # Parse the request body as JSON
+        # Configure generation parameters
+        generation_config = {
+            "max_output_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": GEMINI_TOP_P,
+            "top_k": GEMINI_TOP_K
+        }
+        
+        # Send status update
+        yield format_stream_event("status", {
+            "message": "Model loaded, starting generation",
+            "session_id": session_id
+        })
+        
+        # Keep track of chunks for keepalive purposes
+        last_chunk_time = time.time()
+        chunks_received = 0
+        accumulated_content = ""
+        
+        # Try streaming generation
         try:
-            # Handle both string and byte body formats from Vercel
-            body = request.get('body', '')
-            if isinstance(body, bytes):
-                body = body.decode('utf-8')
+            print("Starting streaming generation with Gemini")
+            
+            # Generate content with streaming
+            # Note: Removed timeout parameter as it's not supported and was causing errors
+            response = model.generate_content(
+                prompt,
+                generation_config=generation_config,
+                stream=True
+            )
+            
+            # Process the streaming response
+            for chunk in response:
+                # Update last chunk time
+                current_time = time.time()
+                chunks_received += 1
                 
-            request_data = json.loads(body)
-            print(f"Parsed request data successfully: {type(request_data)}")
-        except json.JSONDecodeError as e:
-            print(f"JSON decode error: {str(e)}")
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'error': f'Invalid JSON in request body: {str(e)}'
+                # Extract text from the chunk
+                chunk_text = ""
+                try:
+                    if hasattr(chunk, 'text'):
+                        chunk_text = chunk.text
+                    elif hasattr(chunk, 'parts') and chunk.parts:
+                        for part in chunk.parts:
+                            if hasattr(part, 'text'):
+                                chunk_text += part.text
+                except Exception as chunk_error:
+                    print(f"Error extracting text from chunk: {str(chunk_error)}")
+                    continue
+                
+                # Skip empty chunks
+                if not chunk_text:
+                    continue
+                    
+                # Add to accumulated content
+                accumulated_content += chunk_text
+                
+                # Send content chunk
+                yield format_stream_event("content_block_delta", {
+                    "delta": {"text": chunk_text},
+                    "type": "content_block_delta",
+                    "session_id": session_id
                 })
-            }
-        
-        # Validate request data format
-        if not isinstance(request_data, dict):
-            print(f"Invalid request data format: {type(request_data)}")
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'error': 'Request data must be a JSON object'
+                
+                # Send keepalive if needed (every 15 chunks or 5 seconds)
+                if chunks_received % 15 == 0 or (current_time - last_chunk_time) > 5:
+                    last_chunk_time = current_time
+                    yield format_stream_event("keepalive", {
+                        "type": "keepalive",
+                        "session_id": session_id
+                    })
+            
+            # Completed successfully
+            total_generation_time = time.time() - start_time
+            
+            # Calculate approximate token usage
+            input_tokens = max(1, int(len(prompt.split()) * 1.3))
+            output_tokens = max(1, int(len(accumulated_content.split()) * 1.3))
+            
+            # Send completion event
+            yield format_stream_event("message_complete", {
+                "message": "Generation complete",
+                "type": "message_complete",
+                "html": accumulated_content,
+                "session_id": session_id,
+                "usage": {
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "total_tokens": input_tokens + output_tokens,
+                    "processing_time": total_generation_time
+                }
+            })
+            
+            print(f"Streaming completed successfully in {total_generation_time:.2f}s")
+            print(f"Generated content length: {len(accumulated_content)} chars")
+            print(f"Estimated tokens: Input={input_tokens}, Output={output_tokens}")
+            
+        except Exception as stream_error:
+            print(f"Error during streaming: {str(stream_error)}")
+            print(traceback.format_exc())
+            
+            # If we have accumulated content, continue with it
+            if accumulated_content:
+                print(f"Using partial content from stream ({len(accumulated_content)} chars)")
+                total_generation_time = time.time() - start_time
+                
+                # Calculate approximate token usage
+                input_tokens = max(1, int(len(prompt.split()) * 1.3))
+                output_tokens = max(1, int(len(accumulated_content.split()) * 1.3))
+                
+                # Send completion event with partial content
+                yield format_stream_event("message_complete", {
+                    "message": "Generation partially complete",
+                    "type": "message_complete",
+                    "html": accumulated_content,
+                    "session_id": session_id,
+                    "usage": {
+                        "input_tokens": input_tokens,
+                        "output_tokens": output_tokens,
+                        "total_tokens": input_tokens + output_tokens,
+                        "processing_time": total_generation_time
+                    }
                 })
-            }
-        
-        # Validate API key
-        api_key = request_data.get('api_key')
-        if not api_key or not isinstance(api_key, str) or len(api_key) < 10:
-            print("Invalid API key format")
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'error': 'Invalid API key'
+            else:
+                # Fallback to non-streaming as a last resort
+                print("No content from streaming, trying non-streaming fallback")
+                yield format_stream_event("status", {
+                    "message": "Trying non-streaming fallback",
+                    "session_id": session_id
                 })
-            }
-        
-        # Validate content or source
-        content = request_data.get('content')
-        source = request_data.get('source')
-        if (not content or not isinstance(content, str) or not content.strip()) and \
-           (not source or not isinstance(source, str) or not source.strip()):
-            print("Missing content or source")
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'error': 'Content or source must be provided and must be a non-empty string'
-                })
-            }
-        
-        # Process request and convert generator to list for Vercel response
-        # Note: This is a workaround as Vercel Edge Functions don't support
-        # streaming responses directly as generators
-        print("Processing streaming request...")
-        events = []
-        for event in process_stream_request(request_data):
-            events.append(event)
-        
-        # Return a response with all events
-        # This is not true streaming, but collects all events and returns them at once
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
+                
+                try:
+                    # Generate content without streaming
+                    fallback_response = model.generate_content(
+                        prompt,
+                        generation_config=generation_config
+                    )
+                    
+                    # Extract content
+                    fallback_html = ""
+                    if hasattr(fallback_response, 'text'):
+                        fallback_html = fallback_response.text
+                    elif hasattr(fallback_response, 'parts') and fallback_response.parts:
+                        for part in fallback_response.parts:
+                            if hasattr(part, 'text'):
+                                fallback_html += part.text
+                    
+                    if fallback_html:
+                        total_generation_time = time.time() - start_time
+                        
+                        # Calculate approximate token usage
+                        input_tokens = max(1, int(len(prompt.split()) * 1.3))
+                        output_tokens = max(1, int(len(fallback_html.split()) * 1.3))
+                        
+                        # Send the fallback content
+                        yield format_stream_event("content", {
+                            "chunk": fallback_html,
+                            "type": "content",
+                            "session_id": session_id
+                        })
+                        
+                        # Send completion event
+                        yield format_stream_event("message_complete", {
+                            "message": "Generation complete (fallback)",
+                            "type": "message_complete",
+                            "html": fallback_html,
+                            "session_id": session_id,
+                            "usage": {
+                                "input_tokens": input_tokens,
+                                "output_tokens": output_tokens,
+                                "total_tokens": input_tokens + output_tokens,
+                                "processing_time": total_generation_time
+                            }
+                        })
+                        
+                        print(f"Fallback generation completed in {total_generation_time:.2f}s")
+                        print(f"Fallback content length: {len(fallback_html)} chars")
+                    else:
+                        raise ValueError("No content from non-streaming fallback")
+                except Exception as fallback_error:
+                    print(f"Fallback generation failed: {str(fallback_error)}")
+                    print(traceback.format_exc())
+                    yield format_stream_event("error", {
+                        "error": f"Generation failed: {str(fallback_error)}",
+                        "type": "error",
+                        "session_id": session_id
+                    })
+    except Exception as outer_error:
+        print(f"Outer error in Gemini stream generator: {str(outer_error)}")
+        print(traceback.format_exc())
+        yield format_stream_event("error", {
+            "error": f"Server error: {str(outer_error)}",
+            "type": "error",
+            "session_id": session_id
+        })
+
+# Class-based handler for Vercel compatibility
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        try:
+            # Get content length from headers
+            content_length = int(self.headers.get('Content-Length', 0))
+            if content_length <= 0:
+                self._send_error_response(400, 'Empty request body')
+                return
+                
+            # Read and parse request body
+            request_body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                request_data = json.loads(request_body)
+            except json.JSONDecodeError as e:
+                self._send_error_response(400, f'Invalid JSON in request body: {str(e)}')
+                return
+                
+            # Validate request
+            if not isinstance(request_data, dict):
+                self._send_error_response(400, 'Request data must be a JSON object')
+                return
+                
+            # Validate API key
+            api_key = request_data.get('api_key')
+            if not api_key or not isinstance(api_key, str) or len(api_key) < 10:
+                self._send_error_response(400, 'Invalid API key')
+                return
+                
+            # Validate content
+            content = request_data.get('content')
+            source = request_data.get('source')
+            if (not content or not isinstance(content, str) or not content.strip()) and \
+               (not source or not isinstance(source, str) or not source.strip()):
+                self._send_error_response(400, 'Content or source must be provided')
+                return
+                
+            # Process streaming request and return events as an array
+            print("Processing streaming request...")
+            events = list(process_stream_request(request_data))
+            
+            # Return a combined response with all events
+            self._send_response(200, {
                 'events': events,
                 'success': True
             })
-        }
-    except Exception as e:
-        print(f"Error in handler: {str(e)}")
-        print(traceback.format_exc())
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'error': f'Server error: {str(e)}',
-                'details': traceback.format_exc()
-            })
-        }
+            
+        except Exception as e:
+            print(f"Error in handler: {str(e)}")
+            print(traceback.format_exc())
+            self._send_error_response(500, f'Server error: {str(e)}')
+            
+    def do_OPTIONS(self):
+        """Handle OPTIONS requests for CORS preflight"""
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.send_header('Access-Control-Max-Age', '86400')
+        self.end_headers()
+            
+    def _send_response(self, status_code, data):
+        """Helper method to send a JSON response"""
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode('utf-8'))
+        
+    def _send_error_response(self, status_code, message):
+        """Helper method to send an error response"""
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps({'error': message}).encode('utf-8'))
 
 # For local development using Flask
 # This will be ignored when deployed to Vercel
 try:
-    from flask import Flask, request, Response, stream_with_context
+    from flask import Flask, request, Response, jsonify, stream_with_context
     
     app = Flask(__name__)
     
