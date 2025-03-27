@@ -1,0 +1,52 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxDuration": 60,
+        "runtime": "python3.9",
+        "includeFiles": ["helper_function.py", "__init__.py", "process_gemini.py", "process_gemini_stream.py"]
+      }
+    },
+    {
+      "src": "static/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/*.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.9",
+        "installCommand": "pip install -r api/requirements.txt -r requirements.txt --no-cache-dir",
+        "handler": "handler"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/api/gemini-edge",
+      "methods": ["POST", "OPTIONS", "GET"],
+      "dest": "/api/gemini-edge.py"
+    },
+    {
+      "src": "/api/gemini-stream-edge",
+      "methods": ["POST", "OPTIONS", "GET"],
+      "dest": "/api/gemini-stream-edge.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.py"
+    }
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1",
+    "VERCEL": "1",
+    "PYTHONUTF8": "1"
+  }
+} 

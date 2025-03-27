@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Visualizer</title>
+    <!-- Tailwind CSS (For development only - Use PostCSS plugin or Tailwind CLI for production: https://tailwindcss.com/docs/installation) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Prism.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Adjust the heights of the preview and HTML output sections */
+        #html-output, #preview-iframe {
+            height: 500px; /* Increase from default height */
+            min-height: 500px;
+        }
+        
+        /* Ensure consistent spacing */
+        .result-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            height: 100%;
+        }
+        
+        /* Fix spacing between sections */
+        .section-gap {
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Ensure the result section has proper spacing */
+        #result-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        /* Processing animation improvements */
+        .animate-progress {
+            transition: width 0.5s ease;
+        }
+        
+        /* Animation stopped state */
+        .processing-complete .progress-bar {
+            width: 100% !important;
+            transition: width 0.3s ease;
+        }
+        
+        /* Visually enhanced header */
+        .header-gradient {
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+        }
+        
+        /* Steps styling for How to Use section */
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .step-card {
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 9999px;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        
+        /* Example section styling */
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .example-card {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .example-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .example-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col transition-colors duration-200">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left">
+                <h1 class="text-5xl font-bold text-white mb-4 flex items-center justify-center md:justify-start">
+                    <i class="fas fa-wand-magic-sparkles text-yellow-300 mr-3"></i>
+                    File Visualizer
+                </h1>
+                <div class="max-w-2xl md:text-right flex flex-col items-center md:items-end">
+                    <p class="text-blue-100 text-xl mb-3">
+                        Transform your plain documents into stunning, interactive websites
+                    </p>
+                    <div class="bg-blue-700/50 rounded-lg p-3 mt-1 inline-flex items-center">
+                        <div class="flex items-center text-white">
+                            <div class="mr-2 text-center">
+                                <i class="fas fa-file-alt text-3xl text-gray-300"></i>
+                                <div class="text-xs mt-1">Plain Document</div>
+                            </div>
+                            <i class="fas fa-arrow-right mx-3 text-blue-300"></i>
+                            <div class="mx-2 text-center relative">
+                                <i class="fas fa-wand-magic-sparkles text-3xl text-yellow-300 animate-pulse"></i>
+                                <div class="absolute inset-0 rounded-full bg-blue-500/30 animate-ping" style="animation-duration: 3s;"></div>
+                            </div>
+                            <i class="fas fa-arrow-right mx-3 text-blue-300"></i>
+                            <div class="ml-2 text-center">
+                                <i class="fas fa-file-code text-3xl text-yellow-200"></i>
+                                <div class="text-xs mt-1">Interactive Website</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Examples Section - Now before How to Use -->
+    <div class="bg-gradient-to-r from-primary-50 to-blue-50 py-8">
+        <div class="container mx-auto px-6">
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-4">
+                <h2 class="text-3xl font-semibold mb-6 text-center">
+                    <i class="fas fa-star text-primary-500 mr-2"></i>
+                    See What's Possible
+                </h2>
+                
+                <div class="example-grid">
+                    <div class="example-card bg-white shadow-lg hover:shadow-xl cursor-pointer" onclick="window.open('https://tim-literature-review-guide.pages.dev/', '_blank')">
+                        <div class="bg-blue-500 h-48 flex items-center justify-center">
+                            <i class="fas fa-book text-white text-7xl"></i>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="font-medium text-lg mb-2">Scoping Reviews Guide</h4>
+                            <p class="text-gray-600">Academic guide transformed into an interactive, navigable web page with clear sections and visual hierarchy.</p>
+                            <div class="mt-3 text-primary-600 flex items-center">
+                                <span>View Example</span>
+                                <i class="fas fa-external-link-alt ml-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="example-card bg-white shadow-lg hover:shadow-xl cursor-pointer" onclick="window.open('https://joe-hu.pages.dev/', '_blank')">
+                        <div class="bg-green-500 h-48 flex items-center justify-center">
+                            <i class="fas fa-user-tie text-white text-7xl"></i>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="font-medium text-lg mb-2">Personal Resume</h4>
+                            <p class="text-gray-600">Professional portfolio showcasing skills, experience, and achievements in an elegant, interactive format.</p>
+                            <div class="mt-3 text-green-600 flex items-center">
+                                <span>View Example</span>
+                                <i class="fas fa-external-link-alt ml-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <p class="text-2xl font-bold text-primary-600 bg-primary-50 py-3 px-6 rounded-full inline-block shadow-sm">
+                        ✨ These visualizations were created with a single prompt using File Visualizer! ✨
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How to Use Section -->
+    <div class="bg-gray-50 py-14">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-semibold mb-12 text-center">
+                <i class="fas fa-book-open text-gray-700 mr-2"></i>
+                How to Use
+            </h2>
+            
+            <div class="step-container">
+                <!-- Step 1: API Key -->
+                <div class="step-card bg-purple-50 border border-purple-200">
+                    <div class="step-number bg-purple-500 text-white">1</div>
+                    <h3 class="text-xl font-medium mb-2 text-purple-700">Enter Your API Key</h3>
+                    <p class="text-gray-700 mb-2">
+                        This app is <strong>completely free</strong> to use, but requires an API key from either Google Gemini (free) or Anthropic Claude.
+                    </p>
+                    <p class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 mb-2 font-medium">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                        <strong>Important:</strong> You'll only be charged by Anthropic for their API usage. Google Gemini API is currently free. Your API key is stored locally and never shared.
+                    </p>
+                    <div class="mt-auto">
+                        <details class="mt-2">
+                            <summary class="cursor-pointer text-purple-600 hover:underline">
+                                How to get an API key?
+                            </summary>
+                            <div class="pl-4 mt-2 text-sm">
+                                <p class="font-semibold mb-1">For Google Gemini (Free):</p>
+                                <ol class="list-decimal pl-4 space-y-1">
+                                    <li>Visit <a href="https://ai.google.dev/" target="_blank" class="text-purple-600 hover:underline">Google AI Studio</a></li>
+                                    <li>Sign up or log in with your Google account</li>
+                                    <li>Click on "Get API key" or go to API keys section</li>
+                                    <li>Create a new API key</li>
+                                    <li>Copy the key</li>
+                                </ol>
+                                
+                                <p class="font-semibold mt-3 mb-1">For Anthropic Claude:</p>
+                                <ol class="list-decimal pl-4 space-y-1">
+                                    <li>Visit <a href="https://console.anthropic.com/" target="_blank" class="text-purple-600 hover:underline">Anthropic Console</a></li>
+                                    <li>Sign up or log in to your account</li>
+                                    <li>Navigate to "API Keys" section</li>
+                                    <li>Create a new API key (starts with "sk-ant-")</li>
+                                    <li>Copy the key (you'll only see it once!)</li>
+                                </ol>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Upload content -->
+                <div class="step-card bg-blue-50 border border-blue-200">
+                    <div class="step-number bg-blue-500 text-white">2</div>
+                    <h3 class="text-xl font-medium mb-2 text-blue-700">Enter Your Content</h3>
+                    <p class="text-gray-700 mb-2">
+                        Paste your text that you want to transform into a beautiful webpage. You can enter articles, documentation, reports, or any textual content.
+                    </p>
+                    <p class="text-gray-600 text-sm mb-2">
+                        The application works best with structured text content like articles, reports, or documentation.
+                    </p>
+                    <div class="mt-auto">
+                        <details class="mt-2">
+                            <summary class="cursor-pointer text-blue-600 hover:underline">
+                                Size limits and token calculation
+                            </summary>
+                            <div class="pl-4 mt-2 text-sm">
+                                <p>The application will automatically count the tokens in your content and estimate the input cost.</p>
+                                <ul class="list-disc pl-4 mt-1">
+                                    <li>Maximum input: 128K tokens (approx. 100 pages)</li>
+                                    <li>Cost: Approx. $3 per million input tokens</li>
+                                    <li>Typical generation: $0.20-$2.00 total</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Customize -->
+                <div class="step-card bg-indigo-50 border border-indigo-200">
+                    <div class="step-number bg-indigo-500 text-white">3</div>
+                    <h3 class="text-xl font-medium mb-2 text-indigo-700">Customize Settings</h3>
+                    <p class="text-gray-700 mb-2">
+                        Add custom instructions like "Make it look professional" or "Use a dark theme with gold accents".
+                    </p>
+                    <div class="mt-auto">
+                        <details class="mt-2">
+                            <summary class="cursor-pointer text-indigo-600 hover:underline">
+                                Tips for customization
+                            </summary>
+                            <div class="pl-4 mt-2 text-sm">
+                                <p>In the "Additional Instructions" box:</p>
+                                <ul class="list-disc pl-4 mt-1">
+                                    <li>Request specific visual styles or layouts</li>
+                                    <li>Add links to images you want included</li>
+                                    <li>Suggest specific data visualizations</li>
+                                    <li>If not satisfied with the first result, add more specific requirements and regenerate</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Generate and Deploy -->
+                <div class="step-card bg-green-50 border border-green-200">
+                    <div class="step-number bg-green-500 text-white">4</div>
+                    <h3 class="text-xl font-medium mb-2 text-green-700">Generate & Deploy</h3>
+                    <p class="text-gray-700 mb-2">
+                        Click "Generate" and watch as your document is transformed into a beautiful website!
+                    </p>
+                    <p class="text-gray-600 text-sm mb-2">
+                        <i class="fas fa-wifi mr-1"></i> <strong>Important:</strong> Keep your internet connection stable during this process. Generation takes 5-20 minutes depending on content size.
+                    </p>
+                    <div class="mt-auto">
+                        <details class="mt-2">
+                            <summary class="cursor-pointer text-green-600 hover:underline">
+                                Deploying your website
+                            </summary>
+                            <div class="pl-4 mt-2 text-sm">
+                                <p>Once generated, you can:</p>
+                                <ul class="list-disc pl-4 mt-1">
+                                    <li>Download the complete website file</li>
+                                    <li>Deploy it for free on any of these platforms:
+                                        <ul class="list-circle pl-4 mt-1">
+                                            <li><a href="https://pages.github.com" target="_blank" class="text-green-600 hover:underline">GitHub Pages</a> - Free hosting directly from your GitHub repository</li>
+                                            <li><a href="https://app.netlify.com/drop" target="_blank" class="text-green-600 hover:underline">Netlify Drop</a> - Simply drag and drop your HTML file</li>
+                                            <li><a href="https://surge.sh" target="_blank" class="text-green-600 hover:underline">Surge.sh</a> - Command-line publishing with one command</li>
+                                            <li><a href="https://vercel.com/new" target="_blank" class="text-green-600 hover:underline">Vercel</a> - Connect to your GitHub repository for automatic updates</li>
+                                        </ul>
+                                    </li>
+                                    <li>Share the link with anyone - no coding knowledge required!</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto p-4 md:p-6 animate-fade-in">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Input Section -->
+            <div class="lg:col-span-5 space-y-6">
+                <!-- API Key -->
+                <div id="api-key-section" class="bg-white rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-key text-primary-500 mr-2"></i>AI API Key
+                    </h2>
+                    
+                    <!-- API Provider Selection -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select API Provider</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="api-provider" value="anthropic" class="form-radio h-4 w-4 text-primary-500">
+                                <span class="ml-2">Anthropic Claude</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="api-provider" value="gemini" class="form-radio h-4 w-4 text-primary-500" checked>
+                                <span class="ml-2">Google Gemini</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <input type="password" id="api-key" placeholder="Enter your API key" 
+                            class="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
+                        <div id="api-key-info" class="text-sm text-gray-500 mt-2">
+                            <p>Your API key is stored locally in your browser and never sent to our servers.</p>
+                            <p id="anthropic-info" class="mt-1">Anthropic Claude API key should start with 'sk-ant'.</p>
+                            <p id="gemini-info" class="mt-1 hidden">Google Gemini API key can be obtained from <a href="https://ai.google.dev/" target="_blank" class="text-primary-500 hover:underline">Google AI Studio</a>.</p>
+                        </div>
+                    </div>
+                    <button id="validate-key" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md transition-colors">
+                        <i class="fas fa-check-circle mr-2"></i>Validate Key
+                    </button>
+                    <div id="key-status" class="mt-3 hidden">
+                        <!-- Will be filled by JS -->
+                    </div>
+                </div>
+
+                <!-- File Upload / Text Input -->
+                <div class="bg-white rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-font text-primary-500 mr-2"></i>Enter Your Text
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <!-- Text Input Only -->
+                        <div class="transition-all">
+                            <textarea id="input-text" rows="10" placeholder="Enter or paste your text here..." 
+                                class="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"></textarea>
+                        </div>
+                        
+                        <!-- Token Info -->
+                        <div id="tokenInfo" class="mt-3">
+                            <!-- Will be filled by JS when text is entered -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Prompt -->
+                <div class="bg-white rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-comment-alt text-primary-500 mr-2"></i>Additional Instructions (Optional)
+                    </h2>
+                    <textarea id="additional-prompt" rows="3" placeholder="Any specific requirements for your visualization? Add custom styling instructions, layout preferences, or image links here." 
+                        class="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"></textarea>
+                    <p class="text-sm text-gray-500 mt-2">
+                        Not satisfied with the first result? Add more specific requirements here and regenerate.
+                    </p>
+                </div>
+
+                <!-- Model Parameters -->
+                <div class="bg-white rounded-lg shadow-md p-5 transition-all hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-sliders-h text-primary-500 mr-2"></i>Generation Settings
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Temperature -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="temperature" class="font-medium text-gray-900">Creativity Level: <span id="temperature-value" class="text-primary-600">1.0</span></label>
+                                <button id="reset-temp" class="text-xs text-primary-500 hover:underline">Reset</button>
+                            </div>
+                            <input type="range" id="temperature" min="0" max="1" step="0.1" value="1.0" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 mt-1">Lower values create more predictable, consistent results. Higher values allow more creativity and variation.</p>
+                        </div>
+                        
+                        <!-- Max Tokens -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="max-tokens" class="font-medium text-gray-900">Output Length: <span id="max-tokens-value" class="text-primary-600">128000</span></label>
+                                <button id="reset-max-tokens" class="text-xs text-primary-500 hover:underline">Reset</button>
+                            </div>
+                            <input type="range" id="max-tokens" min="1000" max="128000" step="1000" value="128000" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 mt-1">Controls how much content Claude can generate. Higher values allow for more extensive, detailed output.</p>
+                        </div>
+                        
+                        <!-- Thinking Budget -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="thinking-budget" class="font-medium text-gray-900">Thinking Depth: <span id="thinking-budget-value" class="text-primary-600">32000</span></label>
+                                <button id="reset-thinking-budget" class="text-xs text-primary-500 hover:underline">Reset</button>
+                            </div>
+                            <input type="range" id="thinking-budget" min="1024" max="128000" step="1024" value="32000" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-gray-500 mt-1">Allocates how much "thinking" Claude can do before responding. Higher values allow deeper analysis of complex content.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="text-center">
+                    <button id="generate-btn" disabled class="w-full bg-gray-300 text-gray-500 px-6 py-3 rounded-md text-lg font-bold shadow-md transition-all cursor-not-allowed">
+                        <i class="fas fa-magic mr-2"></i>Generate Visualization
+                    </button>
+                    <p id="generate-error" class="text-red-500 mt-2 hidden">Please provide an API key and input content.</p>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Processing Status -->
+                <div id="processing-status" class="bg-white rounded-lg shadow-md p-5 hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-spinner fa-spin text-primary-500 mr-2"></i>Processing...
+                        </h2>
+                        <div id="elapsed-time" class="text-sm font-medium">
+                            Elapsed: 0s
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                        <div id="progress-bar" class="bg-primary-500 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <p class="text-sm text-gray-600">Claude is working on visualizing your content. This may take 5-20 minutes depending on your content size.</p>
+                    <p class="text-sm text-gray-600 mt-2">Please keep this connection open until the process completes.</p>
+                </div>
+
+                <!-- Result Section -->
+                <div id="result-section" class="hidden mt-8">
+                    <!-- Usage Stats -->
+                    <div class="bg-white rounded-lg shadow-md p-5">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-chart-line text-primary-500 mr-2"></i>Usage Statistics
+                        </h2>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div class="p-3 bg-gray-100 rounded-lg">
+                                <p class="text-sm text-gray-500">Input Tokens</p>
+                                <p id="input-tokens" class="text-lg font-semibold">-</p>
+                            </div>
+                            <div class="p-3 bg-gray-100 rounded-lg">
+                                <p class="text-sm text-gray-500">Output Tokens</p>
+                                <p id="output-tokens" class="text-lg font-semibold">-</p>
+                            </div>
+                            <div class="p-3 bg-gray-100 rounded-lg">
+                                <p class="text-sm text-gray-500">Total Cost</p>
+                                <p id="total-cost" class="text-lg font-semibold">-</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-xs text-gray-500">
+                            <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                            <span>This is an estimate based on the current model's pricing. Actual costs may vary.</span>
+                        </div>
+                    </div>
+
+                    <!-- Output reorganized with Preview above Generated HTML -->
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Preview - Now first -->
+                        <div class="col-span-1">
+                            <div class="bg-white rounded-xl p-4 shadow h-full">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-medium">Preview</h3>
+                                    <button id="open-preview" class="btn-secondary">
+                                        <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+                                    </button>
+                                </div>
+                                <div class="relative border rounded-lg overflow-hidden" style="height: 500px">
+                                    <iframe id="preview-iframe" class="w-full h-full"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- HTML Output - Now second -->
+                        <div class="col-span-1">
+                            <div class="bg-white rounded-xl p-4 shadow">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-medium">Generated HTML</h3>
+                                    <div class="flex space-x-2">
+                                        <button id="copy-html" class="btn-secondary">
+                                            <i class="fas fa-copy mr-1"></i> Copy
+                                        </button>
+                                        <button id="download-html" class="btn-secondary">
+                                            <i class="fas fa-download mr-1"></i> Download
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <pre id="raw-html-container" class="language-html rounded-lg p-4 bg-gray-800 text-white overflow-hidden" style="max-height: 500px; overflow-y: auto;"><code id="raw-html" class="language-html"></code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-900 p-4 text-center text-gray-600 dark:text-gray-400 mt-8 border-t border-gray-200 dark:border-gray-800">
+        <div class="container mx-auto">
+            <p>
+                <span id="app-version" class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hidden">v0.4.5</span>
+                Built with 
+                <a href="https://www.anthropic.com/" class="text-primary-600 dark:text-primary-400 hover:underline font-semibold">Claude 3.7</a> 
+                &amp; 
+                <a href="https://ai.google.dev/" class="text-primary-600 dark:text-primary-400 hover:underline font-semibold">Gemini 2.5 Pro</a>
+                &bull; 
+                <a href="https://github.com/hubeiqiao/File-Visualizer" class="text-primary-600 dark:text-primary-400 hover:underline">GitHub Repo</a>
+            </p>
+        </div>
+    </footer>
+
+    <div class="processing-container" id="processingContainer">
+        <div class="processing-animation"></div>
+        <div class="processing-text" id="processingText">Processing...</div>
+        <div class="processing-note">Generation may take a few minutes. If using Vercel, the app will automatically reconnect if timeouts occur.</div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 

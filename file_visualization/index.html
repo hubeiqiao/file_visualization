@@ -1,0 +1,160 @@
+<!-- Test Mode Switch -->
+<div class="mb-4">
+    <label for="test-mode" class="flex items-center cursor-pointer">
+        <div class="relative">
+            <input type="checkbox" id="test-mode" class="sr-only">
+            <div class="block bg-gray-300 dark:bg-gray-700 w-14 h-8 rounded-full"></div>
+            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+        </div>
+        <div class="ml-3">
+            <span class="text-sm font-medium">Test Mode</span>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+                Generate test HTML with minimal API tokens
+            </p>
+        </div>
+    </label>
+</div>
+
+<!-- Results Section -->
+<section id="result-section" class="mt-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg hidden">
+    <h2 class="text-2xl font-bold mb-4">Generated HTML Visualization</h2>
+    
+    <!-- Token Usage -->
+    <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+        <h3 class="text-lg font-semibold mb-2">Token Usage for This Generation</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Input Tokens</p>
+                <p id="input-tokens" class="text-lg font-mono">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Output Tokens</p>
+                <p id="output-tokens" class="text-lg font-mono">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Thinking Tokens</p>
+                <p id="thinking-tokens" class="text-lg font-mono">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Total Cost</p>
+                <p id="total-cost" class="text-lg font-mono">$0.0000</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Usage Statistics -->
+    <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+        <h3 class="text-lg font-semibold mb-2">Usage Statistics</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Total Tokens Used</p>
+                <p id="total-usage-tokens" class="text-lg font-mono">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Total Cost</p>
+                <p id="total-usage-cost" class="text-lg font-mono">$0.0000</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- HTML Output -->
+    <div class="mb-6">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-semibold">HTML Code</h3>
+            <div class="flex space-x-2">
+                <button id="copy-html" class="btn-secondary text-xs px-2 py-1">
+                    <i class="fas fa-copy mr-1"></i> Copy
+                </button>
+                <button id="download-html" class="btn-secondary text-xs px-2 py-1">
+                    <i class="fas fa-download mr-1"></i> Download
+                </button>
+            </div>
+        </div>
+        <pre class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg max-h-96 overflow-auto"><code id="html-output" class="language-html"></code></pre>
+    </div>
+    
+    <!-- Preview -->
+    <div>
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-semibold">Preview</h3>
+            <button id="open-preview" class="btn-secondary text-xs px-2 py-1">
+                <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+            </button>
+        </div>
+        <div class="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white">
+            <iframe id="preview-iframe" class="w-full h-96" sandbox="allow-scripts"></iframe>
+        </div>
+    </div>
+</section>
+
+<script src="/app.js"></script>
+<script src="/fix.js"></script>
+<!-- Add inline script to fix the updateHtmlPreview function -->
+<script>
+    // Patch the updateHtmlPreview function to handle null elements
+    const originalUpdateHtmlPreview = window.updateHtmlPreview;
+    window.updateHtmlPreview = function(html) {
+        try {
+            if (!html) return;
+            
+            // Update the HTML output element
+            const htmlOutput = document.getElementById('html-output');
+            if (htmlOutput) {
+                htmlOutput.textContent = html;
+                
+                // Highlight with Prism.js if available
+                if (window.Prism) {
+                    Prism.highlightElement(htmlOutput);
+                }
+            }
+            
+            // Update the preview iframe if it exists
+            const previewIframe = document.getElementById('preview-iframe');
+            if (previewIframe) {
+// Function to fetch and update usage statistics
+function fetchUsageStats() {
+    fetch('/api/usage-stats')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch usage statistics');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update the UI with usage statistics
+            document.getElementById('total-usage-tokens').textContent = data.total_tokens.toLocaleString();
+            document.getElementById('total-usage-cost').textContent = '$' + data.total_cost.toFixed(4);
+            console.log('Usage statistics updated:', data);
+        })
+        .catch(error => {
+            console.error('Error fetching usage statistics:', error);
+        });
+}
+
+// Fetch usage statistics when the page loads
+document.addEventListener('DOMContentLoaded', fetchUsageStats);
+
+// Event handler for form submission
+document.getElementById('visualization-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    // ... existing form submission code ...
+    
+    // Fetch event handler for streaming response
+    const evtSource = new EventSource(streamUrl);
+    
+    evtSource.addEventListener('message', function(event) {
+        // ... existing event handler code ...
+        
+        // If the event type is 'complete', update usage statistics
+        if (eventData.type === 'complete') {
+            // ... existing complete handler code ...
+            
+            // Fetch updated usage statistics
+            fetchUsageStats();
+        }
+    });
+    
+    // ... rest of existing event handlers ...
+});
+</script> 
