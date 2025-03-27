@@ -278,8 +278,8 @@ def handler(event, context):
     if FASTAPI_AVAILABLE:
         try:
             from mangum import Mangum
-            handler = Mangum(app)
-            return handler(event, context)
+            mangum_handler = Mangum(app)
+            return mangum_handler(event, context)
         except ImportError:
             # Return error response if Mangum is not available
             return {

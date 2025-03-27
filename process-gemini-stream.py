@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify, Response, stream_with_context
+from flask import Flask, request, jsonify, Response
 import os
 import sys
 import json
-import uuid
-import time
 import traceback
+import time
+import uuid
 
 # Add the parent directory to sys.path
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -20,10 +20,10 @@ GEMINI_TOP_K = 64
 
 # Import helper functions
 try:
-    from helper_function import create_gemini_client, GeminiStreamingResponse, format_stream_event
+    from helper_function import create_gemini_client, GeminiStreamingResponse
     import google.generativeai as genai
     GEMINI_AVAILABLE = True
-    print("Google Generative AI package is available")
+    print("Google Generative AI module is available")
 except ImportError:
     GEMINI_AVAILABLE = False
     print("Google Generative AI module is not installed")
@@ -37,16 +37,32 @@ Generate a single-page website from the given content.
 # Initialize Flask app
 app = Flask(__name__)
 
-# In-memory session cache for handling reconnections
-session_cache = {}
-
 def handler(request):
     """
-    Process a streaming request using Google Gemini API.
+    Handler function that processes streaming requests for both server.py and Vercel.
+    This can be called from server.py or directly by Vercel serverless functions.
     """
+    print("\n==== API PROCESS GEMINI STREAM REQUEST RECEIVED ====")
+    start_time = time.time()
+    request_id = str(uuid.uuid4())
+    
+    # Check HTTP method
+    if request.method == 'OPTIONS':
+        # Handle CORS preflight request
+        response = Response('')
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response
+    
     try:
-        # Extract request data
+        # Get the data from the request
         data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "No data provided", "success": False}), 400
+        
+        # Extract the API key and content
         api_key = data.get('api_key')
         
         # Check for both 'content' and 'source' parameters for compatibility
@@ -54,53 +70,39 @@ def handler(request):
         if not content:
             content = data.get('source', '')  # Fallback to 'source' if 'content' is empty
         
-        # If content is empty, return an error
+        # If neither content nor source is provided, return an error
         if not content:
-            return jsonify({"success": False, "error": "Source code or text is required"}), 400
+            return jsonify({"error": "Source code or text is required", "success": False}), 400
         
+        # Extract other parameters with defaults
         format_prompt = data.get('format_prompt', '')
         max_tokens = int(data.get('max_tokens', GEMINI_MAX_OUTPUT_TOKENS))
         temperature = float(data.get('temperature', GEMINI_TEMPERATURE))
         
-        # Reconnection support
-        session_id = data.get('session_id', str(uuid.uuid4()))
+        print(f"Processing Gemini stream request with max_tokens={max_tokens}, content_length={len(content)}")
         
         # Check if Gemini is available
         if not GEMINI_AVAILABLE:
-            error_msg = 'Google Generative AI package is not installed on the server.'
-            print(f"Error: {error_msg}")
             return jsonify({
-                'error': error_msg,
-                'details': 'Please install the Google Generative AI package with "pip install google-generativeai"'
+                "error": "Google Generative AI is not available on this server.",
+                "details": "Please install the package with: pip install google-generativeai",
+                "success": False
             }), 500
         
         # Create Gemini client
         try:
-            client = create_gemini_client(api_key)
-            print(f"Gemini client created successfully with API key: {api_key[:4]}...")
+            # Configure the API
+            genai.configure(api_key=api_key)
+            print(f"Created Gemini client with API key: {api_key[:4]}...")
         except Exception as e:
-            error_msg = f"API key validation failed: {str(e)}"
-            print(f"Error: {error_msg}")
+            error_message = str(e)
+            print(f"Failed to create Gemini client: {error_message}")
             return jsonify({
-                "success": False,
-                "error": error_msg
-            })
+                "error": f"API key validation failed: {error_message}",
+                "success": False
+            }), 400
         
-        # Initialize session cache for this request
-        session_cache[session_id] = {
-            'created_at': time.time(),
-            'last_updated': time.time(),
-            'html_segments': [],
-            'generated_text': '',
-            'chunk_count': 0,
-            'user_content': content[:100000],  # Store for potential reconnection
-            'format_prompt': format_prompt,
-            'model': GEMINI_MODEL,
-            'max_tokens': max_tokens,
-            'temperature': temperature
-        }
-        
-        # Prepare prompt
+        # Prepare the prompt
         prompt = f"""
 {SYSTEM_INSTRUCTION}
 
@@ -114,168 +116,105 @@ Here is the content to transform into a website:
         
         print(f"Prepared prompt for Gemini with length: {len(prompt)}")
         
-        # Define the streaming response generator
-        def gemini_stream_generator():
-            try:
-                yield format_stream_event("stream_start", {"message": "Stream starting", "session_id": session_id})
-                
-                # Get the model
-                try:
-                    model = client.get_model(GEMINI_MODEL)
-                    print(f"Successfully retrieved Gemini model: {GEMINI_MODEL}")
-                except Exception as model_error:
-                    error_detail = f"Failed to get Gemini model: {str(model_error)}"
-                    print(f"Error: {error_detail}")
-                    yield format_stream_event("error", {
-                        "type": "error", 
-                        "error": "Model creation failed",
-                        "details": error_detail,
-                        "session_id": session_id
-                    })
-                    return
-                    
-                    # Configure generation parameters
-                    generation_config = {
-                        "max_output_tokens": max_tokens,
-                        "temperature": temperature,
-                        "top_p": GEMINI_TOP_P,
-                        "top_k": GEMINI_TOP_K
-                    }
-                    
-                print(f"Starting Gemini generation with config: {generation_config}")
-                
-                # Generate content
-                try:
-                    # For Vercel, use a simplified non-streaming approach to avoid timeout issues
-                    print("Using simplified non-streaming approach for Vercel compatibility")
-                    
-                    # Make a non-streaming request to the Gemini API
-                    response = model.generate_content(
-                        prompt,
-                        generation_config=generation_config,
-                        stream=False  # Force non-streaming for Vercel
-                    )
-                    
-                    # Extract the content text directly
-                    content_text = ""
-                    
-                    # Try multiple methods to extract text from the response
-                    try:
-                        if hasattr(response, 'text'):
-                            content_text = response.text
-                            print(f"Extracted text from 'text' attribute: {len(content_text)} chars")
-                        elif hasattr(response, 'parts') and response.parts:
-                            content_text = response.parts[0].text
-                            print(f"Extracted text from 'parts' attribute: {len(content_text)} chars")
-                        elif hasattr(response, 'candidates') and response.candidates:
-                            for candidate in response.candidates:
-                                if hasattr(candidate, 'content') and candidate.content:
-                                    if hasattr(candidate.content, 'parts') and candidate.content.parts:
-                                        for part in candidate.content.parts:
-                                            if hasattr(part, 'text'):
-                                                content_text += part.text
-                            print(f"Extracted text from 'candidates' attribute: {len(content_text)} chars")
-                        else:
-                            # Last resort: convert the entire response to string
-                            content_text = str(response)
-                            print(f"Extracted text using string conversion: {len(content_text)} chars")
-                    except Exception as text_error:
-                        # If all attempts fail, try using the resolve method
-                        print(f"Error extracting text: {str(text_error)}")
-                        try:
-                            if hasattr(response, 'resolve'):
-                                resolved = response.resolve()
-                                if hasattr(resolved, 'text'):
-                                    content_text = resolved.text
-                                    print(f"Extracted text through resolve: {len(content_text)} chars")
-                                elif hasattr(resolved, 'parts') and resolved.parts:
-                                    content_text = resolved.parts[0].text
-                                    print(f"Extracted text through resolve: {len(content_text)} chars")
-                        except Exception as resolve_error:
-                            print(f"Error resolving response: {str(resolve_error)}")
-                    
-                    # If we still don't have content, this is an error
-                    if not content_text:
-                        raise ValueError("Could not extract content from Gemini response")
-                    
-                    # Now simulate a stream in the format expected by the client
-                    # 1. Start stream event
-                    yield format_stream_event("stream_start", {"message": "Stream starting", "session_id": session_id})
-                    
-                    # 2. Send content delta (the full content at once)
-                    yield format_stream_event("content", {
-                        "type": "content_block_delta",
-                        "delta": {"text": content_text},
-                        "session_id": session_id,
-                        "chunk_id": f"{session_id}_1"
-                    })
-                    
-                    # 3. Send message complete event
-                    input_tokens = max(1, int(len(prompt.split()) * 1.3))
-                    output_tokens = max(1, int(len(content_text.split()) * 1.3))
-                    
-                    yield format_stream_event("content", {
-                        "type": "message_complete",
-                        "chunk_id": f"{session_id}_complete",
-                        "usage": {
-                            "input_tokens": input_tokens,
-                            "output_tokens": output_tokens,
-                            "total_tokens": input_tokens + output_tokens,
-                            "total_cost": 0.0
-                        },
-                        "html": content_text,
-                        "session_id": session_id
-                    })
-                    
-                    # 4. Send stream end event
-                    yield format_stream_event("stream_end", {
-                        "message": "Stream complete",
-                        "session_id": session_id
-                    })
-                    
-                    print(f"Successfully processed Gemini response with {len(content_text)} chars")
-
-                except Exception as e:
-                    error_message = str(e)
-                    print(f"Error in Gemini processing: {error_message}")
-                    print(traceback.format_exc())
-                    
-                    # Send error event to client
-                    yield format_stream_event("error", {
-                        "type": "error",
-                        "error": f"Gemini API error: {error_message}",
-                        "details": traceback.format_exc(),
-                        "session_id": session_id
-                    })
-                    
-            except Exception as e:
-                error_message = str(e)
-                print(f"Unexpected error in gemini_stream_generator: {error_message}")
-                print(traceback.format_exc())
-                
-                yield format_stream_event("error", {
-                    "type": "error",
-                    "error": error_message,
-                    "details": traceback.format_exc(),
-                    "session_id": session_id
-                })
+        # Get the model
+        model = genai.GenerativeModel(GEMINI_MODEL)
         
-        # Return the streaming response
-        return Response(
-            stream_with_context(gemini_stream_generator()),
-            content_type='text/event-stream'
-        )
+        # Configure generation parameters
+        generation_config = {
+            "max_output_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": GEMINI_TOP_P,
+            "top_k": GEMINI_TOP_K
+        }
         
-    except Exception as outer_error:
-        # Catch any exceptions that might occur outside the generator
-        error_message = str(outer_error)
-        print(f"Outer exception in process_gemini_stream: {error_message}")
+        try:
+            # Use GeminiStreamingResponse helper
+            return GeminiStreamingResponse(
+                model=model,
+                prompt=prompt,
+                generation_config=generation_config,
+                request_id=request_id,
+                start_time=start_time
+            ).stream_response()
+        except Exception as generation_error:
+            error_message = str(generation_error)
+            print(f"Error in streaming generation: {error_message}")
+            print(traceback.format_exc())
+            
+            return jsonify({
+                "error": f"Generation error: {error_message}",
+                "details": traceback.format_exc(),
+                "success": False
+            }), 500
+            
+    except Exception as e:
+        error_message = str(e)
+        print(f"Error in stream request: {error_message}")
         print(traceback.format_exc())
+        
         return jsonify({
-            'error': error_message,
-            'details': traceback.format_exc()
+            "error": f"Server error: {error_message}",
+            "details": traceback.format_exc(),
+            "success": False
         }), 500
 
-@app.route('/api/process-gemini-stream', methods=['POST'])
+@app.route('/api/process-gemini-stream', methods=['POST', 'OPTIONS'])
 def process_gemini_stream():
-    return handler(request) 
+    """
+    Process a streaming request using Google Gemini API.
+    """
+    return handler(request)
+
+# For AWS Lambda and Vercel serverless functions
+def vercel_handler(event, context):
+    """Handler for Vercel serverless deployment"""
+    # Avoid dot-env import issues in Vercel environment
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
+    
+    # Create a mock request object to pass to handler
+    class MockRequest:
+        def __init__(self, event):
+            self.event = event
+            self.method = event.get('method', 'POST')
+            self._json = json.loads(event.get('body', '{}')) if event.get('body') else {}
+            
+        def get_json(self):
+            return self._json
+    
+    # Process the request with our handler function
+    mock_request = MockRequest(event)
+    result = handler(mock_request)
+    
+    # Return a response that Vercel can understand
+    if isinstance(result, tuple):
+        response_body, status_code = result
+        if isinstance(response_body, Response):
+            return {
+                'statusCode': status_code,
+                'body': response_body.get_data(as_text=True),
+                'headers': dict(response_body.headers)
+            }
+        else:
+            return {
+                'statusCode': status_code,
+                'body': json.dumps(response_body),
+                'headers': {'Content-Type': 'application/json'}
+            }
+    else:
+        # Handle streaming responses or direct Response objects
+        if isinstance(result, Response):
+            return {
+                'statusCode': result.status_code,
+                'body': result.get_data(as_text=True),
+                'headers': dict(result.headers)
+            }
+        else:
+            return {
+                'statusCode': 200,
+                'body': json.dumps(result),
+                'headers': {'Content-Type': 'application/json'}
+            }
+
+if __name__ == "__main__":
+    # Run the Flask app for local development
+    app.run(host="0.0.0.0", port=5054, debug=True) 

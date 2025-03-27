@@ -1979,6 +1979,60 @@ def get_version():
         'timestamp': datetime.now().isoformat()
     })
 
+@app.route('/api/gemini-edge', methods=['POST', 'OPTIONS'])
+def proxy_gemini_edge():
+    """
+    Proxy route for Gemini Edge API requests.
+    Forwards requests to the standalone Gemini API.
+    """
+    if request.method == 'OPTIONS':
+        # Handle CORS preflight request
+        response = Response('')
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response
+        
+    try:
+        # Import the handler from process-gemini.py
+        from process_gemini import handler as gemini_handler
+        
+        # Forward the request to the handler
+        print("Forwarding request to Gemini Edge API handler")
+        return gemini_handler(request)
+    except Exception as e:
+        error_message = str(e)
+        print(f"Error proxying to Gemini Edge API: {error_message}")
+        print(traceback.format_exc())
+        return jsonify({"error": f"Server error: {error_message}"}), 500
+
+@app.route('/api/gemini-stream-edge', methods=['POST', 'OPTIONS'])
+def proxy_gemini_stream_edge():
+    """
+    Proxy route for Gemini Stream Edge API requests.
+    Forwards requests to the standalone Gemini Stream API.
+    """
+    if request.method == 'OPTIONS':
+        # Handle CORS preflight request
+        response = Response('')
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response
+        
+    try:
+        # Import the handler from process-gemini-stream.py
+        from process_gemini_stream import handler as gemini_stream_handler
+        
+        # Forward the request to the handler
+        print("Forwarding request to Gemini Stream Edge API handler")
+        return gemini_stream_handler(request)
+    except Exception as e:
+        error_message = str(e)
+        print(f"Error proxying to Gemini Stream Edge API: {error_message}")
+        print(traceback.format_exc())
+        return jsonify({"error": f"Server error: {error_message}"}), 500
+
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Start the File Visualizer server")

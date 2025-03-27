@@ -46,6 +46,7 @@
   ],
   "env": {
     "PYTHONUNBUFFERED": "1",
-    "VERCEL": "1"
+    "VERCEL": "1",
+    "PYTHONUTF8": "1"
   }
 } 
