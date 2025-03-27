@@ -17,7 +17,9 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.9",
-        "installCommand": "pip install -r requirements.txt"
+        "installCommand": "pip install -r requirements.txt",
+        "outputDirectory": "api",
+        "includeFiles": ["requirements.txt"]
       }
     },
     {
@@ -25,7 +27,9 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.9",
-        "installCommand": "pip install -r requirements.txt"
+        "installCommand": "pip install -r requirements.txt",
+        "outputDirectory": "api",
+        "includeFiles": ["requirements.txt"]
       }
     }
   ],
@@ -36,22 +40,22 @@
     },
     {
       "src": "/api/gemini-edge",
-      "methods": ["POST", "OPTIONS"],
+      "methods": ["POST", "OPTIONS", "GET"],
       "dest": "/api/gemini-edge.py",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Cache-Control": "no-cache, no-store, must-revalidate"
       }
     },
     {
       "src": "/api/gemini-stream-edge",
-      "methods": ["POST", "OPTIONS"],
+      "methods": ["POST", "OPTIONS", "GET"],
       "dest": "/api/gemini-stream-edge.py",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Cache-Control": "no-cache, no-store, must-revalidate"
       }
@@ -64,6 +68,7 @@
   "env": {
     "PYTHONUNBUFFERED": "1",
     "VERCEL": "1",
-    "PYTHONPATH": "/vercel/path0"
+    "PYTHONPATH": "/vercel/path0",
+    "PATH": "/vercel/path0/bin:${PATH}"
   }
 } 
