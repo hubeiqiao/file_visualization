@@ -4,10 +4,6 @@ import time
 import uuid
 import traceback
 import sys
-from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
 
 # Print environment details for debugging
 print(f"Python version: {sys.version}")
@@ -16,6 +12,17 @@ print(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
 print(f"Current working directory: {os.getcwd()}")
 print(f"Directory contents: {os.listdir('.')}")
 
+# Import FastAPI components
+try:
+    from fastapi import FastAPI, Request, Response, HTTPException
+    from fastapi.middleware.cors import CORSMiddleware
+    from pydantic import BaseModel, Field
+    from typing import Optional, Dict, Any, List
+    FASTAPI_AVAILABLE = True
+except ImportError:
+    print("FastAPI or related packages not available")
+    FASTAPI_AVAILABLE = False
+
 # Try to import Google Generative AI package
 try:
     import google.generativeai as genai
@@ -23,18 +30,6 @@ try:
 except ImportError:
     GEMINI_AVAILABLE = False
     print("Google Generative AI package not available")
-
-# Set up FastAPI app for the Edge function
-app = FastAPI()
-
-# Add CORS middleware to handle cross-origin requests
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["POST", "OPTIONS"],
-    allow_headers=["*"],
-)
 
 # Global constants for Gemini
 GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"  # Use the latest stable model
@@ -60,21 +55,35 @@ The HTML should:
 
 Make sure the HTML is valid, self-contained, and will render properly in modern browsers."""
 
-# Pydantic model for request validation
-class GeminiRequest(BaseModel):
-    api_key: str = Field(..., description="Google Gemini API key")
-    content: str = Field(..., description="Content to transform into HTML")
-    source: Optional[str] = Field(None, description="Alternative content field (for compatibility)")
-    format_prompt: Optional[str] = Field(None, description="Additional formatting instructions")
-    max_tokens: Optional[int] = Field(GEMINI_MAX_OUTPUT_TOKENS, description="Maximum output tokens")
-    temperature: Optional[float] = Field(GEMINI_TEMPERATURE, description="Temperature for generation")
-    file_name: Optional[str] = Field(None, description="Name of uploaded file")
-    file_content: Optional[str] = Field(None, description="Content of uploaded file")
+# Only create FastAPI app if FastAPI is available
+if FASTAPI_AVAILABLE:
+    # Set up FastAPI app for the Edge function
+    app = FastAPI()
 
-# Add a root endpoint for health check
-@app.get("/")
-async def root():
-    return {"status": "ok", "message": "Gemini Edge API is running"}
+    # Add CORS middleware to handle cross-origin requests
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
+
+    # Pydantic model for request validation
+    class GeminiRequest(BaseModel):
+        api_key: str = Field(..., description="Google Gemini API key")
+        content: str = Field(..., description="Content to transform into HTML")
+        source: Optional[str] = Field(None, description="Alternative content field (for compatibility)")
+        format_prompt: Optional[str] = Field(None, description="Additional formatting instructions")
+        max_tokens: Optional[int] = Field(GEMINI_MAX_OUTPUT_TOKENS, description="Maximum output tokens")
+        temperature: Optional[float] = Field(GEMINI_TEMPERATURE, description="Temperature for generation")
+        file_name: Optional[str] = Field(None, description="Name of uploaded file")
+        file_content: Optional[str] = Field(None, description="Content of uploaded file")
+
+    # Add a root endpoint for health check
+    @app.get("/")
+    async def root():
+        return {"status": "ok", "message": "Gemini Edge API is running"}
 
 async def process_request(request_data: GeminiRequest):
     """
@@ -261,16 +270,39 @@ async def options_gemini():
 def handler(event, context):
     # Import here to avoid dotenv issues with Vercel
     import os
-    from mangum import Mangum
     
-    # Ensure environment variables are set for Vercel without relying on dotenv
+    # Avoid any dotenv import attempts by directly setting environment variables
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
     
-    # Create Mangum handler
-    mangum_handler = Mangum(app)
-    return mangum_handler(event, context)
+    # Only attempt to use Mangum if FastAPI is available
+    if FASTAPI_AVAILABLE:
+        try:
+            from mangum import Mangum
+            mangum_handler = Mangum(app)
+            return mangum_handler(event, context)
+        except ImportError:
+            # Return error response if Mangum is not available
+            return {
+                'statusCode': 500,
+                'body': json.dumps({
+                    'error': 'Server setup error: Mangum not available',
+                    'success': False
+                })
+            }
+    else:
+        # Return error response if FastAPI is not available
+        return {
+            'statusCode': 500,
+            'body': json.dumps({
+                'error': 'Server setup error: FastAPI not available',
+                'success': False
+            })
+        }
 
 # For standalone execution
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5050) 
+    if FASTAPI_AVAILABLE:
+        import uvicorn
+        uvicorn.run(app, host="0.0.0.0", port=5050)
+    else:
+        print("Cannot run server: FastAPI is not available") 
