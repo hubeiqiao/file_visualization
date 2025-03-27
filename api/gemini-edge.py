@@ -259,7 +259,14 @@ async def options_gemini():
 
 # Handler for AWS Lambda and Vercel
 def handler(event, context):
+    # Import here to avoid dotenv issues with Vercel
+    import os
     from mangum import Mangum
+    
+    # Ensure environment variables are set for Vercel without relying on dotenv
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
+    
+    # Create Mangum handler
     mangum_handler = Mangum(app)
     return mangum_handler(event, context)
 
