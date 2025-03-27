@@ -113,15 +113,18 @@ def handler(request):
             "temperature": temperature,
             "top_p": GEMINI_TOP_P,
             "top_k": GEMINI_TOP_K,
-            "response_mime_type": "text/plain",
-            "system_instruction": SYSTEM_INSTRUCTION
+            "response_mime_type": "text/plain"
         }
         
         # Generate content
         try:
             print("Generating content with Gemini (non-streaming)")
+            
+            # Combine system instruction and prompt
+            full_prompt = f"{SYSTEM_INSTRUCTION}\n\nHere is the content to transform into a website:\n\n{prompt}"
+            
             response = model.generate_content(
-                prompt,
+                full_prompt,
                 generation_config=generation_config
             )
             

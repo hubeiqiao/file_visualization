@@ -116,18 +116,24 @@ def handler(request):
             "temperature": temperature,
             "top_p": GEMINI_TOP_P,
             "top_k": GEMINI_TOP_K,
-            "response_mime_type": "text/plain",
-            "system_instruction": SYSTEM_INSTRUCTION
+            "response_mime_type": "text/plain"
         }
         
         try:
+            # Combine system instruction and prompt
+            full_prompt = f"{SYSTEM_INSTRUCTION}\n\nHere is the content to transform into a website:\n\n{prompt}"
+            
+            # Generate the stream response
+            stream_response = model.generate_content(
+                full_prompt,
+                generation_config=generation_config,
+                stream=True
+            )
+            
             # Use GeminiStreamingResponse helper
             return GeminiStreamingResponse(
-                model=model,
-                prompt=prompt,
-                generation_config=generation_config,
-                request_id=request_id,
-                start_time=start_time
+                stream_response=stream_response,
+                session_id=request_id
             ).stream_response()
         except Exception as generation_error:
             error_message = str(generation_error)

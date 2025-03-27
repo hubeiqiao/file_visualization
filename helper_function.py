@@ -16,6 +16,42 @@ except ImportError:
     GEMINI_AVAILABLE = False
     print("Google Generative AI package not available. Some features may be limited.")
 
+# Helper function to format server-sent events
+def format_stream_event(event_type, data=None):
+    """
+    Format a server-sent event (SSE) with the given event type and data.
+    """
+    if data is None:
+        data = {}
+        
+    # Convert dict to string if necessary
+    if isinstance(data, dict):
+        data_str = json.dumps(data)
+    elif hasattr(data, '__dict__'):
+        # Handle objects by converting to dict
+        data_str = json.dumps(data.__dict__)
+    else:
+        data_str = str(data)
+    
+    # Format as SSE
+    event_lines = [f"event: {event_type}"]
+    
+    # Split data into smaller chunks to avoid issues with very long lines
+    MAX_LINE_LENGTH = 16384  # 16KB max line length
+    
+    # If data is very long, split it
+    if len(data_str) > MAX_LINE_LENGTH:
+        chunks = [data_str[i:i+MAX_LINE_LENGTH] for i in range(0, len(data_str), MAX_LINE_LENGTH)]
+        for i, chunk in enumerate(chunks):
+            event_lines.append(f"data: {chunk}")
+    else:
+        event_lines.append(f"data: {data_str}")
+    
+    event_lines.append("\n")
+    
+    # Join with newlines and return
+    return "\n".join(event_lines)
+
 def create_anthropic_client(api_key):
     """Create an Anthropic client with the given API key."""
     print(f"Creating Anthropic client with API key: {api_key[:8]}...")
@@ -288,6 +324,22 @@ class GeminiStreamingResponse:
                     "session_id": self.session_id
                 }
                 return format_stream_event("error", error_data)
+
+    def stream_response(self):
+        """
+        Return a Flask Response object with this streaming response.
+        This allows the class to be used directly in return statements.
+        """
+        from flask import Response, stream_with_context
+        
+        def generator():
+            for chunk in self:
+                yield chunk
+                
+        return Response(
+            stream_with_context(generator()),
+            content_type='text/event-stream'
+        )
 
 # Special client class for Vercel that doesn't use the standard Anthropic library
 class VercelCompatibleClient:
