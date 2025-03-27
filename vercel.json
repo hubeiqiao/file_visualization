@@ -13,21 +13,17 @@
       "use": "@vercel/static"
     },
     {
-      "src": "api/process-gemini.py",
+      "src": "api/gemini-edge.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9",
-        "handler": "process-gemini.Handler",
-        "maxDuration": 60
+        "runtime": "python3.9"
       }
     },
     {
-      "src": "api/process-gemini-stream.py",
+      "src": "api/gemini-stream-edge.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9",
-        "handler": "process-gemini-stream.Handler",
-        "maxDuration": 60
+        "runtime": "python3.9"
       }
     }
   ],
@@ -37,9 +33,9 @@
       "dest": "/static/$1"
     },
     {
-      "src": "/api/process-gemini",
+      "src": "/api/gemini-edge",
       "methods": ["POST", "OPTIONS"],
-      "dest": "/api/process-gemini.py",
+      "dest": "/api/gemini-edge.py",
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -48,9 +44,9 @@
       }
     },
     {
-      "src": "/api/process-gemini-stream",
+      "src": "/api/gemini-stream-edge",
       "methods": ["POST", "OPTIONS"],
-      "dest": "/api/process-gemini-stream.py",
+      "dest": "/api/gemini-stream-edge.py",
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -65,7 +61,6 @@
   ],
   "env": {
     "PYTHONUNBUFFERED": "1",
-    "VERCEL": "1",
-    "EDGE_CONFIG": "1"
+    "VERCEL": "1"
   }
 } 

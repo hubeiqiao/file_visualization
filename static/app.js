@@ -1151,6 +1151,111 @@ function updateUIForApiProvider(provider) {
     }
 }
 
+// Add non-streaming fallback for Gemini
+async function generateGeminiHTML(apiKey, source, formatPrompt, maxTokens, temperature) {
+    try {
+        // Calculate approximate input tokens right away (1.3 tokens per word)
+        const inputTokens = Math.max(1, Math.floor(source.split(' ').length * 1.3));
+        console.log('Estimated input tokens:', inputTokens);
+        
+        // Update token stats display with input tokens immediately
+        updateUsageStatistics({
+            input_tokens: inputTokens,
+            output_tokens: 0
+        });
+        
+        // Create the request body
+        const requestBody = {
+            api_key: apiKey,
+            content: source,
+            format_prompt: formatPrompt,
+            max_tokens: maxTokens,
+            temperature: temperature
+        };
+        
+        // Add file information for file uploads
+        if (state.activeTab === 'file' && state.file) {
+            requestBody.file_name = state.fileName;
+            requestBody.file_content = state.fileContent;
+        }
+        
+        // Make the non-streaming request with retry logic
+        console.log('Making fetch request to', `${API_URL}/api/gemini-edge`);
+        const response = await fetchWithRetry(
+            `${API_URL}/api/gemini-edge`, 
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            },
+            2,  // 2 retries
+            55000  // 55 second timeout (just under Vercel's 60s limit)
+        );
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Update UI with generated HTML
+        const html = data.html;
+        updateHtmlDisplay(html);
+        updatePreview(html);
+        
+        // Update usage statistics if available
+        if (data.usage) {
+            console.log('Received usage statistics from non-streaming API:', data.usage);
+            updateUsageStatistics(data.usage);
+        } else {
+            // If no usage data provided, estimate tokens
+            const estimatedInputTokens = Math.max(1, Math.floor(source.length / 3.5));
+            const estimatedOutputTokens = Math.max(1, Math.floor(html.length / 3.5));
+            
+            updateUsageStatistics({
+                input_tokens: estimatedInputTokens,
+                output_tokens: estimatedOutputTokens
+            });
+            
+            console.log('Updated with estimated token counts:', estimatedInputTokens, estimatedOutputTokens);
+        }
+        
+        // Save to state
+        state.generatedHtml = html;
+        
+        // Complete generation
+        console.log('Generation complete with Gemini (non-streaming)');
+        setProcessingText('Generation complete!');
+        state.processing = false;
+        stopElapsedTimeCounter();
+        stopProcessingAnimation();
+        disableInputsDuringGeneration(false);
+        
+        // Show completion toast
+        showToast('Website generated successfully!', 'success');
+        
+        return html;
+    } catch (error) {
+        console.error('Gemini generation error:', error);
+        
+        // Check if the error is related to a timeout
+        if (error.name === 'AbortError' || error.toString().includes('timeout') || 
+            (error.message && (error.message.includes('timeout') || error.message.includes('FUNCTION_INVOCATION_TIMEOUT')))) {
+            console.log('Request timed out, falling back to streaming mode');
+            
+            // Return null to indicate fallback to streaming should be used
+            return null;
+        }
+        
+        throw error;
+    }
+}
+
 // Add new function for Gemini streaming
 async function generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens, temperature) {
     console.log("Starting Gemini HTML generation with streaming...");
@@ -1188,12 +1293,12 @@ async function generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens,
         }
         
         // Start the streaming request with retry logic
-        console.log('Making fetch request to', `${API_URL}/api/process-gemini-stream`);
+        console.log('Making fetch request to', `${API_URL}/api/gemini-stream-edge`);
         const streamStartTime = Date.now();
         
         // Use fetchWithRetry but with a longer timeout for streaming
         const response = await fetchWithRetry(
-            `${API_URL}/api/process-gemini-stream`,
+            `${API_URL}/api/gemini-stream-edge`,
             {
                 method: 'POST',
                 headers: {
@@ -1335,114 +1440,6 @@ async function generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens,
         }
         
         // Otherwise, throw the error to be handled by the caller
-        throw error;
-    }
-}
-
-// Add non-streaming fallback for Gemini
-async function generateGeminiHTML(apiKey, source, formatPrompt, maxTokens, temperature) {
-    try {
-        // Calculate approximate input tokens right away (1.3 tokens per word)
-        const inputTokens = Math.max(1, Math.floor(source.split(' ').length * 1.3));
-        console.log('Estimated input tokens:', inputTokens);
-        
-        // Update token stats display with input tokens immediately
-        updateUsageStatistics({
-            input_tokens: inputTokens,
-            output_tokens: 0
-        });
-        
-        // Show processing message
-        setProcessingText('Processing with Google Gemini (non-streaming)...');
-        
-        // Create the request body
-        const requestBody = {
-            api_key: apiKey,
-            content: source,
-            format_prompt: formatPrompt,
-            max_tokens: maxTokens,
-            temperature: temperature
-        };
-        
-        // Add file information for file uploads
-        if (state.activeTab === 'file' && state.file) {
-            requestBody.file_name = state.fileName;
-            requestBody.file_content = state.fileContent;
-        }
-        
-        // Make the non-streaming request with retry logic
-        console.log('Making fetch request to', `${API_URL}/api/process-gemini`);
-        const response = await fetchWithRetry(
-            `${API_URL}/api/process-gemini`, 
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-            },
-            2,  // 2 retries
-            55000  // 55 second timeout (just under Vercel's 60s limit)
-        );
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.error) {
-            throw new Error(data.error);
-        }
-        
-        // Update UI with generated HTML
-        const html = data.html;
-        updateHtmlDisplay(html);
-        updatePreview(html);
-        
-        // Update usage statistics if available
-        if (data.usage) {
-            console.log('Received usage statistics from non-streaming API:', data.usage);
-            updateUsageStatistics(data.usage);
-        } else {
-            // If no usage data provided, estimate tokens
-            const estimatedInputTokens = Math.max(1, Math.floor(source.length / 3.5));
-            const estimatedOutputTokens = Math.max(1, Math.floor(html.length / 3.5));
-            
-            updateUsageStatistics({
-                input_tokens: estimatedInputTokens,
-                output_tokens: estimatedOutputTokens
-            });
-            
-            console.log('Updated with estimated token counts:', estimatedInputTokens, estimatedOutputTokens);
-        }
-        
-        // Save to state
-        state.generatedHtml = html;
-        
-        // Complete generation
-        console.log('Generation complete with Gemini (non-streaming)');
-        setProcessingText('Generation complete!');
-        state.processing = false;
-        stopElapsedTimeCounter();
-        stopProcessingAnimation();
-        disableInputsDuringGeneration(false);
-        
-        // Show completion toast
-        showToast('Website generated successfully!', 'success');
-        
-        return html;
-    } catch (error) {
-        console.error('Gemini generation error:', error);
-        
-        // Check if the error is related to a timeout
-        if (error.name === 'AbortError' || error.toString().includes('timeout') || 
-            (error.message && (error.message.includes('timeout') || error.message.includes('FUNCTION_INVOCATION_TIMEOUT')))) {
-            console.log('Request timed out, falling back to streaming mode');
-            
-            // Return null to indicate fallback to streaming should be used
-            return null;
-        }
-        
         throw error;
     }
 }
