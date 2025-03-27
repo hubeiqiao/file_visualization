@@ -6,6 +6,7 @@
       "use": "@vercel/python",
       "config": {
         "maxDuration": 60,
+        "runtime": "python3.10",
         "includeFiles": ["helper_function.py", "__init__.py"]
       }
     },
@@ -17,8 +18,8 @@
       "src": "api/*.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9",
-        "installCommand": "pip install -r requirements.txt --no-cache-dir",
+        "runtime": "python3.10",
+        "installCommand": "pip install -r api/requirements.txt -r requirements.txt --no-cache-dir",
         "handler": "handler"
       }
     }
