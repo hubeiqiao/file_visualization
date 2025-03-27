@@ -255,4 +255,15 @@ async def options_gemini():
             "Access-Control-Allow-Headers": "Content-Type, Authorization",
             "Access-Control-Max-Age": "86400",
         }
-    ) 
+    )
+
+# Handler for AWS Lambda and Vercel
+def handler(event, context):
+    from mangum import Mangum
+    mangum_handler = Mangum(app)
+    return mangum_handler(event, context)
+
+# For standalone execution
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5050) 

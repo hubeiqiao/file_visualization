@@ -5,7 +5,8 @@
       "src": "server.py",
       "use": "@vercel/python",
       "config": {
-        "maxDuration": 60
+        "maxDuration": 60,
+        "includeFiles": ["helper_function.py", "__init__.py"]
       }
     },
     {
@@ -13,23 +14,12 @@
       "use": "@vercel/static"
     },
     {
-      "src": "api/gemini-edge.py",
+      "src": "api/*.py",
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.9",
         "installCommand": "pip install -r requirements.txt",
-        "outputDirectory": "api",
-        "includeFiles": ["requirements.txt"]
-      }
-    },
-    {
-      "src": "api/gemini-stream-edge.py",
-      "use": "@vercel/python",
-      "config": {
-        "runtime": "python3.9",
-        "installCommand": "pip install -r requirements.txt",
-        "outputDirectory": "api",
-        "includeFiles": ["requirements.txt"]
+        "handler": "handler"
       }
     }
   ],
@@ -41,24 +31,12 @@
     {
       "src": "/api/gemini-edge",
       "methods": ["POST", "OPTIONS", "GET"],
-      "dest": "/api/gemini-edge.py",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Cache-Control": "no-cache, no-store, must-revalidate"
-      }
+      "dest": "/api/gemini-edge.py"
     },
     {
       "src": "/api/gemini-stream-edge",
       "methods": ["POST", "OPTIONS", "GET"],
-      "dest": "/api/gemini-stream-edge.py",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Cache-Control": "no-cache, no-store, must-revalidate"
-      }
+      "dest": "/api/gemini-stream-edge.py"
     },
     {
       "src": "/(.*)",
@@ -67,8 +45,6 @@
   ],
   "env": {
     "PYTHONUNBUFFERED": "1",
-    "VERCEL": "1",
-    "PYTHONPATH": "/vercel/path0",
-    "PATH": "/vercel/path0/bin:${PATH}"
+    "VERCEL": "1"
   }
 } 
