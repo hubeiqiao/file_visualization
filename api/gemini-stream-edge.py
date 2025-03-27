@@ -3,10 +3,20 @@ import json
 import time
 import uuid
 import traceback
+import sys
+import asyncio
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, AsyncGenerator
+
+# Print environment details for debugging
+print(f"Python version: {sys.version}")
+print(f"Python executable: {sys.executable}")
+print(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
+print(f"Current working directory: {os.getcwd()}")
+print(f"Directory contents: {os.listdir('.')}")
 
 # Try to import Google Generative AI package
 try:
@@ -361,4 +371,9 @@ async def options_gemini_stream():
             "Access-Control-Allow-Headers": "Content-Type, Authorization",
             "Access-Control-Max-Age": "86400",
         }
-    ) 
+    )
+
+# Add a root endpoint for health check
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "Gemini Stream Edge API is running"} 

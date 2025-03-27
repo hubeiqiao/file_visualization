@@ -3,10 +3,18 @@ import json
 import time
 import uuid
 import traceback
+import sys
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
+
+# Print environment details for debugging
+print(f"Python version: {sys.version}")
+print(f"Python executable: {sys.executable}")
+print(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
+print(f"Current working directory: {os.getcwd()}")
+print(f"Directory contents: {os.listdir('.')}")
 
 # Try to import Google Generative AI package
 try:
@@ -62,6 +70,11 @@ class GeminiRequest(BaseModel):
     temperature: Optional[float] = Field(GEMINI_TEMPERATURE, description="Temperature for generation")
     file_name: Optional[str] = Field(None, description="Name of uploaded file")
     file_content: Optional[str] = Field(None, description="Content of uploaded file")
+
+# Add a root endpoint for health check
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "Gemini Edge API is running"}
 
 async def process_request(request_data: GeminiRequest):
     """

@@ -16,14 +16,16 @@
       "src": "api/gemini-edge.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9"
+        "runtime": "python3.9",
+        "installCommand": "pip install -r requirements.txt"
       }
     },
     {
       "src": "api/gemini-stream-edge.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9"
+        "runtime": "python3.9",
+        "installCommand": "pip install -r requirements.txt"
       }
     }
   ],
@@ -61,6 +63,7 @@
   ],
   "env": {
     "PYTHONUNBUFFERED": "1",
-    "VERCEL": "1"
+    "VERCEL": "1",
+    "PYTHONPATH": "/vercel/path0"
   }
 } 
