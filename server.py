@@ -1994,12 +1994,12 @@ def proxy_gemini_edge():
         return response
         
     try:
-        # Import the handler from process-gemini.py
-        from process_gemini import handler as gemini_handler
+        # Import the handler from process-gemini.py with the correct path
+        import process_gemini
         
         # Forward the request to the handler
         print("Forwarding request to Gemini Edge API handler")
-        return gemini_handler(request)
+        return process_gemini.handler(request)
     except Exception as e:
         error_message = str(e)
         print(f"Error proxying to Gemini Edge API: {error_message}")
@@ -2021,12 +2021,12 @@ def proxy_gemini_stream_edge():
         return response
         
     try:
-        # Import the handler from process-gemini-stream.py
-        from process_gemini_stream import handler as gemini_stream_handler
+        # Import the handler from process-gemini-stream.py with the correct path
+        import process_gemini_stream
         
         # Forward the request to the handler
         print("Forwarding request to Gemini Stream Edge API handler")
-        return gemini_stream_handler(request)
+        return process_gemini_stream.handler(request)
     except Exception as e:
         error_message = str(e)
         print(f"Error proxying to Gemini Stream Edge API: {error_message}")

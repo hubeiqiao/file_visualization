@@ -391,6 +391,7 @@ Here is the content to transform into a website:
 def handler(event, context):
     # Import here to avoid dotenv issues with Vercel
     import os
+    import json
     
     # Avoid any dotenv import attempts by directly setting environment variables
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
@@ -399,25 +400,36 @@ def handler(event, context):
     if FASTAPI_AVAILABLE:
         try:
             from mangum import Mangum
-            mangum_handler = Mangum(app)
-            return mangum_handler(event, context)
-        except ImportError:
+            handler_instance = Mangum(app)
+            response = handler_instance(event, context)
+            return response
+        except ImportError as e:
+            print(f"Mangum import error: {str(e)}")
             # Return error response if Mangum is not available
             return {
                 'statusCode': 500,
                 'body': json.dumps({
                     'error': 'Server setup error: Mangum not available',
                     'success': False
-                })
+                }),
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
     else:
+        print("FastAPI not available")
         # Return error response if FastAPI is not available
         return {
             'statusCode': 500,
             'body': json.dumps({
                 'error': 'Server setup error: FastAPI not available',
                 'success': False
-            })
+            }),
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
         }
 
 # For standalone execution

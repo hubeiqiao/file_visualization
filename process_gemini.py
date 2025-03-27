@@ -33,7 +33,7 @@ You are a web developer specialized in converting content into beautiful, access
 Generate a single-page website from the given content.
 """
 
-# Only create Flask app if not imported from server.py
+# Initialize Flask app
 app = Flask(__name__)
 
 def handler(request):

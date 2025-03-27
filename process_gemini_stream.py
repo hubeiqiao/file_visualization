@@ -4,6 +4,7 @@ import sys
 import json
 import traceback
 import time
+import uuid
 
 # Add the parent directory to sys.path
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -19,7 +20,7 @@ GEMINI_TOP_K = 64
 
 # Import helper functions
 try:
-    from helper_function import create_gemini_client
+    from helper_function import create_gemini_client, GeminiStreamingResponse
     import google.generativeai as genai
     GEMINI_AVAILABLE = True
     print("Google Generative AI module is available")
@@ -33,13 +34,18 @@ You are a web developer specialized in converting content into beautiful, access
 Generate a single-page website from the given content.
 """
 
-# Only create Flask app if not imported from server.py
+# Initialize Flask app
 app = Flask(__name__)
 
 def handler(request):
     """
-    Handler function for both server.py and Vercel.
+    Handler function that processes streaming requests for both server.py and Vercel.
+    This can be called from server.py or directly by Vercel serverless functions.
     """
+    print("\n==== API PROCESS GEMINI STREAM REQUEST RECEIVED ====")
+    start_time = time.time()
+    request_id = str(uuid.uuid4())
+    
     # Check HTTP method
     if request.method == 'OPTIONS':
         # Handle CORS preflight request
@@ -49,10 +55,8 @@ def handler(request):
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
         return response
     
-    # Get the data from the request
-    print("\n==== API PROCESS GEMINI REQUEST RECEIVED ====")
-    
     try:
+        # Get the data from the request
         data = request.get_json()
         
         if not data:
@@ -75,7 +79,7 @@ def handler(request):
         max_tokens = int(data.get('max_tokens', GEMINI_MAX_OUTPUT_TOKENS))
         temperature = float(data.get('temperature', GEMINI_TEMPERATURE))
         
-        print(f"Processing Gemini request with max_tokens={max_tokens}, content_length={len(content) if content else 0}")
+        print(f"Processing Gemini stream request with max_tokens={max_tokens}, content_length={len(content)}")
         
         # Check if Gemini is available
         if not GEMINI_AVAILABLE:
@@ -89,11 +93,7 @@ def handler(request):
         try:
             # Configure the API
             genai.configure(api_key=api_key)
-            print(f"Successfully configured Gemini client with API key: {api_key[:4]}...")
-            
-            # Get the model
-            model = genai.GenerativeModel(GEMINI_MODEL)
-            print(f"Successfully retrieved Gemini model: {GEMINI_MODEL}")
+            print(f"Created Gemini client with API key: {api_key[:4]}...")
         except Exception as e:
             error_message = str(e)
             print(f"Failed to create Gemini client: {error_message}")
@@ -102,19 +102,22 @@ def handler(request):
                 "success": False
             }), 400
         
-        # Prepare user message with content and additional prompt
-        user_content = content
-        if format_prompt:
-            user_content = f"{user_content}\n\n{format_prompt}"
-        
-        # Create the prompt
+        # Prepare the prompt
         prompt = f"""
 {SYSTEM_INSTRUCTION}
 
 Here is the content to transform into a website:
 
-{user_content[:100000]}
+{content[:100000]}
 """
+        
+        if format_prompt:
+            prompt += f"\n\n{format_prompt}"
+        
+        print(f"Prepared prompt for Gemini with length: {len(prompt)}")
+        
+        # Get the model
+        model = genai.GenerativeModel(GEMINI_MODEL)
         
         # Configure generation parameters
         generation_config = {
@@ -124,101 +127,41 @@ Here is the content to transform into a website:
             "top_k": GEMINI_TOP_K
         }
         
-        # Generate content
         try:
-            print("Generating content with Gemini (non-streaming)")
-            response = model.generate_content(
-                prompt,
-                generation_config=generation_config
-            )
-            
-            # Extract the HTML from the response using multiple methods
-            html_content = ""
-            
-            try:
-                # Try standard text attribute first
-                if hasattr(response, 'text'):
-                    html_content = response.text
-                    print(f"Extracted content from text attribute: {len(html_content)} chars")
-                # Then try parts
-                elif hasattr(response, 'parts') and response.parts:
-                    for part in response.parts:
-                        if hasattr(part, 'text'):
-                            html_content += part.text
-                    print(f"Extracted content from parts: {len(html_content)} chars")
-                # Then check candidates
-                elif hasattr(response, 'candidates') and response.candidates:
-                    for candidate in response.candidates:
-                        if hasattr(candidate, 'content') and candidate.content:
-                            if hasattr(candidate.content, 'parts') and candidate.content.parts:
-                                for part in candidate.content.parts:
-                                    if hasattr(part, 'text'):
-                                        html_content += part.text
-                    print(f"Extracted content from candidates: {len(html_content)} chars")
-                else:
-                    # Last resort: try string conversion
-                    html_content = str(response)
-                    print(f"Extracted content using string conversion: {len(html_content)} chars")
-            except Exception as extract_error:
-                print(f"Error extracting content: {str(extract_error)}")
-                # Try the resolve method as a fallback
-                try:
-                    if hasattr(response, 'resolve'):
-                        resolved = response.resolve()
-                        if hasattr(resolved, 'text'):
-                            html_content = resolved.text
-                            print(f"Extracted content through resolve: {len(html_content)} chars")
-                except Exception as resolve_error:
-                    print(f"Error resolving response: {str(resolve_error)}")
-            
-            # If we still don't have content, this is an error
-            if not html_content:
-                raise ValueError("Could not extract content from Gemini response")
-            
-            # Get usage stats (approximate since Gemini doesn't provide exact token counts)
-            input_tokens = max(1, int(len(prompt.split()) * 1.3))
-            output_tokens = max(1, int(len(html_content.split()) * 1.3))
-            
-            # Log response
-            print(f"Successfully generated HTML with Gemini. Input tokens: {input_tokens}, Output tokens: {output_tokens}, Length: {len(html_content)} chars")
-            
-            # Return the response
-            return jsonify({
-                "success": True,
-                "html": html_content,
-                "model": GEMINI_MODEL,
-                "usage": {
-                    "input_tokens": input_tokens,
-                    "output_tokens": output_tokens,
-                    "total_tokens": input_tokens + output_tokens,
-                    "total_cost": 0.0  # Gemini API is currently free
-                }
-            })
-        
-        except Exception as e:
-            error_message = str(e)
-            print(f"Error in Gemini generation: {error_message}")
+            # Use GeminiStreamingResponse helper
+            return GeminiStreamingResponse(
+                model=model,
+                prompt=prompt,
+                generation_config=generation_config,
+                request_id=request_id,
+                start_time=start_time
+            ).stream_response()
+        except Exception as generation_error:
+            error_message = str(generation_error)
+            print(f"Error in streaming generation: {error_message}")
             print(traceback.format_exc())
+            
             return jsonify({
                 "error": f"Generation error: {error_message}",
                 "details": traceback.format_exc(),
                 "success": False
             }), 500
-    
+            
     except Exception as e:
         error_message = str(e)
-        print(f"Error in request handler: {error_message}")
+        print(f"Error in stream request: {error_message}")
         print(traceback.format_exc())
+        
         return jsonify({
             "error": f"Server error: {error_message}",
             "details": traceback.format_exc(),
             "success": False
         }), 500
 
-@app.route('/api/process-gemini', methods=['POST', 'OPTIONS'])
-def process_gemini():
+@app.route('/api/process-gemini-stream', methods=['POST', 'OPTIONS'])
+def process_gemini_stream():
     """
-    Process a request using Google Gemini API (non-streaming version).
+    Process a streaming request using Google Gemini API.
     """
     return handler(request)
 
@@ -258,7 +201,7 @@ def vercel_handler(event, context):
                 'headers': {'Content-Type': 'application/json'}
             }
     else:
-        # Handle direct Response objects
+        # Handle streaming responses or direct Response objects
         if isinstance(result, Response):
             return {
                 'statusCode': result.status_code,
@@ -274,4 +217,4 @@ def vercel_handler(event, context):
 
 if __name__ == "__main__":
     # Run the Flask app for local development
-    app.run(host="0.0.0.0", port=5053, debug=True) 
+    app.run(host="0.0.0.0", port=5054, debug=True) 
