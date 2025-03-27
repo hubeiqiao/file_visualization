@@ -352,29 +352,50 @@ def handler(request):
     """
     Handler function for Vercel Edge Function
     """
-    # Check for empty request
-    content_length = request.headers.get('Content-Length', '0')
-    if int(content_length) <= 0:
-        return {
-            'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json'
-            },
-            'body': json.dumps({
-                'error': 'Empty request body'
-            })
-        }
-    
     try:
-        # Parse the request body as JSON
-        request_body = request.get_data().decode('utf-8')
-        try:
-            request_data = json.loads(request_body)
-        except json.JSONDecodeError as e:
+        # Check if it's an OPTIONS request (CORS preflight)
+        if request.get('method', '').upper() == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Max-Age': '86400'
+                },
+                'body': ''
+            }
+            
+        # Check for empty request
+        if not request.get('body'):
+            print("Empty request received")
             return {
                 'statusCode': 400,
                 'headers': {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'error': 'Empty request body'
+                })
+            }
+        
+        # Parse the request body as JSON
+        try:
+            # Handle both string and byte body formats from Vercel
+            body = request.get('body', '')
+            if isinstance(body, bytes):
+                body = body.decode('utf-8')
+                
+            request_data = json.loads(body)
+            print(f"Parsed request data successfully: {type(request_data)}")
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {str(e)}")
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
                 },
                 'body': json.dumps({
                     'error': f'Invalid JSON in request body: {str(e)}'
@@ -383,10 +404,12 @@ def handler(request):
         
         # Validate request data format
         if not isinstance(request_data, dict):
+            print(f"Invalid request data format: {type(request_data)}")
             return {
                 'statusCode': 400,
                 'headers': {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
                 },
                 'body': json.dumps({
                     'error': 'Request data must be a JSON object'
@@ -396,10 +419,12 @@ def handler(request):
         # Validate API key
         api_key = request_data.get('api_key')
         if not api_key or not isinstance(api_key, str) or len(api_key) < 10:
+            print("Invalid API key format")
             return {
                 'statusCode': 400,
                 'headers': {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
                 },
                 'body': json.dumps({
                     'error': 'Invalid API key'
@@ -411,32 +436,39 @@ def handler(request):
         source = request_data.get('source')
         if (not content or not isinstance(content, str) or not content.strip()) and \
            (not source or not isinstance(source, str) or not source.strip()):
+            print("Missing content or source")
             return {
                 'statusCode': 400,
                 'headers': {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
                 },
                 'body': json.dumps({
                     'error': 'Content or source must be provided and must be a non-empty string'
                 })
             }
         
-        # Setup streaming response
-        def generate_stream():
-            for event in process_stream_request(request_data):
-                yield event
+        # Process request and convert generator to list for Vercel response
+        # Note: This is a workaround as Vercel Edge Functions don't support
+        # streaming responses directly as generators
+        print("Processing streaming request...")
+        events = []
+        for event in process_stream_request(request_data):
+            events.append(event)
         
-        # Return the streaming response
+        # Return a response with all events
+        # This is not true streaming, but collects all events and returns them at once
         return {
             'statusCode': 200,
             'headers': {
-                'Content-Type': 'text/event-stream',
+                'Content-Type': 'application/json',
                 'Cache-Control': 'no-cache',
-                'Connection': 'keep-alive',
-                'X-Accel-Buffering': 'no',  # Disable buffering for Nginx
                 'Access-Control-Allow-Origin': '*'
             },
-            'body': generate_stream()
+            'body': json.dumps({
+                'events': events,
+                'success': True
+            })
         }
     except Exception as e:
         print(f"Error in handler: {str(e)}")
@@ -444,7 +476,8 @@ def handler(request):
         return {
             'statusCode': 500,
             'headers': {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
                 'error': f'Server error: {str(e)}',

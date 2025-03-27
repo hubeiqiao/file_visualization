@@ -231,98 +231,84 @@ Here is the content to transform into a website:
 
 def handler(request):
     """
-    Handler function for Vercel Edge Function
+    Handler function for processing requests.
     """
-    # Check for empty request
-    content_length = request.headers.get('Content-Length', '0')
-    if int(content_length) <= 0:
-        response_data = {
-            'error': 'Empty request body'
-        }
-        return {
-            'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json'
-            },
-            'body': json.dumps(response_data)
-        }
-    
     try:
+        # Check if it's an OPTIONS request (CORS preflight)
+        if request.get('method', '').upper() == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Max-Age': '86400'
+                },
+                'body': ''
+            }
+            
+        # Check for empty request
+        if not request.get('body'):
+            print("Empty request received")
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'error': 'Empty request body'
+                })
+            }
+        
         # Parse the request body as JSON
-        request_body = request.get_data().decode('utf-8')
-        request_data = json.loads(request_body)
-    except json.JSONDecodeError as e:
-        response_data = {
-            'error': f'Invalid JSON in request body: {str(e)}'
-        }
+        try:
+            # Handle both string and byte body formats from Vercel
+            body = request.get('body', '')
+            if isinstance(body, bytes):
+                body = body.decode('utf-8')
+                
+            request_data = json.loads(body)
+            print(f"Parsed request data successfully: {type(request_data)}")
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {str(e)}")
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'error': f'Invalid JSON in request body: {str(e)}'
+                })
+            }
+        
+        # Process the request with our helper function
+        result = process_request(request_data)
+        
+        # Return the JSON response
         return {
-            'statusCode': 400,
+            'statusCode': 200,
             'headers': {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
             },
-            'body': json.dumps(response_data)
+            'body': json.dumps(result)
         }
-    
-    # Validate request data format
-    if not isinstance(request_data, dict):
-        response_data = {
-            'error': 'Request data must be a JSON object'
-        }
+    except Exception as e:
+        print(f"Error in handler: {str(e)}")
+        print(traceback.format_exc())
         return {
-            'statusCode': 400,
+            'statusCode': 500,
             'headers': {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
             },
-            'body': json.dumps(response_data)
+            'body': json.dumps({
+                'error': f'Server error: {str(e)}'
+            })
         }
-    
-    # Validate API key
-    api_key = request_data.get('api_key')
-    if not api_key or not isinstance(api_key, str) or len(api_key) < 10:
-        response_data = {
-            'error': 'Invalid API key'
-        }
-        return {
-            'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json'
-            },
-            'body': json.dumps(response_data)
-        }
-    
-    # Validate content or source
-    content = request_data.get('content')
-    source = request_data.get('source')
-    if (not content or not isinstance(content, str) or not content.strip()) and \
-       (not source or not isinstance(source, str) or not source.strip()):
-        response_data = {
-            'error': 'Content or source must be provided and must be a non-empty string'
-        }
-        return {
-            'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json'
-            },
-            'body': json.dumps(response_data)
-        }
-    
-    # Validate format_prompt is a string if provided
-    format_prompt = request_data.get('format_prompt', '')
-    if format_prompt and not isinstance(format_prompt, str):
-        format_prompt = str(format_prompt)
-        request_data['format_prompt'] = format_prompt
-    
-    # Process the request
-    response_data, status_code = process_request(request_data)
-    
-    # Return the response
-    return {
-        'statusCode': status_code,
-        'headers': {
-            'Content-Type': 'application/json'
-        },
-        'body': json.dumps(response_data)
-    }
 
 # For local development using Flask
 # This will be ignored when deployed to Vercel

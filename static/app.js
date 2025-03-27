@@ -1210,190 +1210,119 @@ async function generateGeminiHTMLStream(apiKey, source, formatPrompt, maxTokens,
             throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
         }
         
-        // Get a reader for the stream
-        const reader = response.body.getReader();
-        let decoder = new TextDecoder();
+        // Parse the response as JSON (this is the new format, not a stream)
+        const responseData = await response.json();
+        
+        if (!responseData || !responseData.events || !Array.isArray(responseData.events)) {
+            throw new Error("Invalid response format from server");
+        }
+        
+        // Process the events in sequence
         let htmlBuffer = '';
-        let lastProcessedTime = Date.now();
-        let isCompletionSeen = false;
-        let hasReceivedContent = false;
-        let keepaliveCounter = 0;
-        let timeoutCounter = 0;
+        let usageStats = null;
         
-        // Start a regular check for stream health
-        const healthCheckInterval = setInterval(() => {
-            const now = Date.now();
-            const timeSinceLastKeepalive = now - lastKeepAliveTime;
-            
-            // If no content received for 15 seconds, consider increasing timeout counter
-            if (timeSinceLastKeepalive > 15000) {
-                timeoutCounter++;
-                console.warn(`No data received for ${Math.floor(timeSinceLastKeepalive/1000)}s (timeout counter: ${timeoutCounter})`);
+        // Process each event from the array
+        for (const eventStr of responseData.events) {
+            try {
+                // Since we get a pre-formatted SSE string, we need to extract the JSON
+                // The format is typically "data: {json}\n\n"
+                if (typeof eventStr !== 'string' || !eventStr.startsWith('data: ')) {
+                    continue;
+                }
                 
-                // After 3 timeouts (45 seconds total), consider the stream dead
-                if (timeoutCounter >= 3) {
-                    console.error("Stream appears to be dead, proceeding with what we have or showing an error");
-                    clearInterval(healthCheckInterval);
+                const jsonStr = eventStr.substring(6).trim();
+                const eventData = JSON.parse(jsonStr);
+                
+                // Handle different event types the same way we did for true streaming
+                if (eventData.type === 'content_block_delta' || eventData.type === 'content') {
+                    // Add the text to our buffer
+                    const text = eventData.delta?.text || eventData.chunk || '';
                     
-                    // If we have content, use it
+                    if (text) {
+                        htmlBuffer += text;
+                        generatedContent += text;
+                        
+                        // Update the UI with the HTML received so far - do this every few chunks
+                        // instead of every chunk to avoid excessive rendering
+                        if (htmlBuffer.length % 1000 < 10) {
+                            updateHtmlDisplay(htmlBuffer);
+                        }
+                        
+                        // Save to state immediately so it's available
+                        state.generatedHtml = generatedContent;
+                        
+                        // Update processing text
+                        setProcessingText(`Gemini is generating your visualization... (${formatFileSize(htmlBuffer.length)} generated)`);
+                    }
+                } else if (eventData.type === 'message_complete') {
+                    // Update usage statistics if available
+                    if (eventData.usage) {
+                        console.log('Received usage statistics:', eventData.usage);
+                        usageStats = eventData.usage;
+                    }
+                    
+                    // If the completion has HTML content, use it
+                    if (eventData.html && eventData.html.trim()) {
+                        console.log('Using complete HTML from completion event');
+                        // Use the complete HTML from the event, which might have better formatting
+                        generatedContent = eventData.html;
+                        state.generatedHtml = generatedContent;
+                    }
+                } else if (eventData.type === 'error') {
+                    // If we have some content, log the error but continue
                     if (htmlBuffer) {
-                        console.log(`Using partial content (${htmlBuffer.length} chars) despite stream failure`);
-                        
-                        // This will be processed later in the catch block
-                        reader.cancel().catch(e => console.error("Error canceling reader:", e));
+                        console.warn(`Error during processing but content received: ${eventData.error}`);
+                    } else {
+                        throw new Error(eventData.error || 'Unknown streaming error');
                     }
                 }
+            } catch (parseError) {
+                console.error('Error parsing event:', parseError);
             }
-        }, 5000);
-        
-        // Process stream chunks
-        try {
-            while (true) {
-                const { done, value } = await reader.read();
-                
-                // Consider the stream complete if we're done or if we haven't received data in 20 seconds (increased from 15)
-                const currentTime = Date.now();
-                const timeoutExceeded = currentTime - lastProcessedTime > 20000; // 20 seconds
-                
-                if (done || timeoutExceeded) {
-                    if (timeoutExceeded && !isCompletionSeen) {
-                        console.log('Stream timed out, but we have content - proceeding with what we have');
-                        
-                        // Update with what we have so far
-                        if (htmlBuffer) {
-                            generatedContent = htmlBuffer;
-                            state.generatedHtml = generatedContent;
-                        }
-                    }
-                    
-                    console.log('Stream complete or timed out');
-                    break;
-                }
-                
-                // Reset timeout tracker
-                lastProcessedTime = currentTime;
-                timeoutCounter = 0; // Reset timeout counter since we got data
-                lastKeepAliveTime = currentTime;
-                
-                // Decode the chunk
-                const chunk = decoder.decode(value, { stream: true });
-                
-                // Process each line in the chunk
-                const lines = chunk.split('\n');
-                for (const line of lines) {
-                    if (!line.trim() || !line.startsWith('data: ')) continue;
-                    
-                    try {
-                        // Extract the JSON data
-                        const eventData = JSON.parse(line.substring(6));
-                        
-                        // Handle different event types
-                        if (eventData.type === 'content_block_delta' || eventData.type === 'content') {
-                            // Add the text to our buffer
-                            const text = eventData.delta?.text || eventData.chunk || '';
-                            
-                            if (text) {
-                                htmlBuffer += text;
-                                generatedContent += text;
-                                hasReceivedContent = true;
-                            
-                                // Update the UI with the HTML received so far
-                                updateHtmlDisplay(htmlBuffer);
-                            
-                                // Save to state immediately so it's available
-                                state.generatedHtml = generatedContent;
-                            
-                                // Update processing text
-                                setProcessingText(`Gemini is generating your visualization... (${formatFileSize(htmlBuffer.length)} generated)`);
-                            }
-                        } else if (eventData.type === 'message_complete') {
-                            isCompletionSeen = true;
-                            // Update usage statistics if available
-                            if (eventData.usage) {
-                                console.log('Received usage statistics:', eventData.usage);
-                                updateUsageStatistics(eventData.usage);
-                            }
-                            
-                            // If the completion has HTML content, use it
-                            if (eventData.html && eventData.html.trim()) {
-                                console.log('Using complete HTML from completion event');
-                                // Use the complete HTML from the event, which might have better formatting
-                                generatedContent = eventData.html;
-                                state.generatedHtml = generatedContent;
-                                updateHtmlDisplay(generatedContent);
-                            }
-                        } else if (eventData.type === 'keepalive') {
-                            // Track keepalives for debugging
-                            keepaliveCounter++;
-                            lastKeepAliveTime = currentTime;
-                            console.log(`Received keepalive ${keepaliveCounter}, content length: ${htmlBuffer.length}`);
-                        } else if (eventData.type === 'error') {
-                            // If we have a deadline exceeded error but already have content
-                            if (eventData.error && (eventData.error.includes('Deadline Exceeded') || 
-                                                  eventData.error.includes('timeout') || 
-                                                  eventData.error.includes('timed out')) && htmlBuffer) {
-                                console.warn('Deadline exceeded but content received - continuing with what we have');
-                                // Don't throw an error, just log it and continue
-                            } else if (hasReceivedContent) {
-                                // If we have content, log the error but continue
-                                console.warn(`Error during streaming but we have content: ${eventData.error}`);
-                            } else {
-                                throw new Error(eventData.error || 'Unknown streaming error');
-                            }
-                        }
-                    } catch (parseError) {
-                        console.error('Error parsing stream event:', parseError, line);
-                    }
-                }
-            }
-        } finally {
-            // Clean up the health check
-            clearInterval(healthCheckInterval);
         }
         
-        // Measure total time
-        const totalTime = (Date.now() - streamStartTime) / 1000;
-        console.log(`Gemini stream processing completed in ${totalTime.toFixed(1)} seconds`);
-        
-        // Check if we have any content
-        if (!generatedContent) {
-            throw new Error('No content received from Gemini API. Please try again or check your API key.');
+        // Final update to display
+        if (generatedContent) {
+            updateHtmlDisplay(generatedContent);
+            updatePreview(generatedContent);
         }
         
-        // Update the HTML display with the final content
-        updateHtmlDisplay(generatedContent);
-        updatePreview(generatedContent);
+        // Update usage statistics at the end
+        if (usageStats) {
+            updateUsageStatistics(usageStats);
+        } else {
+            // Estimate token usage if not provided
+            const outputTokens = Math.max(1, Math.floor(generatedContent.length / 3.5));
+            updateUsageStatistics({
+                input_tokens: inputTokens,
+                output_tokens: outputTokens
+            });
+        }
         
-        // Set final state
-        state.generatedHtml = generatedContent;
-        
-        // Update UI to show completion
+        // Complete generation
+        console.log('Generation complete with Gemini');
         setProcessingText('Generation complete!');
         state.processing = false;
         stopElapsedTimeCounter();
         stopProcessingAnimation();
         disableInputsDuringGeneration(false);
         
-        // Show success toast
-        showToast('Website generated successfully with streaming!', 'success');
+        // Show completion toast
+        showToast('Website generated successfully!', 'success');
         
         return generatedContent;
     } catch (error) {
         console.error('Error in Gemini streaming:', error);
         
-        // If we have partial content, consider that a success
+        // If we have some content, we can still use it
         if (generatedContent) {
-            console.log('Despite error, we have generated content - proceeding with what we have');
+            console.log(`Using partial content (${generatedContent.length} chars) despite error`);
             
-            // Update the HTML display with what we have
+            // Update UI with what we have
             updateHtmlDisplay(generatedContent);
             updatePreview(generatedContent);
             
-            // Set final state
-            state.generatedHtml = generatedContent;
-            
-            // Update UI to show completion
-            setProcessingText('Generation complete with partial content!');
+            // Reset UI state
             state.processing = false;
             stopElapsedTimeCounter();
             stopProcessingAnimation();

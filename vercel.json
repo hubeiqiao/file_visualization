@@ -17,11 +17,8 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.9",
-        "handler": "process-gemini.Handler",
-        "maxDuration": 60,
-        "environment": {
-          "EDGE": "1"
-        }
+        "handler": "process-gemini.handler",
+        "maxDuration": 60
       }
     },
     {
@@ -29,11 +26,8 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.9",
-        "handler": "process-gemini-stream.Handler",
-        "maxDuration": 60,
-        "environment": {
-          "EDGE": "1"
-        }
+        "handler": "process-gemini-stream.handler",
+        "maxDuration": 60
       }
     }
   ],
@@ -46,8 +40,10 @@
       "src": "/api/process-gemini",
       "methods": ["POST", "OPTIONS"],
       "dest": "/api/process-gemini.py",
-      "continue": true,
       "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Cache-Control": "no-cache, no-store, must-revalidate"
       }
     },
@@ -55,12 +51,11 @@
       "src": "/api/process-gemini-stream",
       "methods": ["POST", "OPTIONS"],
       "dest": "/api/process-gemini-stream.py",
-      "continue": true,
       "headers": {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Connection": "keep-alive",
-        "Transfer-Encoding": "chunked",
-        "X-Accel-Buffering": "no"
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Cache-Control": "no-cache, no-store, must-revalidate"
       }
     },
     {
