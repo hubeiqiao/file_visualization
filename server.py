@@ -1,12 +1,16 @@
+import threading
+
 from flask import Flask, request, jsonify, Response, stream_with_context, send_from_directory
 from flask_cors import CORS
-from helper_function import create_anthropic_client
+from helper_function import create_anthropic_client, create_gemini_client, GeminiStreamingResponse
 import anthropic
 import json
 import os
 import re
 import time
 import traceback
+from google import genai
+from google.genai import types
 # Updated import to be compatible with different versions of the Anthropic library
 try:
     from anthropic.types import TextBlock, MessageParam
@@ -23,9 +27,22 @@ import base64
 import random 
 import socket
 import argparse
-import sys
 import logging
 from datetime import datetime
+
+# Import version
+try:
+    from . import __version__
+except ImportError:
+    __version__ = "0.4.5"  # Fallback version
+
+# Import Google Generative AI package
+try:
+    #import google.generativeai as genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+    print("Google Generative AI package not available. Some features may be limited.")
 
 # Initialize Flask app
 app = Flask(__name__, static_folder='static')
@@ -34,6 +51,9 @@ CORS(app)  # Enable CORS for all routes
 # Set higher request timeout limits for Flask server
 app.config['TIMEOUT'] = 1800  # 30 minutes timeout
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max content size
+
+#
+result_cache = {}
 
 # Simple in-memory session cache (for production, consider Redis)
 session_cache = {}
@@ -68,9 +88,22 @@ MIN_BACKOFF_DELAY = 1  # Start with 1 second delay (reduced from 2)
 MAX_BACKOFF_DELAY = 45  # Max 45 seconds delay (reduced from 60)
 BACKOFF_FACTOR = 1.3  # Use 1.3 instead of 1.5 for more gradual increase
 
+# Gemini-specific settings
+GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"
+GEMINI_MAX_OUTPUT_TOKENS = 655360
+GEMINI_TEMPERATURE = 1.0 
+GEMINI_TOP_P = 0.95
+GEMINI_TOP_K = 64
+
+# Same system instruction for both APIs
+SYSTEM_INSTRUCTION = """I will provide you with a file or a content, analyze its content, and transform it into a visually appealing and well-structured webpage.### Content Requirements* Maintain the core information from the original file while presenting it in a clearer and more visually engaging format.⠀Design Style* Follow a modern and minimalistic design inspired by Linear App.* Use a clear visual hierarchy to emphasize important content.* Adopt a professional and harmonious color scheme that is easy on the eyes for extended reading.⠀Technical Specifications* Use HTML5, TailwindCSS 3.0+ (via CDN), and necessary JavaScript.* Implement a fully functional dark/light mode toggle, defaulting to the system setting.* Ensure clean, well-structured code with appropriate comments for easy understanding and maintenance.⠀Responsive Design* The page must be fully responsive, adapting seamlessly to mobile, tablet, and desktop screens.* Optimize layout and typography for different screen sizes.* Ensure a smooth and intuitive touch experience on mobile devices.⠀Icons & Visual Elements* Use professional icon libraries like Font Awesome or Material Icons (via CDN).* Integrate illustrations or charts that best represent the content.* Avoid using emojis as primary icons.* Check if any icons cannot be loaded.⠀User Interaction & ExperienceEnhance the user experience with subtle micro-interactions:* Buttons should have slight enlargement and color transitions on hover.* Cards should feature soft shadows and border effects on hover.* Implement smooth scrolling effects throughout the page.* Content blocks should have an elegant fade-in animation on load.⠀Performance Optimization* Ensure fast page loading by avoiding large, unnecessary resources.* Use modern image formats (WebP) with proper compression.* Implement lazy loading for content-heavy pages.⠀Output Requirements* Deliver a fully functional standalone HTML file, including all necessary CSS and JavaScript.* Ensure the code meets W3C standards with no errors or warnings.* Maintain consistent design and functionality across different browsers.* Your output is only one HTML file, do not present any other notes on the HTML. Also, try your best to visualize the whole content.⠀Create the most effective and visually appealing webpage based on the uploaded file's content type (document, data, images, etc.)."""
+
 @app.route('/')
 def serve_index():
-    return send_from_directory('static', 'index.html')
+    """Serve the main index.html file with version information in headers."""
+    response = send_from_directory('static', 'index.html')
+    response.headers['X-App-Version'] = __version__
+    return response
 
 @app.route('/<path:path>')
 def static_files(path):
@@ -170,7 +203,7 @@ def process():
                 "model": model,
                 "max_tokens": max_tokens,
                 "temperature": temperature,
-                "system": "I will provide you with a file or a content, analyze its content, and transform it into a visually appealing and well-structured webpage.### Content Requirements* Maintain the core information from the original file while presenting it in a clearer and more visually engaging format.⠀Design Style* Follow a modern and minimalistic design inspired by Linear App.* Use a clear visual hierarchy to emphasize important content.* Adopt a professional and harmonious color scheme that is easy on the eyes for extended reading.⠀Technical Specifications* Use HTML5, TailwindCSS 3.0+ (via CDN), and necessary JavaScript.* Implement a fully functional dark/light mode toggle, defaulting to the system setting.* Ensure clean, well-structured code with appropriate comments for easy understanding and maintenance.⠀Responsive Design* The page must be fully responsive, adapting seamlessly to mobile, tablet, and desktop screens.* Optimize layout and typography for different screen sizes.* Ensure a smooth and intuitive touch experience on mobile devices.⠀Icons & Visual Elements* Use professional icon libraries like Font Awesome or Material Icons (via CDN).* Integrate illustrations or charts that best represent the content.* Avoid using emojis as primary icons.* Check if any icons cannot be loaded.⠀User Interaction & ExperienceEnhance the user experience with subtle micro-interactions:* Buttons should have slight enlargement and color transitions on hover.* Cards should feature soft shadows and border effects on hover.* Implement smooth scrolling effects throughout the page.* Content blocks should have an elegant fade-in animation on load.⠀Performance Optimization* Ensure fast page loading by avoiding large, unnecessary resources.* Use modern image formats (WebP) with proper compression.* Implement lazy loading for content-heavy pages.⠀Output Requirements* Deliver a fully functional standalone HTML file, including all necessary CSS and JavaScript.* Ensure the code meets W3C standards with no errors or warnings.* Maintain consistent design and functionality across different browsers.⠀Create the most effective and visually appealing webpage based on the uploaded file's content type (document, data, images, etc.).",
+                "system": "I will provide you with a file or a content, analyze its content, and transform it into a visually appealing and well-structured webpage.### Content Requirements* Maintain the core information from the original file while presenting it in a clearer and more visually engaging format.⠀Design Style* Follow a modern and minimalistic design inspired by Linear App.* Use a clear visual hierarchy to emphasize important content.* Adopt a professional and harmonious color scheme that is easy on the eyes for extended reading.⠀Technical Specifications* Use HTML5, TailwindCSS 3.0+ (via CDN), and necessary JavaScript.* Implement a fully functional dark/light mode toggle, defaulting to the system setting.* Ensure clean, well-structured code with appropriate comments for easy understanding and maintenance.⠀Responsive Design* The page must be fully responsive, adapting seamlessly to mobile, tablet, and desktop screens.* Optimize layout and typography for different screen sizes.* Ensure a smooth and intuitive touch experience on mobile devices.⠀Icons & Visual Elements* Use professional icon libraries like Font Awesome or Material Icons (via CDN).* Integrate illustrations or charts that best represent the content.* Avoid using emojis as primary icons.* Check if any icons cannot be loaded.⠀User Interaction & ExperienceEnhance the user experience with subtle micro-interactions:* Buttons should have slight enlargement and color transitions on hover.* Cards should feature soft shadows and border effects on hover.* Implement smooth scrolling effects throughout the page.* Content blocks should have an elegant fade-in animation on load.⠀Performance Optimization* Ensure fast page loading by avoiding large, unnecessary resources.* Use modern image formats (WebP) with proper compression.* Implement lazy loading for content-heavy pages.⠀Output Requirements* Deliver a fully functional standalone HTML file, including all necessary CSS and JavaScript.* Ensure the code meets W3C standards with no errors or warnings.* Maintain consistent design and functionality across different browsers.* Your output is only one HTML file, do not present any other notes on the HTML. Also, try your best to visualize the whole content.⠀Create the most effective and visually appealing webpage based on the uploaded file's content type (document, data, images, etc.).",
                 "messages": [{"role": "user", "content": user_content}],
             }
             
@@ -275,48 +308,87 @@ def validate_key():
         return jsonify({"valid": False, "message": "API key is required"}), 400
     
     api_key = data['api_key']
+    api_type = data.get('api_type', 'anthropic')  # Default to Anthropic for backward compatibility
     print(f"Request JSON: {data}")
     
     # Basic format validation
     if not api_key or not api_key.strip():
         return jsonify({"valid": False, "message": "API key cannot be empty"}), 400
     
-    # Check if the API key has a valid format (starts with sk-ant)
-    if not api_key.startswith('sk-ant'):
-        return jsonify({
-            "valid": False, 
-            "message": "API key format is invalid. It should start with 'sk-ant'"
-        }), 400
-    
-    print(f"API key format is valid: {api_key[:10]}...")
-    
-    try:
-        # Try to create a client to validate the key
-        client = create_anthropic_client(api_key)
-        
-        # For security, we don't actually make an API call here
-        # Just successfully creating the client is enough validation
-        
-        return jsonify({
-            "valid": True,
-            "message": "API key is valid"
-        })
-    except Exception as e:
-        error_message = str(e)
-        print(f"API key validation error: {error_message}")
-        
-        # Check for specific error messages
-        if "proxies" in error_message.lower():
-            print(f"Proxies error detected: {error_message}")
-            # This is a client configuration issue, not an invalid key
+    # Different validation based on API type
+    if api_type == 'anthropic':
+        # Check if the API key has a valid format (starts with sk-ant)
+        if not api_key.startswith('sk-ant'):
             return jsonify({
-                "valid": True,  # Consider the key valid despite the client error
-                "message": "API key format is valid, but there was a client configuration issue"
-            })
+                "valid": False, 
+                "message": "Anthropic API key format is invalid. It should start with 'sk-ant'"
+            }), 400
         
+        print(f"Anthropic API key format is valid: {api_key[:10]}...")
+        
+        try:
+            # Try to create a client to validate the key
+            client = create_anthropic_client(api_key)
+            
+            # For security, we don't actually make an API call here
+            # Just successfully creating the client is enough validation
+            
+            return jsonify({
+                "valid": True,
+                "message": "Anthropic API key is valid"
+            })
+        except Exception as e:
+            error_message = str(e)
+            print(f"Anthropic API key validation error: {error_message}")
+            
+            # Check for specific error messages
+            if "proxies" in error_message.lower():
+                print(f"Proxies error detected: {error_message}")
+                # This is a client configuration issue, not an invalid key
+                return jsonify({
+                    "valid": True,  # Consider the key valid despite the client error
+                    "message": "Anthropic API key format is valid, but there was a client configuration issue"
+                })
+            
+            return jsonify({
+                "valid": False,
+                "message": "Anthropic API client configuration error. Please try using a newer Anthropic API key format."
+            }), 400
+    
+    elif api_type == 'gemini':
+        # For Gemini, we'll check if the package is available first
+        if not GEMINI_AVAILABLE:
+            return jsonify({
+                "valid": False,
+                "message": "Google Generative AI package is not installed on the server."
+            }), 500
+        
+        # Gemini API keys don't have a specific format to validate upfront
+        # We'll try to create a client and check if it works
+        try:
+            # Try to create a client to validate the key
+            client = create_gemini_client(api_key)
+            
+            # For security, we don't actually make an API call here
+            # Just successfully creating the client is enough validation
+            
+            return jsonify({
+                "valid": True,
+                "message": "Google Gemini API key is valid"
+            })
+        except Exception as e:
+            error_message = str(e)
+            print(f"Google Gemini API key validation error: {error_message}")
+            
+            return jsonify({
+                "valid": False,
+                "message": f"Google Gemini API error: {error_message}"
+            }), 400
+    
+    else:
         return jsonify({
             "valid": False,
-            "message": "API client configuration error. Please try using a newer Anthropic API key format."
+            "message": f"Unsupported API type: {api_type}"
         }), 400
 
 @app.route('/api/process', methods=['POST'])
@@ -331,6 +403,11 @@ def process_file():
     # Extract the API key and content
     api_key = data.get('api_key')
     content = data.get('content')
+
+    print(f"Processing request with content length: {len(content) if content else 0}")
+    print(f"Request JSON: {data}")
+    print('API Key:', api_key)
+
     format_prompt = data.get('format_prompt', '')
     model = data.get('model', 'claude-3-7-sonnet-20250219')
     max_tokens = int(data.get('max_tokens', 128000))
@@ -681,7 +758,8 @@ def create_stream_generator(client, system_prompt, user_message, model, max_toke
         }
         yield format_stream_event("error", error_data)
 
-# Add API endpoint for streaming processing
+
+
 @app.route('/api/process-stream', methods=['POST'])
 def process_stream():
     """
@@ -783,7 +861,7 @@ def process_stream():
         if 'generated_text' in cached_data:
             # Use streaming response to deliver cached content and then continue
             return Response(
-                stream_with_context(resume_from_cache(session_id, last_chunk_id, api_key)),
+                #stream_with_context(resume_from_cache(session_id, last_chunk_id, api_key)),
                 content_type='text/event-stream'
             )
     
@@ -812,7 +890,7 @@ def process_stream():
     }
     
     # Prepare system prompt
-    system_prompt = "I will provide you with a file or a content, analyze its content, and transform it into a visually appealing and well-structured webpage.### Content Requirements* Maintain the core information from the original file while presenting it in a clearer and more visually engaging format.⠀Design Style* Follow a modern and minimalistic design inspired by Linear App.* Use a clear visual hierarchy to emphasize important content.* Adopt a professional and harmonious color scheme that is easy on the eyes for extended reading.⠀Technical Specifications* Use HTML5, TailwindCSS 3.0+ (via CDN), and necessary JavaScript.* Implement a fully functional dark/light mode toggle, defaulting to the system setting.* Ensure clean, well-structured code with appropriate comments for easy understanding and maintenance.⠀Responsive Design* The page must be fully responsive, adapting seamlessly to mobile, tablet, and desktop screens.* Optimize layout and typography for different screen sizes.* Ensure a smooth and intuitive touch experience on mobile devices.⠀Icons & Visual Elements* Use professional icon libraries like Font Awesome or Material Icons (via CDN).* Integrate illustrations or charts that best represent the content.* Avoid using emojis as primary icons.* Check if any icons cannot be loaded.⠀User Interaction & ExperienceEnhance the user experience with subtle micro-interactions:* Buttons should have slight enlargement and color transitions on hover.* Cards should feature soft shadows and border effects on hover.* Implement smooth scrolling effects throughout the page.* Content blocks should have an elegant fade-in animation on load.⠀Performance Optimization* Ensure fast page loading by avoiding large, unnecessary resources.* Use modern image formats (WebP) with proper compression.* Implement lazy loading for content-heavy pages.* For large outputs, make sure the HTML can be incrementally rendered and uses efficient DOM structures.⠀Output Requirements* Deliver a fully functional standalone HTML file, including all necessary CSS and JavaScript.* Ensure the code meets W3C standards with no errors or warnings.* Maintain consistent design and functionality across different browsers.⠀Create the most effective and visually appealing webpage based on the uploaded file's content type (document, data, images, etc.Your output is only one HTML file, do not present any other notes on the HTML.)."
+    system_prompt = "I will provide you with a file or a content, analyze its content, and transform it into a visually appealing and well-structured webpage.### Content Requirements* Maintain the core information from the original file while presenting it in a clearer and more visually engaging format.⠀Design Style* Follow a modern and minimalistic design inspired by Linear App.* Use a clear visual hierarchy to emphasize important content.* Adopt a professional and harmonious color scheme that is easy on the eyes for extended reading.⠀Technical Specifications* Use HTML5, TailwindCSS 3.0+ (via CDN), and necessary JavaScript.* Implement a fully functional dark/light mode toggle, defaulting to the system setting.* Ensure clean, well-structured code with appropriate comments for easy understanding and maintenance.⠀Responsive Design* The page must be fully responsive, adapting seamlessly to mobile, tablet, and desktop screens.* Optimize layout and typography for different screen sizes.* Ensure a smooth and intuitive touch experience on mobile devices.⠀Icons & Visual Elements* Use professional icon libraries like Font Awesome or Material Icons (via CDN).* Integrate illustrations or charts that best represent the content.* Avoid using emojis as primary icons.* Check if any icons cannot be loaded.⠀User Interaction & ExperienceEnhance the user experience with subtle micro-interactions:* Buttons should have slight enlargement and color transitions on hover.* Cards should feature soft shadows and border effects on hover.* Implement smooth scrolling effects throughout the page.* Content blocks should have an elegant fade-in animation on load.⠀Performance Optimization* Ensure fast page loading by avoiding large, unnecessary resources.* Use modern image formats (WebP) with proper compression.* Implement lazy loading for content-heavy pages.* For large outputs, make sure the HTML can be incrementally rendered and uses efficient DOM structures.⠀Output Requirements* Deliver a fully functional standalone HTML file, including all necessary CSS and JavaScript.* Ensure the code meets W3C standards with no errors or warnings.* Maintain consistent design and functionality across different browsers.* Your output is only one HTML file, do not present any other notes on the HTML. Also, try your best to visualize the whole content.⠀Create the most effective and visually appealing webpage based on the uploaded file's content type (document, data, images, etc.)."
     
     # Enhanced system prompt for large content handling
     if len(content) > 50000:  # If content is large
@@ -1515,6 +1593,445 @@ def test_generate():
             "html": error_html,
             "test_mode": True
         }), 200  # Return 200 for better client handling
+
+def gemini_task(api_key, content, format_prompt, max_tokens, temperature,new_guid):
+    try:
+
+        # Prepare user message with content and additional prompt
+        user_content = content
+        if format_prompt:
+            user_content = f"{user_content}\n\n{format_prompt}"
+
+        # Create the prompt
+        prompt = f"""
+{SYSTEM_INSTRUCTION}
+
+Here is the content to transform into a website:
+
+{user_content}
+"""
+        # Generate content
+        print(f"Generating content with {GEMINI_MODEL}, max_tokens={max_tokens}, temperature={temperature}")
+
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=prompt),
+                ],
+            ),
+        ]
+        client = genai.Client(
+            api_key=api_key,
+        )
+        model = "gemini-2.5-pro-exp-03-25"
+        generate_content_config = types.GenerateContentConfig(
+            response_mime_type="text/plain",
+        )
+
+        result_str = ''
+        for chunk in client.models.generate_content_stream(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+        ):
+            result_str+=chunk.text
+            print('\n\n\n')
+            print(result_str)
+
+        # Extract the HTML from the response
+        html_content = result_str
+
+        # Try multiple approaches to extract content
+        # if hasattr(response, 'text'):
+        #     html_content = response.text
+        # elif hasattr(response, 'parts') and response.parts:
+        #     html_content = response.parts[0].text
+
+        # Clean HTML content if it contains markdown-style code blocks
+        if html_content and ('```html' in html_content or '```' in html_content):
+            # Extract the actual HTML from between the markdown code blocks
+            print("Detected markdown code blocks in Gemini response, extracting HTML...")
+
+            # First try with ```html specific tag
+            html_match = re.search(r'```html\s*([\s\S]*?)\s*```', html_content)
+            if html_match and html_match[1]:
+                html_content = html_match[1].strip()
+                print(f"Extracted HTML from markdown code blocks, new length: {len(html_content)}")
+            else:
+                # Try with just ``` blocks
+                html_match = re.search(r'```\s*([\s\S]*?)\s*```', html_content)
+                if html_match and html_match[1]:
+                    html_content = html_match[1].strip()
+                    print(f"Extracted HTML from generic markdown blocks, new length: {len(html_content)}")
+
+        # If we still don't have content, use string representation
+        if not html_content:
+            print("Warning: Could not extract HTML content using standard methods")
+            html_content = str(response)
+
+        # Verify that the content looks like HTML
+        if not html_content.strip().startswith('<') and not '<html' in html_content:
+            print(f"Warning: Content doesn't appear to be HTML. Content starts with: {html_content[:100]}")
+
+            # Attempt to fix by wrapping in HTML tags if it's just text content
+            if not html_content.strip().startswith('<'):
+                print("Attempting to fix by wrapping in HTML tags")
+                html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Content</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <div class="container mx-auto p-4">
+        {html_content}
+    </div>
+    <script>
+        // Simple dark mode toggle
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {{
+            document.documentElement.classList.add('dark');
+        }}
+    </script>
+</body>
+</html>
+"""
+
+        # Get usage stats (approximate since Gemini doesn't provide exact token counts)
+        input_tokens = len(prompt.split()) * 1.3  # Rough estimate: ~1.3 tokens per word
+        output_tokens = len(html_content.split()) * 1.3
+
+        # Ensure we don't have zero tokens (minimum of source length / 3)
+        input_tokens = max(len(content.split()) * 1.3, input_tokens)
+
+        # Round to integers
+        input_tokens = max(1, int(input_tokens))
+        output_tokens = max(1, int(output_tokens))
+
+        # Log response
+        print(f"Successfully generated HTML with Gemini. Input tokens: {input_tokens}, Output tokens: {output_tokens}")
+
+        print(html_content)
+
+        result_cache[new_guid] = html_content
+
+        # Return the response
+        # return {
+        #     'html': html_content,
+        #     'model': GEMINI_MODEL,
+        #     'usage': {
+        #         'input_tokens': input_tokens,
+        #         'output_tokens': output_tokens,
+        #         'total_tokens': input_tokens + output_tokens,
+        #         'total_cost': 0.0  # Gemini API is currently free
+        #     }
+        # }
+
+    except Exception as e:
+        error_message = str(e)
+        traceback_str = traceback.format_exc()
+        print(f"Error in /api/process-gemini: {error_message}")
+        print(f"Traceback: {traceback_str}")
+
+        # Create a graceful fallback error page as HTML
+        error_html = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Error Processing Content</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+            <div class="container mx-auto p-8 max-w-3xl">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h1 class="text-2xl font-bold text-red-600 mb-4">Error Processing Content</h1>
+                    <p class="mb-4">There was an error processing your content with the Gemini API:</p>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded overflow-auto mb-4">
+                        <code class="text-sm">{error_message}</code>
+                    </div>
+                    <p class="mb-2">Possible solutions:</p>
+                    <ul class="list-disc pl-5 mb-4">
+                        <li>Try again with a smaller content size</li>
+                        <li>Check your Gemini API key</li>
+                        <li>Try with a different content format</li>
+                        <li>Switch to the Claude API if available</li>
+                    </ul>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        result_cache[new_guid] = error_html
+        # Return error as both JSON and HTML
+        # return {
+        #     'error': f'Server error: {error_message}',
+        #     'html': error_html
+        # }
+
+@app.route('/api/process-gemini-result', methods=['POST'])
+def process_gemini_result():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    # Extract the API key and content
+    uuid = data.get('uuid')
+
+    if uuid in result_cache:
+        return jsonify({"html": result_cache[uuid]}), 200
+    else:
+        return jsonify({"html": None}), 200
+
+
+@app.route('/api/process-gemini', methods=['POST'])
+def process_gemini():
+    """
+    Process a file using the Google Gemini API and return HTML.
+    """
+    # Get the data from the request
+    print("\n==== API PROCESS GEMINI REQUEST RECEIVED ====")
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    # Extract the API key and content
+    api_key = data.get('api_key')
+    content = data.get('content')
+    format_prompt = data.get('format_prompt', '')
+    max_tokens = int(data.get('max_tokens', GEMINI_MAX_OUTPUT_TOKENS))
+    temperature = float(data.get('temperature', GEMINI_TEMPERATURE))
+
+    print(f"Processing Gemini request with max_tokens={max_tokens}, content_length={len(content) if content else 0}")
+
+    # Check if we have the required data
+    if not api_key or not content:
+        return jsonify({'error': 'API key and content are required'}), 400
+
+    # Check if Gemini is available
+    if not GEMINI_AVAILABLE:
+        return jsonify({
+            'error': 'Google Generative AI package is not installed on the server.'
+        }), 500
+
+    new_guid = str(uuid.uuid4())
+    # Start the task in a new thread
+    task_thread = threading.Thread(target=gemini_task, args=(api_key, content, format_prompt, max_tokens, temperature,new_guid))
+    task_thread.start()
+    #task_thread.join()
+
+    # Return a response indicating the task has started
+    return jsonify({"status": "Task started","uuid":new_guid}), 202
+
+
+# # Add a new route for Gemini API processing
+# @app.route('/api/process-gemini', methods=['POST'])
+# def process_gemini():
+#     """
+#     Process a file using the Google Gemini API and return HTML.
+#     """
+#     # Get the data from the request
+#     print("\n==== API PROCESS GEMINI REQUEST RECEIVED ====")
+#     data = request.get_json()
+#
+#     if not data:
+#         return jsonify({"error": "No data provided"}), 400
+#
+#     # Extract the API key and content
+#     api_key = data.get('api_key')
+#     content = data.get('content')
+#     format_prompt = data.get('format_prompt', '')
+#     max_tokens = int(data.get('max_tokens', GEMINI_MAX_OUTPUT_TOKENS))
+#     temperature = float(data.get('temperature', GEMINI_TEMPERATURE))
+#
+#     print(f"Processing Gemini request with max_tokens={max_tokens}, content_length={len(content) if content else 0}")
+#
+#     # Check if we have the required data
+#     if not api_key or not content:
+#         return jsonify({'error': 'API key and content are required'}), 400
+#
+#     # Check if Gemini is available
+#     if not GEMINI_AVAILABLE:
+#         return jsonify({
+#             'error': 'Google Generative AI package is not installed on the server.'
+#         }), 500
+#
+#     new_guid = str(uuid.uuid4())
+#     return jsonify({
+#         'guid': new_guid
+#     }), 500
+
+
+# Add a streaming endpoint for Gemini
+@app.route('/api/process-gemini-stream', methods=['POST'])
+def process_gemini_stream():
+    """
+    Process a streaming request using Google Gemini API.
+    """
+    # Extract request data
+    data = request.get_json()
+    api_key = data.get('api_key')
+    
+    # Check for both 'content' and 'source' parameters for compatibility
+    content = data.get('content', '')
+    if not content:
+        content = data.get('source', '')  # Fallback to 'source' if 'content' is empty
+    
+    # If content is empty, return an error
+    if not content:
+        return jsonify({"success": False, "error": "Source code or text is required"}), 400
+    
+    format_prompt = data.get('format_prompt', '')
+    max_tokens = int(data.get('max_tokens', GEMINI_MAX_OUTPUT_TOKENS))
+    temperature = float(data.get('temperature', GEMINI_TEMPERATURE))
+    
+    # Reconnection support
+    session_id = data.get('session_id', str(uuid.uuid4()))
+    
+    # Check if Gemini is available
+    if not GEMINI_AVAILABLE:
+        return jsonify({
+            'error': 'Google Generative AI package is not installed on the server.'
+        }), 500
+    
+    # Create Gemini client
+    try:
+        client = create_gemini_client(api_key)
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"API key validation failed: {str(e)}"
+        })
+    
+    # Initialize session cache for this request
+    session_cache[session_id] = {
+        'created_at': time.time(),
+        'last_updated': time.time(),
+        'html_segments': [],
+        'generated_text': '',
+        'chunk_count': 0,
+        'user_content': content[:100000],  # Store for potential reconnection
+        'format_prompt': format_prompt,
+        'model': GEMINI_MODEL,
+        'max_tokens': max_tokens,
+        'temperature': temperature
+    }
+    
+    # Prepare prompt
+    prompt = f"""
+{SYSTEM_INSTRUCTION}
+
+Here is the content to transform into a website:
+
+{content[:100000]}
+"""
+    
+    if format_prompt:
+        prompt += f"\n\n{format_prompt}"
+    
+    # Define the streaming response generator
+    def gemini_stream_generator():
+        try:
+            yield format_stream_event("stream_start", {"message": "Stream starting", "session_id": session_id})
+            
+            # Get the model
+            model = client.get_model(GEMINI_MODEL)
+            
+            # Configure generation parameters
+            generation_config = {
+                "max_output_tokens": max_tokens,
+                "temperature": temperature,
+                "top_p": GEMINI_TOP_P,
+                "top_k": GEMINI_TOP_K
+            }
+            
+            # Generate content with streaming
+            try:
+                print(f"Starting Gemini content generation with model {GEMINI_MODEL}")
+                print(f"Generation config: max_tokens={generation_config['max_output_tokens']}, temp={generation_config['temperature']}")
+                
+                # Use more reliable safety settings to prevent empty responses
+                safety_settings = {
+                    "harassment": "block_none",
+                    "hate_speech": "block_none",
+                    "sexual": "block_none",
+                    "dangerous": "block_none",
+                }
+                
+                # Generate content with the specified configurations
+                stream_response = model.generate_content(
+                    prompt,
+                    generation_config=generation_config,
+                    safety_settings=safety_settings,
+                    stream=True
+                )
+                
+                # Log success
+                print("Successfully created Gemini stream response object")
+                
+                # Use our custom streaming response class
+                with GeminiStreamingResponse(stream_response, session_id) as gemini_stream:
+                    print(f"Entering GeminiStreamingResponse context with session ID: {session_id}")
+                    chunk_count = 0
+                    for chunk in gemini_stream:
+                        chunk_count += 1
+                        if chunk_count % 10 == 0:
+                            print(f"Processed {chunk_count} chunks from Gemini stream")
+                        yield chunk
+                    
+                    print(f"Completed streaming {chunk_count} chunks from Gemini")
+                    # Stream end event
+                    yield format_stream_event("stream_end", {
+                        "message": "Stream complete",
+                        "session_id": session_id
+                    })
+            except Exception as e:
+                error_message = str(e)
+                print(f"Error during Gemini content generation: {error_message}")
+                traceback_str = traceback.format_exc()
+                print(f"Traceback: {traceback_str}")
+                
+                yield format_stream_event("error", {
+                    "type": "error",
+                    "error": error_message,
+                    "details": traceback_str,
+                    "session_id": session_id
+                })
+            
+        except Exception as e:
+            error_message = str(e)
+            print(f"Error in gemini_stream_generator: {error_message}")
+            
+            yield format_stream_event("error", {
+                "type": "error",
+                "error": error_message,
+                "session_id": session_id
+            })
+    
+    # Return the streaming response
+    return Response(
+        stream_with_context(gemini_stream_generator()),
+        content_type='text/event-stream'
+    )
+
+@app.route('/api/version', methods=['GET'])
+def get_version():
+    """Return the application version information."""
+    return jsonify({
+        'version': __version__,
+        'name': 'File Visualization',
+        'gemini_available': GEMINI_AVAILABLE,
+        'gemini_model': GEMINI_MODEL,
+        'claude_model': 'claude-3-7-sonnet-20250219',
+        'timestamp': datetime.now().isoformat()
+    })
 
 if __name__ == "__main__":
     # Parse command line arguments

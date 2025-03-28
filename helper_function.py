@@ -5,6 +5,16 @@ import json
 import requests
 import time
 import uuid
+import base64
+import traceback
+
+# Import Google Generative AI package
+try:
+    import google.generativeai as genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+    print("Google Generative AI package not available. Some features may be limited.")
 
 def create_anthropic_client(api_key):
     """Create an Anthropic client with the given API key."""
@@ -38,6 +48,246 @@ def create_anthropic_client(api_key):
         except Exception as e2:
             print(f"Custom client also failed: {str(e2)}")
             raise Exception(f"Failed to create Anthropic client: {str(e)}")
+
+def create_gemini_client(api_key):
+    """Create a Google Gemini client with the given API key."""
+    if not GEMINI_AVAILABLE:
+        raise ImportError("Google Generative AI package is not installed. Please install it with 'pip install google-generativeai'.")
+    
+    print(f"Creating Google Gemini client with API key: {api_key[:8]}...")
+    
+    # Check if API key is valid format
+    if not api_key or not api_key.strip():
+        raise ValueError("API key cannot be empty")
+    
+    try:
+        # Configure the Gemini client
+        genai.configure(api_key=api_key)
+        
+        # Create a simple wrapper class that provides the methods expected by the server
+        class GeminiClient:
+            def __init__(self):
+                pass
+                
+            def get_model(self, model_name):
+                """Create and return a GenerativeModel instance for the specified model."""
+                try:
+                    return genai.GenerativeModel(model_name)
+                except Exception as e:
+                    print(f"Error creating model {model_name}: {str(e)}")
+                    raise
+        
+        # Create and return the client wrapper
+        return GeminiClient()
+            
+    except Exception as e:
+        print(f"Gemini client creation failed: {str(e)}")
+        raise Exception(f"Failed to create Google Gemini client: {str(e)}")
+
+class GeminiStreamingResponse:
+    """
+    Custom class to handle streaming responses from Google Gemini API.
+    Provides compatibility with the server-sent events format used by the frontend.
+    """
+    def __init__(self, stream_response, session_id):
+        self.stream_response = stream_response
+        self.session_id = session_id
+        self.text_chunks = []
+        self.message_id = str(uuid.uuid4())
+        self.chunk_count = 0
+        self.accumulated_text = ""
+        self.start_time = time.time()
+        self.last_progress_time = time.time()
+        self.timeout = 300  # Maximum time to wait for first chunk (seconds)
+        self.progress_timeout = 100  # Maximum time to wait between chunks (seconds)
+        self.response_complete = False
+        
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # If an exception occurred, we need to handle it
+        if exc_type is not None:
+            print(f"Exception in GeminiStreamingResponse: {exc_type} - {exc_val}")
+            # If we have accumulated some text, generate a partial response
+            if self.accumulated_text:
+                print(f"Returning partial accumulated content ({len(self.accumulated_text)} chars)")
+                return False  # Don't suppress the exception
+        
+        # If response didn't complete but we have content, mark as complete
+        if not self.response_complete and self.accumulated_text:
+            self.response_complete = True
+            message = "Stream completed with partial content"
+            print(message)
+        
+        return False  # Don't suppress exceptions
+    
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        """
+        Process the next chunk from the Gemini stream and yield formatted SSE events.
+        Handles timeouts and converts Gemini response format to the expected SSE format.
+        """
+        # Check for initial timeout (no chunks received yet)
+        if not self.text_chunks and time.time() - self.start_time > self.timeout:
+            print(f"Timeout waiting for first chunk ({self.timeout}s)")
+            # Yield a timeout error event
+            event_data = {
+                "type": "error",
+                "error": f"Timeout waiting for response from Gemini API after {self.timeout} seconds.",
+                "session_id": self.session_id
+            }
+            return format_stream_event("error", event_data)
+        
+        # Check for progress timeout (no new chunks recently)
+        if self.text_chunks and time.time() - self.last_progress_time > self.progress_timeout:
+            print(f"Timeout waiting for next chunk ({self.progress_timeout}s)")
+            # If we have accumulated some content, mark the response as complete to return what we have
+            if self.accumulated_text:
+                self.response_complete = True
+                event_data = {
+                    "type": "status",
+                    "message": "Timeout waiting for additional content from Gemini API. Returning partial response.",
+                    "session_id": self.session_id
+                }
+                return format_stream_event("status", event_data)
+            else:
+                # No content received at all, return an error
+                event_data = {
+                    "type": "error",
+                    "error": f"No content received from Gemini API after {self.progress_timeout} seconds.",
+                    "session_id": self.session_id
+                }
+                return format_stream_event("error", event_data)
+        
+        try:
+            # Get next chunk from stream
+            chunk = next(self.stream_response)
+            self.last_progress_time = time.time()
+            self.chunk_count += 1
+            
+            # Extract text content from the chunk
+            chunk_text = ""
+            if hasattr(chunk, 'text'):
+                chunk_text = chunk.text
+            elif hasattr(chunk, 'parts') and chunk.parts:
+                for part in chunk.parts:
+                    if hasattr(part, 'text') and part.text:
+                        chunk_text += part.text
+            
+            # Skip empty chunks
+            if not chunk_text:
+                if self.chunk_count % 10 == 0:
+                    # Periodically send keepalive events
+                    event_data = {
+                        "type": "keepalive",
+                        "timestamp": time.time(),
+                        "session_id": self.session_id,
+                        "chunk_count": self.chunk_count
+                    }
+                    return format_stream_event("keepalive", event_data)
+                return self.__next__()  # Skip to next chunk
+            
+            # Store the chunk
+            self.text_chunks.append(chunk_text)
+            self.accumulated_text += chunk_text
+            
+            # Create content delta event
+            event_data = {
+                "type": "content_block_delta",
+                "chunk_id": f"{self.message_id}_{self.chunk_count}",
+                "delta": {
+                    "text": chunk_text
+                },
+                "session_id": self.session_id,
+                "chunk_count": self.chunk_count
+            }
+            
+            # Every N chunks, send a keepalive event
+            if self.chunk_count % 5 == 0:
+                print(f"Processed {self.chunk_count} chunks from Gemini")
+            
+            return format_stream_event("content", event_data)
+            
+        except StopIteration:
+            # Check if we received any content
+            if not self.accumulated_text:
+                print("No content received from Gemini API before StopIteration")
+                error_data = {
+                    "type": "error",
+                    "error": "No content received from Gemini API. Please try again or check your API key.",
+                    "session_id": self.session_id
+                }
+                return format_stream_event("error", error_data)
+            
+            # Stream is complete, send completion event
+            print(f"Gemini stream complete, received {self.chunk_count} chunks")
+            self.response_complete = True
+            
+            # Calculate token usage (approximate)
+            input_prompt_length = 1000  # Placeholder
+            output_length = len(self.accumulated_text)
+            
+            # Estimate token count (very rough estimate)
+            input_tokens = input_prompt_length // 4
+            output_tokens = output_length // 4
+            
+            # Create completion event
+            complete_data = {
+                "type": "message_complete",
+                "message_id": self.message_id,
+                "chunk_id": f"{self.message_id}_{self.chunk_count}",
+                "usage": {
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "total_tokens": input_tokens + output_tokens,
+                    "total_cost": 0.0  # Gemini API currently doesn't charge
+                },
+                "html": self.accumulated_text,
+                "session_id": self.session_id,
+                "final_chunk_count": self.chunk_count
+            }
+            
+            return format_stream_event("content", complete_data)
+            
+        except Exception as e:
+            # Log the error
+            error_message = str(e)
+            print(f"Error processing Gemini stream chunk: {error_message}")
+            
+            # If we have any accumulated content, we'll mark as complete to return what we have
+            if self.accumulated_text:
+                self.response_complete = True
+                print(f"Returning partial accumulated content ({len(self.accumulated_text)} chars)")
+                
+                # Send completion with partial content
+                complete_data = {
+                    "type": "message_complete",
+                    "message_id": self.message_id,
+                    "chunk_id": f"{self.message_id}_{self.chunk_count}",
+                    "usage": {
+                        "input_tokens": 1000,  # Placeholder estimate
+                        "output_tokens": len(self.accumulated_text) // 4,
+                        "total_tokens": 1000 + (len(self.accumulated_text) // 4)
+                    },
+                    "html": self.accumulated_text,
+                    "session_id": self.session_id,
+                    "final_chunk_count": self.chunk_count,
+                    "partial": True,
+                    "error": error_message
+                }
+                
+                return format_stream_event("content", complete_data)
+            else:
+                # No accumulated content, return error
+                error_data = {
+                    "type": "error",
+                    "error": f"Error in Gemini streaming: {error_message}",
+                    "session_id": self.session_id
+                }
+                return format_stream_event("error", error_data)
 
 # Special client class for Vercel that doesn't use the standard Anthropic library
 class VercelCompatibleClient:
@@ -178,7 +428,7 @@ class VercelCompatibleClient:
                 # For Vercel, reduce the expected response timeout and add retry mechanism
                 if is_vercel:
                     # Add a shorter timeout for Vercel environment
-                    timeout = 8  # 8 seconds to stay under Vercel's 10s limit
+                    timeout = 30  # 8 seconds to stay under Vercel's 10s limit
                 else:
                     # For local environment, use a longer timeout
                     timeout = 30
