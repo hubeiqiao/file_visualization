@@ -89,7 +89,7 @@ MAX_BACKOFF_DELAY = 45  # Max 45 seconds delay (reduced from 60)
 BACKOFF_FACTOR = 1.3  # Use 1.3 instead of 1.5 for more gradual increase
 
 # Gemini-specific settings
-GEMINI_MODEL = "gemini-1.5-pro"
+GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"
 GEMINI_MAX_OUTPUT_TOKENS = 655360
 GEMINI_TEMPERATURE = 1.0 
 GEMINI_TOP_P = 0.95
@@ -1624,7 +1624,7 @@ Here is the content to transform into a website:
         client = genai.Client(
             api_key=api_key,
         )
-        model = "gemini-1.5-pro"
+        model = "gemini-2.5-pro-exp-03-25"
         generate_content_config = types.GenerateContentConfig(
             response_mime_type="text/plain",
         )
