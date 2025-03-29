@@ -228,11 +228,12 @@ async function fetchVersionInfo() {
         const response = await fetch(`${API_URL}/api/version`);
         if (response.ok) {
             const data = await response.json();
-            // Update version display in the footer
+            // Update version display in the footer but keep it hidden
             const versionElement = document.getElementById('app-version');
             if (versionElement) {
                 versionElement.textContent = `v${data.version}`;
-                versionElement.classList.remove('hidden');
+                // Do not remove the hidden class to keep it invisible
+                // versionElement.classList.remove('hidden');
             }
             console.log(`Application version: ${data.version}`);
         }
