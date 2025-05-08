@@ -20,8 +20,8 @@ except ImportError:
     TextBlock = dict
     MessageParam = dict
 import uuid
-import PyPDF2
-import docx
+# import PyPDF2
+# import docx
 import io
 import base64
 import random 
@@ -163,27 +163,9 @@ def process():
         # Process the file based on its type
         file_text_content = ""
         
-        if file_ext == 'pdf':
-            # Process PDF file
-            try:
-                reader = PyPDF2.PdfReader(temp_file_path)
-                for page_num in range(len(reader.pages)):
-                    file_text_content += reader.pages[page_num].extract_text() + "\n"
-            except Exception as e:
-                return jsonify({"error": f"Error processing PDF: {str(e)}"}), 500
-                
-        elif file_ext in ['docx', 'doc']:
-            # Process Word document
-            try:
-                doc = docx.Document(temp_file_path)
-                file_text_content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
-            except Exception as e:
-                return jsonify({"error": f"Error processing Word document: {str(e)}"}), 500
-                
-        else:
-            # Process text-based file
-            with open(temp_file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                file_text_content = f.read()
+        # Process text-based file (or any file if PDF/DOCX is disabled)
+        with open(temp_file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            file_text_content = f.read()
                 
         # Now process the file content with Claude
         if not api_key:
@@ -592,9 +574,13 @@ def analyze_tokens():
                 return jsonify({"error": f"Error processing DOCX: {str(e)}"}), 400
         
         # If no content after processing, return an error
-        if not content:
-            return jsonify({"error": "No content to analyze"}), 400
-        
+        if not content and file_type not in ['pdf', 'docx', 'doc']:
+             # Only error if it wasn't a PDF/DOCX (since that code is now disabled)
+            return jsonify({"error": "No content to analyze or unsupported file type for direct analysis"}), 400
+        elif not content and file_type in ['pdf', 'docx', 'doc']:
+            # If it was a PDF/DOCX, we can't process it, so inform the user.
+            return jsonify({"error": f"{file_type.upper()} processing is disabled. Please provide text content."}), 400
+
         # Define the system prompt to include in token estimation - Use the same detailed prompt as in process_file
         system_prompt = "I will provide you with a file or a content, analyze its content, and transform it into a visually appealing and well-structured webpage.### Content Requirements* Maintain the core information from the original file while presenting it in a clearer and more visually engaging format.⠀Design Style* Follow a modern and minimalistic design inspired by Linear App.* Use a clear visual hierarchy to emphasize important content.* Adopt a professional and harmonious color scheme that is easy on the eyes for extended reading.⠀Technical Specifications* Use HTML5, TailwindCSS 3.0+ (via CDN), and necessary JavaScript.* Implement a fully functional dark/light mode toggle, defaulting to the system setting.* Ensure clean, well-structured code with appropriate comments for easy understanding and maintenance.⠀Responsive Design* The page must be fully responsive, adapting seamlessly to mobile, tablet, and desktop screens.* Optimize layout and typography for different screen sizes.* Ensure a smooth and intuitive touch experience on mobile devices.⠀Icons & Visual Elements* Use professional icon libraries like Font Awesome or Material Icons (via CDN).* Integrate illustrations or charts that best represent the content.* Avoid using emojis as primary icons.* Check if any icons cannot be loaded.⠀User Interaction & ExperienceEnhance the user experience with subtle micro-interactions:* Buttons should have slight enlargement and color transitions on hover.* Cards should feature soft shadows and border effects on hover.* Implement smooth scrolling effects throughout the page.* Content blocks should have an elegant fade-in animation on load.⠀Performance Optimization* Ensure fast page loading by avoiding large, unnecessary resources.* Use modern image formats (WebP) with proper compression.* Implement lazy loading for content-heavy pages.⠀Output Requirements* Deliver a fully functional standalone HTML file, including all necessary CSS and JavaScript.* Ensure the code meets W3C standards with no errors or warnings.* Maintain consistent design and functionality across different browsers.⠀Create the most effective and visually appealing webpage based on the uploaded file's content type (document, data, images, etc.).Your output is only one HTML file, do not present any other notes on the HTML."
         
