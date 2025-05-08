@@ -2,34 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "static/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 60
-      }
+      "src": "Dockerfile",
+      "use": "@vercel/docker"
     }
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/api/process-stream",
-      "dest": "/api/process-stream.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/server.py"
+      "dest": "/"
     }
-  ],
-  "buildCommand": "chmod +x build_files.sh && ./build_files.sh"
+  ]
 } 
