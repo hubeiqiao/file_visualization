@@ -27,19 +27,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 300
-    },
-    "api/process-stream.js": {
-      "maxDuration": 300
-    },
-    "api/process_gemini.py": {
-      "maxDuration": 300
-    },
-    "api/process_gemini_stream.py": {
-      "maxDuration": 300
-    }
-  }
+  ]
 } 
