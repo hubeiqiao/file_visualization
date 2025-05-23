@@ -2,14 +2,44 @@
   "version": 2,
   "builds": [
     {
-      "src": "Dockerfile",
-      "use": "@vercel/docker"
+      "src": "api/**/*.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*\\.(css|js|ico|png|jpg|jpeg|gif|svg))",
+      "dest": "/static/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 300
+    },
+    "api/process-stream.js": {
+      "maxDuration": 300
+    },
+    "api/process_gemini.py": {
+      "maxDuration": 300
+    },
+    "api/process_gemini_stream.py": {
+      "maxDuration": 300
+    }
+  }
 } 
