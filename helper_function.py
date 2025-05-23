@@ -234,6 +234,12 @@ class GeminiStreamingResponse:
             input_tokens = input_prompt_length // 4
             output_tokens = output_length // 4
             
+            # Calculate cost based on current Gemini 2.0 Flash pricing
+            # $0.10 per million input tokens, $0.40 per million output tokens
+            input_cost = (input_tokens / 1000000) * 0.10
+            output_cost = (output_tokens / 1000000) * 0.40
+            total_cost = input_cost + output_cost
+            
             # Create completion event
             complete_data = {
                 "type": "message_complete",
@@ -243,7 +249,7 @@ class GeminiStreamingResponse:
                     "input_tokens": input_tokens,
                     "output_tokens": output_tokens,
                     "total_tokens": input_tokens + output_tokens,
-                    "total_cost": 0.0  # Gemini API currently doesn't charge
+                    "total_cost": total_cost
                 },
                 "html": self.accumulated_text,
                 "session_id": self.session_id,
@@ -314,7 +320,7 @@ class VercelCompatibleClient:
             url,
             json=json,
             headers=_headers,
-            timeout=timeout or 120
+            timeout=timeout or 300
         )
         return response
     
@@ -427,11 +433,11 @@ class VercelCompatibleClient:
                 
                 # For Vercel, reduce the expected response timeout and add retry mechanism
                 if is_vercel:
-                    # Add a shorter timeout for Vercel environment
-                    timeout = 30  # 8 seconds to stay under Vercel's 10s limit
+                    # Add a shorter timeout for Vercel environment  
+                    timeout = 120  # 2 minutes for Vercel environment
                 else:
                     # For local environment, use a longer timeout
-                    timeout = 30
+                    timeout = 300  # 5 minutes for local environment
                 
                 # Implement retry logic with exponential backoff
                 max_retries = 5
@@ -530,6 +536,21 @@ class VercelCompatibleClient:
         def __init__(self, client):
             self.client = client
         
+        def stream(self, model, max_tokens, temperature, system, messages, thinking=None, betas=None, beta=None):
+            """
+            Stream method that delegates to the beta streaming functionality.
+            """
+            return self.client.beta.messages.stream(
+                model=model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                system=system,
+                messages=messages,
+                thinking=thinking,
+                betas=betas,
+                beta=beta
+            )
+        
         def create(self, model, max_tokens, temperature, system, messages, thinking=None, betas=None, beta=None):
             """
             Create a message with the Anthropic API directly with retry logic for 529 overloaded errors.
@@ -606,7 +627,7 @@ class VercelCompatibleClient:
                         f"{self.client.base_url}/messages",
                         headers=headers,
                         json=payload,
-                        timeout=600  # 10 minutes timeout for large requests
+                        timeout=900  # 15 minutes timeout for large requests
                     )
                     
                     # Check if we received a successful response
@@ -689,105 +710,136 @@ class VercelStreamingResponse:
         pass
 
     def __iter__(self):
-        # Keep track of the total output size
-        total_output_text = 0
-        chunk_batch = []  # To batch small chunks for efficiency
-        
+        """
+        Parse the Server-Sent Events (SSE) stream from Anthropic API and yield properly formatted chunks.
+        """
         try:
             # Track chunk count for reconnection support
             self.chunk_count = 0
+            accumulated_text = ""
             
-            # Stream begins event
-            yield self._ChunkObject("stream_start")
+            print(f"Starting to parse SSE stream for session {self.session_id}")
             
-            for chunk in self.stream_response:
-                try:
-                    self.chunk_count += 1
+            # Parse the SSE stream line by line
+            for line in self.stream_response.iter_lines(decode_unicode=True):
+                if not line:
+                    continue
                     
-                    # Process each chunk based on its type
-                    if hasattr(chunk, 'delta') and hasattr(chunk.delta, 'text'):
-                        # We have content delta
-                        delta_text = chunk.delta.text
-                        total_output_text += len(delta_text)
+                try:
+                    # Parse SSE format: "data: {json}" or "event: event_type"
+                    if line.startswith('data: '):
+                        data_str = line[6:]  # Remove "data: " prefix
                         
-                        # Create delta object with metadata for reconnection
-                        delta_obj = self._MessageDeltaChunk(
-                            self._DeltaObject(delta_text)
-                        )
-                        
-                        # Add metadata for reconnection
-                        delta_obj.chunk_id = f"{self.session_id}_{self.chunk_count}"
-                        delta_obj.session_id = self.session_id
-                        delta_obj.chunk_count = self.chunk_count
-                        
-                        # Add to buffer for potential reconnection
-                        self._add_to_buffer(delta_obj)
-                        
-                        # Send heartbeat/keepalive every 50 chunks
-                        if self.chunk_count % 50 == 0:
-                            yield self._create_keepalive()
-                        
-                        # Yield the chunk
-                        yield delta_obj
-                        
-                    elif hasattr(chunk, 'thinking') and chunk.thinking:
-                        # We have thinking update
-                        thinking_content = chunk.thinking.content if hasattr(chunk.thinking, "content") else ""
-                        thinking_obj = self._ThinkingUpdateChunk(
-                            self._ThinkingObject(thinking_content)
-                        )
-                        
-                        # Add metadata for reconnection
-                        thinking_obj.chunk_id = f"{self.session_id}_{self.chunk_count}"
-                        thinking_obj.session_id = self.session_id
-                        thinking_obj.chunk_count = self.chunk_count
-                        
-                        # Yield thinking update
-                        yield thinking_obj
+                        if data_str.strip() == '[DONE]':
+                            # End of stream marker
+                            break
+                            
+                        try:
+                            # Parse JSON data
+                            chunk_data = json.loads(data_str)
+                            self.chunk_count += 1
+                            
+                            # Handle different types of events from Anthropic
+                            event_type = chunk_data.get('type')
+                            
+                            if event_type == 'content_block_delta':
+                                # This is actual content
+                                delta = chunk_data.get('delta', {})
+                                if delta.get('type') == 'text_delta':
+                                    text = delta.get('text', '')
+                                    accumulated_text += text
+                                    
+                                    # Create a delta chunk object similar to the real Anthropic client
+                                    delta_obj = self._MessageDeltaChunk(self._DeltaObject(text))
+                                    delta_obj.chunk_id = f"{self.session_id}_{self.chunk_count}"
+                                    delta_obj.session_id = self.session_id
+                                    delta_obj.chunk_count = self.chunk_count
+                                    delta_obj.type = 'content_block_delta'
+                                    
+                                    yield delta_obj
+                                    
+                            elif event_type == 'content_block_start':
+                                # Beginning of content block
+                                print(f"Content block started for session {self.session_id}")
+                                
+                            elif event_type == 'content_block_stop':
+                                # End of content block
+                                print(f"Content block stopped for session {self.session_id}")
+                                
+                            elif event_type == 'message_start':
+                                # Beginning of message
+                                print(f"Message started for session {self.session_id}")
+                                
+                            elif event_type == 'message_delta':
+                                # Message metadata updates
+                                delta = chunk_data.get('delta', {})
+                                if 'stop_reason' in delta:
+                                    print(f"Message stopping: {delta['stop_reason']}")
+                                    
+                            elif event_type == 'message_stop':
+                                # End of message - prepare completion
+                                print(f"Message stopped for session {self.session_id}")
+                                usage = chunk_data.get('usage', {})
+                                
+                                # Create completion event
+                                completion = {
+                                    "type": "message_complete",
+                                    "id": self.session_id,
+                                    "chunk_id": f"{self.session_id}_{self.chunk_count}",
+                                    "session_id": self.session_id,
+                                    "final_chunk_count": self.chunk_count,
+                                    "usage": usage,
+                                    "html": accumulated_text
+                                }
+                                
+                                completion_obj = type('CompletionObject', (), completion)
+                                yield completion_obj
+                                break
+                                
+                            elif event_type == 'error':
+                                # Handle errors
+                                error_msg = chunk_data.get('error', {}).get('message', 'Unknown error')
+                                print(f"Stream error for session {self.session_id}: {error_msg}")
+                                error_obj = self._ErrorChunk(error_msg)
+                                error_obj.session_id = self.session_id
+                                yield error_obj
+                                break
+                                
+                            # Send keepalive every 20 chunks to prevent timeout
+                            if self.chunk_count % 20 == 0:
+                                yield self._create_keepalive()
+                                
+                        except json.JSONDecodeError as e:
+                            print(f"Failed to parse JSON in SSE data: {data_str[:100]}... Error: {str(e)}")
+                            continue
+                            
+                    elif line.startswith('event: '):
+                        # Event type line - just log it
+                        event_type = line[7:]  # Remove "event: " prefix
+                        print(f"SSE event type: {event_type}")
                         
                 except Exception as e:
-                    # Log any errors but continue
-                    print(f"Error processing chunk: {str(e)}")
-                    self.last_error = str(e)
-                    # Don't break the iteration - continue to next chunk
+                    print(f"Error processing SSE line: {str(e)}")
+                    continue
             
-            # Stream completed successfully
-            # Create a completion object with usage statistics
-            # This is important for large content to know when it's complete
-            usage_info = None
-            if hasattr(self.stream_response, 'usage'):
-                usage_obj = self.stream_response.usage
-                usage_info = self._UsageInfo(
-                    getattr(usage_obj, 'input_tokens', 0),
-                    getattr(usage_obj, 'output_tokens', 0),
-                    getattr(usage_obj, 'thinking_tokens', 0)
-                )
-            
-            # Create a completion message
-            completion = {
-                "type": "message_complete",
-                "id": self.session_id,
-                "chunk_id": f"{self.session_id}_{self.chunk_count}",
-                "session_id": self.session_id,
-                "final_chunk_count": self.chunk_count,
-                "usage": usage_info.__dict__ if usage_info else None
-            }
-            
-            # For JSON serialization, we just need a simple object with attributes
-            completion_obj = type('CompletionObject', (), completion)
-            yield completion_obj
-            
-            # End the stream
-            end_event = {
-                "type": "stream_end",
-                "session_id": self.session_id
-            }
-            end_event_obj = type('EndEvent', (), end_event)
-            yield end_event_obj
+            # If we reach here without a proper completion, create one
+            if accumulated_text:
+                print(f"Stream completed naturally for session {self.session_id}")
+                completion = {
+                    "type": "message_complete",
+                    "id": self.session_id,
+                    "chunk_id": f"{self.session_id}_{self.chunk_count}",
+                    "session_id": self.session_id,
+                    "final_chunk_count": self.chunk_count,
+                    "html": accumulated_text
+                }
+                
+                completion_obj = type('CompletionObject', (), completion)
+                yield completion_obj
             
         except Exception as e:
             # If there's a terminal error, send an error message
-            print(f"Stream error: {str(e)}")
+            print(f"Fatal stream error for session {self.session_id}: {str(e)}")
             error_obj = self._ErrorChunk(str(e))
             error_obj.session_id = self.session_id
             yield error_obj

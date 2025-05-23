@@ -214,6 +214,12 @@ Here is the content to transform into a website:
                     input_tokens = max(1, int(len(prompt.split()) * 1.3))
                     output_tokens = max(1, int(len(content_text.split()) * 1.3))
                     
+                    # Calculate cost based on current Gemini 2.0 Flash pricing
+                    # $0.10 per million input tokens, $0.40 per million output tokens
+                    input_cost = (input_tokens / 1000000) * 0.10
+                    output_cost = (output_tokens / 1000000) * 0.40
+                    total_cost = input_cost + output_cost
+                    
                     yield format_stream_event("content", {
                         "type": "message_complete",
                         "chunk_id": f"{session_id}_complete",
@@ -221,7 +227,7 @@ Here is the content to transform into a website:
                             "input_tokens": input_tokens,
                             "output_tokens": output_tokens,
                             "total_tokens": input_tokens + output_tokens,
-                            "total_cost": 0.0
+                            "total_cost": total_cost
                         },
                         "html": content_text,
                         "session_id": session_id

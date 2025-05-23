@@ -441,7 +441,7 @@ def process_stream():
             return jsonify({"success": False, "error": "Source code or text is required"}), 400
             
         format_prompt = data.get('format_prompt', '')
-        model = data.get('model', 'claude-3-7-sonnet-20250219')  # Using Claude 3.7
+        model = data.get('model', 'claude-sonnet-4-20250514')  # Using Claude 4
         max_tokens = int(data.get('max_tokens', 128000))
         temperature = float(data.get('temperature', 0.5))
         thinking_budget = int(data.get('thinking_budget', 32000))
@@ -473,8 +473,8 @@ def process_stream():
                 # Use Claude 3.7 with beta stream
                 OUTPUT_128K_BETA = "output-128k-2025-02-19"
                 
-                with client.beta.messages.stream(
-                    model="claude-3-7-sonnet-20250219",
+                with client.messages.stream(
+                    model="claude-sonnet-4-20250514",
                     max_tokens=max_tokens,
                     temperature=temperature,
                     system=system_prompt,
@@ -493,7 +493,7 @@ def process_stream():
                         "type": "enabled",
                         "budget_tokens": thinking_budget
                     },
-                    betas=[OUTPUT_128K_BETA],  # Using betas parameter instead of headers
+
                 ) as stream:
                     message_id = str(uuid.uuid4())
                     generated_text = ""
@@ -593,7 +593,7 @@ def process():
             return jsonify({"success": False, "error": "Source code or text is required"}), 400
             
         format_prompt = data.get('format_prompt', '')
-        model = data.get('model', 'claude-3-7-sonnet-20250219')
+        model = data.get('model', 'claude-sonnet-4-20250514')
         max_tokens = data.get('max_tokens', 100000)
         temperature = data.get('temperature', 0.5)
         thinking_budget = data.get('thinking_budget', 30)
@@ -618,9 +618,9 @@ def process():
         # Set up parameters with beta access for Claude 3.7
         OUTPUT_128K_BETA = "output-128k-2025-02-19"
         
-        # Make the API call with beta parameters
-        response = client.beta.messages.create(
-            model="claude-3-7-sonnet-20250219",
+        # Make the API call without beta parameters for Claude 4
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
             max_tokens=max_tokens,
             temperature=temperature,
             system=system_prompt,
@@ -638,8 +638,7 @@ def process():
             thinking={
                 "type": "enabled",
                 "budget_tokens": thinking_budget
-            },
-            betas=[OUTPUT_128K_BETA]
+            }
         )
         
         # Extract the content from the response

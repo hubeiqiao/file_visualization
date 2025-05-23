@@ -534,17 +534,17 @@
                         <!-- Max Tokens Control -->
                         <div class="mb-4">
                             <label for="max-tokens" class="block text-sm font-medium mb-1">
-                                <i class="fas fa-expand-arrows-alt text-primary-600 mr-1"></i> Max Tokens: <span id="max-tokens-value">128000</span>
+                                <i class="fas fa-expand-arrows-alt text-primary-600 mr-1"></i> Max Tokens: <span id="max-tokens-value">64000</span>
                             </label>
                             <div class="flex items-center gap-2">
-                                <input type="range" id="max-tokens" name="max-tokens" min="1000" max="128000" step="1000" value="128000" 
+                                <input type="range" id="max-tokens" name="max-tokens" min="1000" max="64000" step="1000" value="64000" 
                                     class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                                 <button id="reset-max-tokens" class="text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
                                     <i class="fas fa-undo"></i>
                                 </button>
                             </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Maximum response length (128K is maximum supported by Claude 3.7)
+                                Maximum response length (64K is maximum supported by Claude 4 Sonnet)
                             </p>
                         </div>
                         
@@ -691,7 +691,7 @@
                                     <span>Loading preview...</span>
                                 </div>
                             </div>
-                            <iframe id="preview-iframe" class="w-full h-96 border-0" sandbox="allow-same-origin allow-scripts" loading="lazy"></iframe>
+                            <iframe id="preview-iframe" class="w-full h-96 border-0" sandbox="allow-same-origin allow-forms allow-modals allow-popups allow-presentation" loading="lazy" title="HTML Preview"></iframe>
                         </div>
                     </div>
                     
@@ -732,7 +732,7 @@
                             <div id="input-tokens" class="text-xl font-semibold">0</div>
                             <div class="mt-1 flex justify-center">
                                 <span class="token-block input"></span>
-                                <div class="text-xs text-gray-500">$3/million tokens</div>
+                                <div class="text-xs text-gray-500">Claude: $3/M • Gemini: $0.10/M</div>
                             </div>
                         </div>
                         
@@ -741,7 +741,7 @@
                             <div id="output-tokens" class="text-xl font-semibold">0</div>
                             <div class="mt-1 flex justify-center">
                                 <span class="token-block output"></span>
-                                <div class="text-xs text-gray-500">$15/million tokens</div>
+                                <div class="text-xs text-gray-500">Claude: $15/M • Gemini: $0.40/M</div>
                             </div>
                         </div>
                         
@@ -749,7 +749,8 @@
                             <div class="text-sm text-gray-500 dark:text-gray-400">Total Cost</div>
                             <div id="total-cost" class="text-xl font-semibold">-</div>
                             <div class="text-xs text-gray-500 mt-1">
-                                Based on Claude 3.7 pricing: Input $3/M tokens, Output $15/M tokens
+                                Claude 4 Sonnet: Input $3/M tokens, Output $15/M tokens<br>
+                                Gemini 2.0 Flash: Input $0.10/M tokens, Output $0.40/M tokens
                             </div>
                         </div>
                     </div>
@@ -761,7 +762,7 @@
     <!-- Footer -->
     <footer class="bg-white shadow-inner mt-8">
         <div class="container mx-auto px-4 py-6 text-center">
-            <p class="text-gray-600">Powered by <a href="https://www.anthropic.com/claude" class="text-primary-500 hover:underline" target="_blank" rel="noopener">Anthropic Claude 3.7</a> and <a href="https://ai.google.dev/" class="text-primary-500 hover:underline" target="_blank" rel="noopener">Google Gemini 2.5 Pro</a> with thinking capabilities</p>
+            <p class="text-gray-600">Powered by <a href="https://www.anthropic.com/claude" class="text-primary-500 hover:underline" target="_blank" rel="noopener">Anthropic Claude 4 Sonnet</a> and <a href="https://ai.google.dev/" class="text-primary-500 hover:underline" target="_blank" rel="noopener">Google Gemini 2.5 Pro</a> with thinking capabilities</p>
             <p class="mt-2 text-gray-600">© 2025 - <span class="font-medium">File Visualizer</span> by <a href="https://www.linkedin.com/in/hubeiqiao/" class="text-primary-500 hover:underline" target="_blank" rel="noopener">Joe Hu</a></p>
             <div class="mt-4">
                 <a href="https://buy.stripe.com/6oEdTw8OQ86S0CYcMN" class="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors" target="_blank" rel="noopener">

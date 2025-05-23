@@ -492,10 +492,10 @@
                         <!-- Max Tokens -->
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label for="max-tokens" class="font-medium text-gray-900">Output Length: <span id="max-tokens-value" class="text-primary-600">128000</span></label>
+                                <label for="max-tokens" class="font-medium text-gray-900">Output Length: <span id="max-tokens-value" class="text-primary-600">64000</span></label>
                                 <button id="reset-max-tokens" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
-                            <input type="range" id="max-tokens" min="1000" max="128000" step="1000" value="128000" 
+                            <input type="range" id="max-tokens" min="1000" max="64000" step="1000" value="64000" 
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                             <p class="text-xs text-gray-500 mt-1">Controls how much content Claude can generate. Higher values allow for more extensive, detailed output.</p>
                         </div>
@@ -506,7 +506,7 @@
                                 <label for="thinking-budget" class="font-medium text-gray-900">Thinking Depth: <span id="thinking-budget-value" class="text-primary-600">32000</span></label>
                                 <button id="reset-thinking-budget" class="text-xs text-primary-500 hover:underline">Reset</button>
                             </div>
-                            <input type="range" id="thinking-budget" min="1024" max="128000" step="1024" value="32000" 
+                            <input type="range" id="thinking-budget" min="1024" max="64000" step="1024" value="32000" 
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                             <p class="text-xs text-gray-500 mt-1">Allocates how much "thinking" Claude can do before responding. Higher values allow deeper analysis of complex content.</p>
                         </div>
@@ -620,7 +620,7 @@
         <div class="container mx-auto">
             <p>
                 <span id="app-version" class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hidden"></span>
-                Powered by <a href="https://www.anthropic.com/claude" class="text-primary-600 dark:text-primary-400 hover:underline font-semibold" target="_blank" rel="noopener">Anthropic Claude 3.7</a> and <a href="https://ai.google.dev/" class="text-primary-600 dark:text-primary-400 hover:underline font-semibold" target="_blank" rel="noopener">Google Gemini 2.5 Pro</a> with thinking capabilities
+                Powered by <a href="https://www.anthropic.com/claude" class="text-primary-600 dark:text-primary-400 hover:underline font-semibold" target="_blank" rel="noopener">Anthropic Claude 4 Sonnet</a> and <a href="https://ai.google.dev/" class="text-primary-600 dark:text-primary-400 hover:underline font-semibold" target="_blank" rel="noopener">Google Gemini 2.5 Pro</a> with thinking capabilities
             </p>
             <p class="mt-2">© 2025 - File Visualizer by <a href="https://www.linkedin.com/in/hubeiqiao/" class="text-primary-600 dark:text-primary-400 hover:underline font-semibold" target="_blank" rel="noopener">Joe Hu</a></p>
             <p class="mt-2">

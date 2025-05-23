@@ -66,7 +66,7 @@ export default async function handler(req) {
         const body = await req.json();
         const content = body.content || body.source || '';
         const apiKey = body.api_key || '';
-        const maxTokens = body.max_tokens || 128000;
+        const maxTokens = body.max_tokens || 64000;
         const thinkingBudget = body.thinking_budget || 32000;
         const temperature = body.temperature || 0.5;
         const formatPrompt = body.format_prompt || '';
@@ -150,7 +150,7 @@ export default async function handler(req) {
           let chunkCount = 0;
           
           // Use the correct Claude 3.7 model as requested
-          const model = testMode ? 'claude-3-haiku-20240307' : 'claude-3-7-sonnet-20250219';
+          const model = testMode ? 'claude-3-haiku-20240307' : 'claude-sonnet-4-20250514';
           const tokenLimit = testMode ? 1000 : 60000;
           
           writeEvent('status', {

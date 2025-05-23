@@ -89,7 +89,7 @@ MAX_BACKOFF_DELAY = 45  # Max 45 seconds delay (reduced from 60)
 BACKOFF_FACTOR = 1.3  # Use 1.3 instead of 1.5 for more gradual increase
 
 # Gemini-specific settings
-GEMINI_MODEL = "gemini-2.5-pro-exp-03-25"
+GEMINI_MODEL = "gemini-2.5-pro-preview-05-06"
 GEMINI_MAX_OUTPUT_TOKENS = 655360
 GEMINI_TEMPERATURE = 1.0 
 GEMINI_TOP_P = 0.95
@@ -144,7 +144,7 @@ def process():
     # Get additional parameters from request or use defaults
     api_key = data.get('api_key', '')
     format_prompt = data.get('format_prompt', '')
-    model = data.get('model', 'claude-3-7-sonnet-20250219')
+    model = data.get('model', 'claude-sonnet-4-20250514')
     max_tokens = int(data.get('max_tokens', DEFAULT_MAX_TOKENS))
     temperature = float(data.get('temperature', 1.0))
     thinking_budget = int(data.get('thinking_budget', DEFAULT_THINKING_BUDGET))
@@ -391,7 +391,7 @@ def process_file():
     print('API Key:', api_key)
 
     format_prompt = data.get('format_prompt', '')
-    model = data.get('model', 'claude-3-7-sonnet-20250219')
+    model = data.get('model', 'claude-sonnet-4-20250514')
     max_tokens = int(data.get('max_tokens', 128000))
     temperature = float(data.get('temperature', 1.0))
     thinking_budget = int(data.get('thinking_budget', 32000))
@@ -426,9 +426,8 @@ def process_file():
         if thinking_budget > 0:
             params["thinking"] = {"type": "enabled", "budget_tokens": thinking_budget}
             
-        # Add beta parameter if needed
-        if max_tokens > 4096:
-            params["betas"] = [OUTPUT_128K_BETA]
+                    # Beta parameter no longer needed for Claude 4
+            # Extended output is available by default
         
         # Create the message
         response = client.messages.create(**params)
@@ -828,7 +827,7 @@ def process_stream():
         return jsonify({"success": False, "error": "Source code or text is required"}), 400
     
     format_prompt = data.get('format_prompt', '')
-    model = data.get('model', 'claude-3-7-sonnet-20250219')  # Updated to Claude 3.7
+    model = data.get('model', 'claude-sonnet-4-20250514')  # Updated to Claude 4
     max_tokens = int(data.get('max_tokens', DEFAULT_MAX_TOKENS))
     temperature = float(data.get('temperature', 0.5))
     thinking_budget = int(data.get('thinking_budget', DEFAULT_THINKING_BUDGET))
@@ -908,9 +907,9 @@ def process_stream():
             
             while retry_count <= max_retries:
                 try:
-                    # Use the Claude 3.7 specific implementation with beta parameter
-                    with client.beta.messages.stream(
-                        model="claude-3-7-sonnet-20250219",
+                    # Use the Claude 4 specific implementation without beta parameter for extended output
+                    with client.messages.stream(
+                        model="claude-sonnet-4-20250514",
                         max_tokens=max_tokens,
                         temperature=temperature,
                         system=system_prompt,
@@ -928,8 +927,7 @@ def process_stream():
                         thinking={
                             "type": "enabled",
                             "budget_tokens": thinking_budget
-                        },
-                        betas=[OUTPUT_128K_BETA],  # Using betas parameter instead of headers
+                        }
                     ) as stream:
                         message_id = str(uuid.uuid4())
                         generated_text = ""
@@ -1610,7 +1608,7 @@ Here is the content to transform into a website:
         client = genai.Client(
             api_key=api_key,
         )
-        model = "gemini-2.5-pro-exp-03-25"
+        model = "gemini-2.5-pro-preview-05-06"
         generate_content_config = types.GenerateContentConfig(
             response_mime_type="text/plain",
         )
@@ -2015,7 +2013,7 @@ def get_version():
         'name': 'File Visualization',
         'gemini_available': GEMINI_AVAILABLE,
         'gemini_model': GEMINI_MODEL,
-        'claude_model': 'claude-3-7-sonnet-20250219',
+        'claude_model': 'claude-sonnet-4-20250514',
         'timestamp': datetime.now().isoformat()
     })
 

@@ -54,7 +54,7 @@ module.exports = (req, res) => {
     const costEstimate = (totalTokens / 1000000 * 3.0).toFixed(6);
     
     // Calculate max safe output tokens - same as in server.py
-    const maxSafeOutputTokens = Math.min(128000, 200000 - totalTokens - 5000);
+    const maxSafeOutputTokens = Math.min(64000, 200000 - totalTokens - 5000);
     
     // Return the estimated token count with all fields needed by the frontend
     return res.status(200).json({

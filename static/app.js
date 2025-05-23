@@ -104,14 +104,17 @@ let state = {
     fileContent: '',
     textContent: '',
     temperature: 1.0,
-    maxTokens: 128000,
+    maxTokens: 64000, // Updated for Claude 4 Sonnet
     thinkingBudget: 32000,
     processing: false,
     generatedHtml: '',
     fileName: '',
     startTime: null,
     elapsedTimeInterval: null,
-    testMode: false
+    testMode: false,
+    previewLoading: false, // Add preview loading state
+    previewDisabled: false, // Add preview disable state
+    previewFailureCount: 0 // Track preview failures
 };
 
 // Function to update processing text
@@ -919,12 +922,12 @@ function updateMaxTokens() {
 }
 
 function resetMaxTokens() {
-    state.maxTokens = 128000;
+    state.maxTokens = 64000; // Updated for Claude 4 Sonnet
     if (elements.maxTokens) {
-        elements.maxTokens.value = 128000;
+        elements.maxTokens.value = 64000;
     }
     if (elements.maxTokensValue) {
-        elements.maxTokensValue.textContent = '128,000';
+        elements.maxTokensValue.textContent = '64,000';
     }
 }
 
@@ -1110,8 +1113,8 @@ async function generateWebsite() {
 
 // Function to update UI based on API provider
 function updateUIForApiProvider(provider) {
-    const generationSettings = document.querySelector('.bg-white.rounded-lg.shadow-md.p-5.transition-all.hover\\:shadow-lg:has(.fa-sliders-h)');
-    const usageStatsSection = document.querySelector('#result-section .bg-white.rounded-lg.shadow-md.p-5:has(.fa-chart-line)');
+    const generationSettings = document.querySelector('#generation-settings');
+    const usageStatsSection = document.querySelector('.p-4.bg-white.rounded-lg.shadow-md');
     
     if (provider === 'gemini') {
         // For Gemini, hide the entire Generation Settings section
@@ -1119,9 +1122,9 @@ function updateUIForApiProvider(provider) {
             generationSettings.classList.add('hidden');
         }
         
-        // Hide usage stats for Gemini
+        // Show usage stats for Gemini (updated to show instead of hide)
         if (usageStatsSection) {
-            usageStatsSection.classList.add('hidden');
+            usageStatsSection.classList.remove('hidden');
         }
     } else {
         // For Anthropic, show Generation Settings
@@ -1750,20 +1753,35 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                         const chunk = decoder.decode(value, { stream: true });
                         console.log('Received chunk:', chunk.substring(0, 50) + '...');
                         
-                        // Process the chunk - look for data: lines
+                        // Process the chunk - look for both event: and data: lines
                         const lines = chunk.split('\n');
+                        let currentEvent = '';
                         
                         for (const line of lines) {
                             // Skip empty lines
                             if (!line.trim()) continue;
                             
+                            // Handle SSE event type lines
+                            if (line.startsWith('event: ')) {
+                                currentEvent = line.substring(7);
+                                console.log('SSE Event:', currentEvent);
+                                continue;
+                            }
+                            
                             // Handle SSE format (data: {...})
                             if (line.startsWith('data: ')) {
                                 try {
                                     const data = JSON.parse(line.substring(6));
+                                    console.log('Received SSE data:', data.type || 'unknown', data);
+                                    
+                                    // Update session ID if provided
+                                    if (data.session_id && !sessionId) {
+                                        sessionId = data.session_id;
+                                        console.log('Session ID set to:', sessionId);
+                                    }
                                     
                                     // Update the keepalive time for keepalive events
-                                    if (line.includes('event: keepalive')) {
+                                    if (currentEvent === 'keepalive' || data.type === 'keepalive') {
                                         lastKeepAliveTime = Date.now();
                                         console.log('Received keepalive at', new Date().toISOString());
                                         continue;
@@ -1781,16 +1799,23 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
                                     // Handle new local streaming format (type: delta)
                                     if (data.type === 'delta' && data.content) {
                                         generatedContent += data.content;
+                                        setProcessingText(`Generating HTML... (${generatedContent.length} characters)`);
                                         updateHtmlPreview(generatedContent);
                                         lastKeepAliveTime = Date.now(); // Count content as keepalive
                                         continue;
                                     }
                                     
-                                    // Handle content block deltas (the actual generated text) - Vercel format
+                                    // Handle content block deltas (the actual generated text) - Primary format from Anthropic
                                     if (data.type === 'content_block_delta' && data.delta && data.delta.text) {
                                         generatedContent += data.delta.text;
+                                        setProcessingText(`Generating HTML... (${generatedContent.length} characters)`);
                                         updateHtmlPreview(generatedContent);
                                         lastKeepAliveTime = Date.now(); // Count content as keepalive
+                                        
+                                        // Update chunk ID for reconnection
+                                        if (data.chunk_id) {
+                                            lastChunkId = data.chunk_id;
+                                        }
                                         continue;
                                     }
                                     
@@ -2037,86 +2062,51 @@ async function generateHTMLStreamWithReconnection(apiKey, source, formatPrompt, 
 function updateHtmlPreview(html) {
     if (!html) return;
     
+    // Always render the actual content, just like "Open in New Tab" does
+    const iframe = document.getElementById('preview-iframe');
+    if (!iframe) return;
+    
     try {
-        // For large content, use incremental iframe updates
-        const htmlLength = html.length;
-        console.log(`Updating HTML preview with content length: ${htmlLength}`);
-        
-        if (htmlLength > MAX_HTML_BUFFER_SIZE) {
-            // Only update the preview iframe in incremental mode for large content
-            console.log(`Large HTML detected (${formatFileSize(htmlLength)}), using incremental iframe update`);
-            
-            // Check if iframe exists
-            const iframe = document.getElementById('preview-iframe');
-            if (!iframe) {
-                console.error('Preview iframe not found');
-                return;
-            }
-            
-            // For very large content, we'll inject incrementally using document.write
-            if (!iframe.hasAttribute('data-initialized')) {
-                // Initialize the iframe with base HTML structure
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                iframeDoc.open();
-                iframeDoc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body></body></html>');
-                iframeDoc.close();
-                iframe.setAttribute('data-initialized', 'true');
-                iframe.setAttribute('data-content-length', '0');
-            }
-            
-            // Get the previous content length
-            const prevLength = parseInt(iframe.getAttribute('data-content-length') || '0');
-            
-            // Only inject the new content
-            if (htmlLength > prevLength) {
-                const newContent = html.substring(prevLength);
-                
-                try {
-                    // Append to body instead of rewriting everything
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    
-                    // Create temporary div to parse HTML
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = newContent;
-                    
-                    // Extract new nodes and append them to iframe body
-                    Array.from(tempDiv.childNodes).forEach(node => {
-                        iframeDoc.body.appendChild(iframeDoc.importNode(node, true));
-                    });
-                    
-                    // Update the stored content length
-                    iframe.setAttribute('data-content-length', htmlLength.toString());
-                } catch (innerError) {
-                    console.error('Error appending to iframe:', innerError);
-                }
-            }
-        } else {
-            // For smaller content, use normal update method
-            if (elements.htmlOutput) {
-                elements.htmlOutput.value = html;
-            } else {
-                console.warn('HTML output element not found, but continuing with iframe update');
-            }
-            
-            // Update the preview iframe
-            const iframe = document.getElementById('preview-iframe');
-            if (iframe) {
-                try {
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    iframeDoc.open();
-                    iframeDoc.write(html);
-                    iframeDoc.close();
-                    console.log('Preview iframe updated successfully');
-                } catch (iframeError) {
-                    console.error('Error updating iframe:', iframeError);
-                }
-            } else {
-                console.error('Preview iframe element not found');
+        // Clean HTML content if it contains markdown-style code blocks from Gemini
+        let cleanedContent = html;
+        if (state.apiProvider === 'gemini' && html.includes('```html')) {
+            const htmlMatch = html.match(/```html\s*([\s\S]*?)\s*```/);
+            if (htmlMatch && htmlMatch[1]) {
+                cleanedContent = htmlMatch[1].trim();
+                console.log('Cleaned Gemini markdown code blocks from HTML output');
             }
         }
+        
+        // Basic safety filtering - only remove dangerous JavaScript
+        let safeContent = cleanedContent;
+        safeContent = safeContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+        safeContent = safeContent.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '');
+        safeContent = safeContent.replace(/javascript:[^"']*/gi, 'about:blank');
+        
+        // Write the content directly to the iframe
+        setTimeout(() => {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Just write the content directly, like "Open in New Tab" does
+                iframeDoc.open();
+                iframeDoc.write(safeContent);
+                iframeDoc.close();
+                
+                console.log('Preview updated with actual content');
+                
+            } catch (error) {
+                console.error('Error writing content to iframe:', error);
+            }
+        }, 50);
+        
     } catch (error) {
-        console.error('Error updating HTML preview:', error);
-        showToast('Error updating preview', 'error');
+        console.error('Error updating preview:', error);
+    }
+    
+    // Update the HTML output textarea
+    if (elements.htmlOutput) {
+        elements.htmlOutput.value = html;
     }
 }
 
@@ -2126,13 +2116,8 @@ function showResultSection() {
     if (resultSection) {
         resultSection.classList.remove('hidden');
         
-        // Hide usage stats if Gemini is selected
-        if (state.apiProvider === 'gemini') {
-            const usageStatsSection = resultSection.querySelector('.bg-white.rounded-lg.shadow-md.p-5:has(.fa-chart-line)');
-            if (usageStatsSection) {
-                usageStatsSection.classList.add('hidden');
-            }
-        }
+        // Usage stats should always be visible for both providers
+        // Removed the logic that was hiding usage stats for Gemini
         
         // Only scroll to result section if generation is complete
         if (!state.processing) {
@@ -2348,6 +2333,8 @@ function updateHtmlDisplay(directContent) {
     // Use the provided content or get from state
     const htmlContent = directContent || state.generatedHtml || '';
     
+    console.log(`updateHtmlDisplay called with content length: ${htmlContent.length}, processing: ${state.processing}`);
+    
     // Set the content for the HTML output textarea if it exists
     if (elements.htmlOutput) {
         elements.htmlOutput.value = htmlContent;
@@ -2365,14 +2352,13 @@ function updateHtmlDisplay(directContent) {
         }
     }
     
-    // If preview is available, update it
+    // If preview is available, update it with final content
+    // Force using updatePreview for final rendering regardless of processing state
+    console.log('Calling updatePreview for final rendering');
     updatePreview(htmlContent);
     
     // Show the result section with both preview and code
     showResultSection();
-    
-    // Log debug info
-    console.log(`updateHtmlDisplay called with content length: ${htmlContent.length}`);
 }
 
 // Add function to suppress TailwindCSS CDN warnings in iframes
@@ -2412,11 +2398,19 @@ function suppressTailwindCDNWarnings(iframeDoc) {
 function updatePreview(directContent) {
     // Use the provided content or get from state
     const htmlContent = directContent || state.generatedHtml || '';
-    if (!htmlContent) return;
+    if (!htmlContent) {
+        console.log('updatePreview: No content to preview');
+        return;
+    }
+    
+    console.log('updatePreview: Updating final preview with content length:', htmlContent.length);
     
     // Get the iframe
     const iframe = document.getElementById('preview-iframe');
-    if (!iframe) return;
+    if (!iframe) {
+        console.error('updatePreview: Preview iframe not found');
+        return;
+    }
     
     try {
         // Clean HTML content if it contains markdown-style code blocks from Gemini
@@ -2426,105 +2420,200 @@ function updatePreview(directContent) {
             const htmlMatch = htmlContent.match(/```html\s*([\s\S]*?)\s*```/);
             if (htmlMatch && htmlMatch[1]) {
                 cleanedContent = htmlMatch[1].trim();
-                console.log('Cleaned Gemini markdown code blocks from HTML output');
+                console.log('updatePreview: Cleaned Gemini markdown code blocks from HTML output');
                 
                 // Also update the state and display with the cleaned content
                 state.generatedHtml = cleanedContent;
                 if (elements.htmlOutput) {
                     elements.htmlOutput.value = cleanedContent;
                 }
-                if (document.getElementById('raw-html')) {
-                    document.getElementById('raw-html').textContent = cleanedContent;
-                    if (window.Prism) {
-                        Prism.highlightElement(document.getElementById('raw-html'));
-                    }
+            }
+        }
+        
+        // Basic safety filtering - only remove dangerous JavaScript
+        let safeContent = cleanedContent;
+        
+        // Remove script tags for security
+        safeContent = safeContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+        
+        // Remove event handlers for security
+        safeContent = safeContent.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '');
+        
+        // Remove javascript: URLs
+        safeContent = safeContent.replace(/javascript:[^"']*/gi, 'about:blank');
+        
+        console.log('updatePreview: About to write content to iframe');
+        
+        // Write the content to the iframe
+        setTimeout(() => {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // If it's already a complete HTML document, use it as-is
+                if (safeContent.toLowerCase().includes('<!doctype') || safeContent.toLowerCase().includes('<html')) {
+                    console.log('updatePreview: Using complete HTML document');
+                    iframeDoc.open();
+                    iframeDoc.write(safeContent);
+                    iframeDoc.close();
+                } else {
+                    // Wrap incomplete HTML in a basic document structure
+                    console.log('updatePreview: Wrapping content in HTML document structure');
+                    const wrappedHtml = `
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Generated Visualization</title>
+                        <style>
+                            body { 
+                                margin: 0;
+                                padding: 20px;
+                                font-family: system-ui, -apple-system, sans-serif;
+                            }
+                            img { 
+                                max-width: 100%; 
+                                height: auto; 
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${safeContent}
+                    </body>
+                    </html>
+                    `;
+                    
+                    iframeDoc.open();
+                    iframeDoc.write(wrappedHtml);
+                    iframeDoc.close();
                 }
+                
+                console.log('updatePreview: Final preview updated successfully');
+                
+            } catch (error) {
+                console.error('updatePreview: Error writing final content to iframe:', error);
+                // Fallback to text preview
+                showTextPreview(cleanedContent);
             }
-        }
+        }, 10); // Small delay to ensure iframe is ready
         
-        // Modify script declarations to prevent duplicate variable errors
-        // Add a unique namespace for each preview to avoid conflicts
-        const previewId = `preview_${Date.now()}`;
-        let modifiedContent = cleanedContent;
+    } catch (error) {
+        console.error('updatePreview: Error updating final preview:', error);
+        showTextPreview(cleanedContent || htmlContent);
+    }
+}
+
+// Add a new function to show text-based preview as fallback
+function showTextPreview(htmlContent) {
+    const iframe = document.getElementById('preview-iframe');
+    if (!iframe) return;
+    
+    try {
+        // Extract text content from HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        const textContent = tempDiv.textContent || tempDiv.innerText || '';
         
-        // Find and modify variable declarations and function definitions
-        // Add scope to prevent variable declaration conflicts
-        modifiedContent = modifiedContent.replace(/const\s+(\w+)\s*=/g, `const $1_${previewId} =`);
-        modifiedContent = modifiedContent.replace(/let\s+(\w+)\s*=/g, `let $1_${previewId} =`);
-        modifiedContent = modifiedContent.replace(/var\s+(\w+)\s*=/g, `var $1_${previewId} =`);
+        // Determine the reason for text preview
+        const isDisabled = state.previewDisabled;
+        const headerMessage = isDisabled 
+            ? '⚠️ Preview Disabled for Performance'
+            : '📝 Text Preview';
+        const subMessage = isDisabled
+            ? 'HTML preview has been disabled due to performance issues. The content is too complex for safe iframe rendering.'
+            : 'The HTML content is too complex for safe preview. Showing text content instead.';
         
-        // Handle function definitions - keep track of functions we rename
-        const renamedFunctions = new Set();
-        modifiedContent = modifiedContent.replace(/function\s+(\w+)\s*\(/g, (match, name) => {
-            renamedFunctions.add(name);
-            return `function ${name}_${previewId}(`;
-        });
-        
-        // Replace common variables that often cause conflicts
-        modifiedContent = modifiedContent.replace(/prefersDark/g, `prefersDark_${previewId}`);
-        
-        // Special handling for ThemeManager
-        modifiedContent = modifiedContent.replace(/ThemeManager/g, `ThemeManager_${previewId}`);
-        
-        // Special handling for applyTheme function
-        const applyThemeRegex = /function\s+applyTheme\s*\(/g;
-        if (applyThemeRegex.test(modifiedContent)) {
-            renamedFunctions.add('applyTheme');
-            modifiedContent = modifiedContent.replace(/applyTheme/g, `applyTheme_${previewId}`);
-        }
-        
-        modifiedContent = modifiedContent.replace(/toggleDarkMode/g, `toggleDarkMode_${previewId}`);
-        
-        // Now update all function calls for renamed functions
-        renamedFunctions.forEach(funcName => {
-            // Use word boundary to ensure we only replace function calls, not partial matches
-            const callRegex = new RegExp(`\\b${funcName}\\(`, 'g');
-            modifiedContent = modifiedContent.replace(callRegex, `${funcName}_${previewId}(`);
-        });
-        
-        // Add a comment to Tailwind CDN imports about production usage
-        modifiedContent = modifiedContent.replace(
-            /(https:\/\/cdn\.tailwindcss\.com[^"']*)/g, 
-            '$1" data-info="Please note: For production use, it\'s recommended to install Tailwind CSS as a PostCSS plugin or use the Tailwind CLI'
-        );
-        
-        // Add generic protection against common errors
-        const safetyScript = `
-        <script>
-            // Define any potentially missing globals to prevent errors
-            if (typeof ThemeManager_${previewId} === 'undefined') {
-                window.ThemeManager_${previewId} = { init: function() { console.log('ThemeManager stub'); } };
-            }
-            
-            // Catch and log any errors
-            window.addEventListener('error', function(e) {
-                console.log('Preview iframe error:', e.message);
-                return false;
-            });
-        </script>
+        // Create a simple text preview
+        const textPreviewHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { 
+                    font-family: system-ui, -apple-system, sans-serif; 
+                    padding: 20px; 
+                    background: #f8f9fa; 
+                    color: #333;
+                    line-height: 1.5;
+                    margin: 0;
+                }
+                .preview-header {
+                    background: ${isDisabled ? '#fff3cd' : '#e3f2fd'};
+                    padding: 15px;
+                    border-left: 4px solid ${isDisabled ? '#ffc107' : '#2196f3'};
+                    margin-bottom: 20px;
+                    border-radius: 4px;
+                }
+                .preview-header strong {
+                    color: ${isDisabled ? '#856404' : '#1976d2'};
+                    font-size: 16px;
+                }
+                .preview-header p {
+                    margin: 8px 0 0 0;
+                    color: ${isDisabled ? '#856404' : '#1976d2'};
+                    font-size: 14px;
+                }
+                .content {
+                    white-space: pre-wrap;
+                    max-height: 400px;
+                    overflow-y: auto;
+                    background: white;
+                    padding: 20px;
+                    border-radius: 6px;
+                    border: 1px solid #dee2e6;
+                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                    font-size: 13px;
+                    line-height: 1.4;
+                }
+                .actions {
+                    margin-top: 15px;
+                    padding: 10px;
+                    background: #e9ecef;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    color: #495057;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="preview-header">
+                <strong>${headerMessage}</strong>
+                <p>${subMessage}</p>
+            </div>
+            <div class="content">${textContent.substring(0, 3000)}${textContent.length > 3000 ? '\n\n... (content truncated for display)' : ''}</div>
+            <div class="actions">
+                💡 <strong>Tip:</strong> Use "Open in New Tab" or "Download" to view the complete HTML file safely.
+            </div>
+        </body>
+        </html>
         `;
         
-        // Add the safety script to the content
-        if (modifiedContent.includes('</head>')) {
-            modifiedContent = modifiedContent.replace('</head>', `${safetyScript}</head>`);
-        } else if (modifiedContent.includes('<body')) {
-            modifiedContent = modifiedContent.replace('<body', `${safetyScript}<body`);
-        } else {
-            modifiedContent = `${safetyScript}${modifiedContent}`;
-        }
-        
-        // Write the HTML to the iframe
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         iframeDoc.open();
-        iframeDoc.write(modifiedContent);
+        iframeDoc.write(textPreviewHtml);
         iframeDoc.close();
         
-        // Suppress Tailwind CDN warnings in the iframe
-        suppressTailwindCDNWarnings(iframeDoc);
-        
-        console.log('Preview updated with HTML content of length:', modifiedContent.length);
+        console.log('Showing text-based preview as fallback');
     } catch (error) {
-        console.error('Error updating preview:', error);
+        console.error('Error showing text preview:', error);
+        // Ultimate fallback - just show a simple message
+        try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(`
+                <html>
+                <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center; background: #f5f5f5;">
+                    <h3 style="color: #dc3545;">⚠️ Preview Unavailable</h3>
+                    <p>Unable to display preview due to performance concerns.</p>
+                    <p><strong>Please use "Download" or "Open in New Tab" to view your content.</strong></p>
+                </body>
+                </html>
+            `);
+            iframeDoc.close();
+        } catch (ultimateError) {
+            console.error('Ultimate fallback failed:', ultimateError);
+        }
     }
 }
 
@@ -2751,11 +2840,14 @@ async function analyzeTokens(content) {
         // Update token info display based on API provider
         if (elements.tokenInfo) {
             if (state.apiProvider === 'gemini') {
-                // For Gemini, only show estimated tokens without cost
+                // For Gemini, show estimated tokens with cost information
+                const estimatedCost = (data.estimated_tokens / 1000000) * 0.10; // $0.10 per million tokens for input
                 elements.tokenInfo.innerHTML = `
                     <div class="token-analysis">
                         <h3>Token Analysis</h3>
                         <p>Estimated Input Tokens: ${data.estimated_tokens.toLocaleString()}</p>
+                        <p>Estimated Input Cost: $${estimatedCost.toFixed(4)}</p>
+                        <p class="text-sm text-gray-600">Gemini 2.0 Flash: $0.10/M input, $0.40/M output tokens</p>
                     </div>
                 `;
             } else {
@@ -3093,21 +3185,29 @@ function updateTokenStats(usage) {
 function updateUsageStatistics(usage) {
     if (!usage) return;
     
-    // For Gemini, we don't calculate cost since it's free
+    // Update token displays for both providers
+    if (elements.inputTokens) {
+        elements.inputTokens.textContent = usage.input_tokens.toLocaleString();
+    }
+    if (elements.outputTokens) {
+        elements.outputTokens.textContent = usage.output_tokens.toLocaleString();
+    }
+    
+    // For cost calculation
     if (state.apiProvider === 'gemini') {
-        if (elements.inputTokens) {
-            elements.inputTokens.textContent = usage.input_tokens.toLocaleString();
-        }
-        if (elements.outputTokens) {
-            elements.outputTokens.textContent = usage.output_tokens.toLocaleString();
-        }
+        // Calculate Gemini cost with current pricing
+        // Gemini 2.0 Flash: $0.10/M input tokens, $0.40/M output tokens
+        const inputCost = (usage.input_tokens / 1000000) * 0.10;
+        const outputCost = (usage.output_tokens / 1000000) * 0.40;
+        const totalCost = inputCost + outputCost;
+        
         if (elements.totalCost) {
-            elements.totalCost.textContent = '-'; // Always display as free for Gemini
+            elements.totalCost.textContent = formatCostDisplay(totalCost);
         }
     } else {
         // For Anthropic, calculate cost if not provided
         if (!usage.total_cost) {
-            // Claude 3 pricing: $3/M input tokens, $15/M output tokens
+            // Claude 4 Sonnet pricing: $3/M input tokens, $15/M output tokens
             usage.total_cost = (usage.input_tokens / 1000000) * 3.0 + (usage.output_tokens / 1000000) * 15.0;
         }
         

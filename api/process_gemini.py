@@ -153,6 +153,12 @@ Here is the content to transform into a website:
             input_tokens = max(1, int(len(prompt.split()) * 1.3))
             output_tokens = max(1, int(len(html_content.split()) * 1.3))
             
+            # Calculate cost based on current Gemini 2.0 Flash pricing
+            # $0.10 per million input tokens, $0.40 per million output tokens
+            input_cost = (input_tokens / 1000000) * 0.10
+            output_cost = (output_tokens / 1000000) * 0.40
+            total_cost = input_cost + output_cost
+            
             # Log response
             print(f"Successfully generated HTML with Gemini. Input tokens: {input_tokens}, Output tokens: {output_tokens}")
             
@@ -164,7 +170,7 @@ Here is the content to transform into a website:
                     'input_tokens': input_tokens,
                     'output_tokens': output_tokens,
                     'total_tokens': input_tokens + output_tokens,
-                    'total_cost': 0.0  # Gemini API is currently free
+                    'total_cost': total_cost
                 }
             })
         
@@ -318,6 +324,12 @@ Here is the content to transform into a website:
             output_tokens = max(1, int(len(html_content.split()) * 1.3))
             total_tokens = input_tokens + output_tokens
             
+            # Calculate cost based on current Gemini 2.0 Flash pricing
+            # $0.10 per million input tokens, $0.40 per million output tokens
+            input_cost = (input_tokens / 1000000) * 0.10
+            output_cost = (output_tokens / 1000000) * 0.40
+            total_cost = input_cost + output_cost
+            
             # Return the result
             return jsonify({
                 "success": True,
@@ -327,6 +339,12 @@ Here is the content to transform into a website:
                     "input_tokens": input_tokens,
                     "output_tokens": output_tokens,
                     "total_tokens": total_tokens
+                },
+                "usage": {
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "total_tokens": input_tokens + output_tokens,
+                    "total_cost": total_cost
                 }
             })
             
