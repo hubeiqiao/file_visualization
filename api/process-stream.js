@@ -149,8 +149,8 @@ export default async function handler(req) {
           let htmlOutput = '';
           let chunkCount = 0;
           
-          // Use the correct Claude 3.7 model as requested
-          const model = testMode ? 'claude-3-haiku-20240307' : 'claude-3-7-sonnet-20250219';
+          // Use the correct Claude Sonnet 4 model as requested
+          const model = testMode ? 'claude-3-haiku-20240307' : 'claude-sonnet-4-20250514';
           const tokenLimit = testMode ? 1000 : 60000;
           
           writeEvent('status', {

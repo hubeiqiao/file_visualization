@@ -441,7 +441,7 @@ def process_stream():
             return jsonify({"success": False, "error": "Source code or text is required"}), 400
             
         format_prompt = data.get('format_prompt', '')
-        model = data.get('model', 'claude-3-7-sonnet-20250219')  # Using Claude 3.7
+        model = data.get('model', 'claude-sonnet-4-20250514')  # Using Claude Sonnet 4
         max_tokens = int(data.get('max_tokens', 128000))
         temperature = float(data.get('temperature', 0.5))
         thinking_budget = int(data.get('thinking_budget', 32000))
@@ -474,7 +474,7 @@ def process_stream():
                 OUTPUT_128K_BETA = "output-128k-2025-02-19"
                 
                 with client.beta.messages.stream(
-                    model="claude-3-7-sonnet-20250219",
+                    model="claude-sonnet-4-20250514",
                     max_tokens=max_tokens,
                     temperature=temperature,
                     system=system_prompt,
@@ -593,7 +593,7 @@ def process():
             return jsonify({"success": False, "error": "Source code or text is required"}), 400
             
         format_prompt = data.get('format_prompt', '')
-        model = data.get('model', 'claude-3-7-sonnet-20250219')
+        model = data.get('model', 'claude-sonnet-4-20250514')
         max_tokens = data.get('max_tokens', 100000)
         temperature = data.get('temperature', 0.5)
         thinking_budget = data.get('thinking_budget', 30)
@@ -620,7 +620,7 @@ def process():
         
         # Make the API call with beta parameters
         response = client.beta.messages.create(
-            model="claude-3-7-sonnet-20250219",
+            model="claude-sonnet-4-20250514",
             max_tokens=max_tokens,
             temperature=temperature,
             system=system_prompt,
