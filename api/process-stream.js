@@ -150,7 +150,7 @@ export default async function handler(req) {
           let chunkCount = 0;
           
           // Use the correct Claude Sonnet 4 model as requested
-          const model = testMode ? 'claude-3-haiku-20240307' : 'claude-sonnet-4-20250514';
+          const model = testMode ? 'claude-sonnet-4-20250514' : 'claude-sonnet-4-20250514';
           const tokenLimit = testMode ? 1000 : 60000;
           
           writeEvent('status', {

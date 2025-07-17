@@ -1461,7 +1461,7 @@ def test_generate():
                 print(f"Calling Anthropic API with test message (attempt {retry_count + 1}/{max_retries + 1})")
                 # Call Anthropic API with minimal settings
                 response = client.messages.create(
-                    model="claude-3-haiku-20240307",  # Use smaller model to save tokens
+                    model="claude-sonnet-4-20250514",  # Use smaller model to save tokens
                     max_tokens=100,  # Minimal output
                     temperature=0.5,
                     system=system_prompt,
@@ -1624,7 +1624,7 @@ Here is the content to transform into a website:
         client = genai.Client(
             api_key=api_key,
         )
-        model = "gemini-2.5-pro-exp-03-25"
+        model = "gemini-2.5-pro"
         generate_content_config = types.GenerateContentConfig(
             response_mime_type="text/plain",
         )

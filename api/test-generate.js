@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
           
           // Call Anthropic API with minimal settings
           response = await anthropic.messages.create({
-            model: "claude-3-haiku-20240307", // Use smaller model to save tokens
+            model: "claude-sonnet-4-20250514", // Use smaller model to save tokens
             max_tokens: 100, // Minimal output
             temperature: 0.5,
             system: systemPrompt,
